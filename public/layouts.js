@@ -7,6 +7,7 @@
   else root.HypeLayouts = factory();
 })(typeof self !== 'undefined' ? self : this, function () {
   const LAYOUTS = {
+    satis_split: { label: 'Écran partagé satisfaisant', desc: 'Clip en haut, vidéo satisfaisante en bas (50/50)', ratio: '9:16', cam: false, tier: 'pro', serverOnly: true, bg: true, hot: true },
     game_full:  { label: 'Jeu plein écran',        desc: 'Recadré sur le centre de l’action', ratio: '9:16', cam: false, tier: 'free' },
     game_blur:  { label: 'Jeu + fond flouté',      desc: 'Toute l’image visible, fond flou',   ratio: '9:16', cam: false, tier: 'free' },
     cam_top:    { label: 'Caméra en haut',         desc: 'Facecam en haut, jeu en bas',        ratio: '9:16', cam: true,  tier: 'pro' },
@@ -14,7 +15,6 @@
     split_half: { label: 'Moitié / moitié',        desc: '50 % caméra, 50 % jeu',              ratio: '9:16', cam: true,  tier: 'pro' },
     cam_bubble: { label: 'Caméra en bulle',        desc: 'Bulle ronde dans un coin',           ratio: '9:16', cam: true,  tier: 'pro' },
     cam_pip:    { label: 'Caméra incrustée',       desc: 'Petit cadre caméra dans un coin',    ratio: '9:16', cam: true,  tier: 'pro' },
-    satis_split: { label: 'Écran partagé satisfaisant', desc: 'Clip en haut, vidéo satisfaisante en bas', ratio: '9:16', cam: false, tier: 'pro', serverOnly: true, bg: true },
     game_ai:    { label: 'Recadrage IA',           desc: 'Le cadre suit l’action (Cloudinary)', ratio: '9:16', cam: false, tier: 'pro', serverOnly: true },
     square:     { label: 'Carré 1:1',              desc: 'Instagram, X',                       ratio: '1:1',  cam: false, tier: 'free' },
     landscape:  { label: 'Paysage 16:9',           desc: 'YouTube classique',                  ratio: '16:9', cam: false, tier: 'free' },
@@ -94,7 +94,7 @@
         break;
       }
       case 'satis_split': {
-        const gh = H * 0.6;
+        const gh = even(H * 0.5);
         game({ x: 0, y: 0, w: W, h: gh });
         ops.push({ kind: 'bg', role: 'satis', dst: { x: 0, y: gh, w: W, h: H - gh } });
         ops.push({ kind: 'fill', color: '#000000', dst: { x: 0, y: gh - 3, w: W, h: 6 } });

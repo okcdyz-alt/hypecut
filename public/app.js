@@ -12,7 +12,7 @@
   const S = {
     mode: 'demo', cfg: null, user: null, tab: 'link', file: null,
     jobId: null, job: null, result: null, exports: [], clips: [], pollT: null,
-    local: null, ex: null, stopAt: null, lastLayout: 'game_full', camRect: null, corner: 'tl',
+    local: null, ex: null, stopAt: null, lastLayout: null, camRect: null, corner: 'tl',
     claude: { sample: null, downloads: null },
   };
 
@@ -195,6 +195,8 @@
     $('#btnAiAll').addEventListener('click', demoAiTitles);
     $('#btnLogin').addEventListener('click', () => openAuth('signup'));
     $('#ctaTop')?.addEventListener('click', (e) => { e.preventDefault(); $('#sourceCard').scrollIntoView({ behavior: 'smooth', block: 'center' }); });
+    $('#ctaSpot')?.addEventListener('click', () => $('#spot').scrollIntoView({ behavior: 'smooth', block: 'center' }));
+    $('#ctaSpotGo')?.addEventListener('click', (e) => { e.preventDefault(); if (layoutAllowed('satis_split') === 'ok') S.lastLayout = 'satis_split'; $('#sourceCard').scrollIntoView({ behavior: 'smooth', block: 'center' }); });
     document.addEventListener('click', (e) => {
       if (e.target.closest('[data-open-auth]')) { e.preventDefault(); openAuth('login'); }
       if (e.target.matches('[data-close]') || e.target.classList.contains('modal')) closeModals();
@@ -590,12 +592,18 @@
     return `<svg viewBox="0 0 ${c.W} ${c.H}" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><rect width="${c.W}" height="${c.H}" fill="#000"/>${parts}</svg>`;
   }
 
+  // Format proposé par défaut : le dernier choisi, sinon l'écran partagé satisfaisant s'il est disponible.
+  function defaultLayout() {
+    if (S.lastLayout && layoutAllowed(S.lastLayout) === 'ok') return S.lastLayout;
+    if (layoutAllowed('satis_split') === 'ok' && (S.bgs || []).length) return 'satis_split';
+    return 'game_full';
+  }
+
   async function openExport(i) {
     if (S.mode === 'server' && !S.user) { openAuth('signup'); return; }
     const c = S.result.clips[i], st = S.clips[i];
-    let layout = S.lastLayout;
-    if (layoutAllowed(layout) !== 'ok') layout = 'game_full';
     if (S.mode === 'server' && !S.bgs) { try { S.bgs = (await api('api/backgrounds')).backgrounds; } catch { S.bgs = []; } }
+    const layout = defaultLayout();
     S.ex = { idx: i, layout, bgId: S.lastBg || S.bgs?.[0]?.id || null, start: st.start, end: st.end, title: st.title, showTitle: true, progressBar: effectsAllowed(), focusX: 0.5, corner: S.corner, camRect: S.camRect || { x: 0.02, y: 0.03, w: 0.26, h: 0.3 }, img: null, frame: null, busy: false };
     $('#titleInput').value = st.title; $('#showTitle').checked = true; $('#focusX').value = 0.5;
     $('#progressBar').checked = effectsAllowed(); $('#pbLock').classList.toggle('hidden', effectsAllowed());
@@ -606,7 +614,8 @@
     const grid = $('#layoutGrid');
     grid.innerHTML = Object.keys(L.LAYOUTS).filter((k) => layoutAllowed(k) !== 'hide').map((k) => {
       const st2 = layoutAllowed(k);
-      return `<button class="lay ${st2 === 'lock' ? 'locked' : ''}" data-lay="${k}" title="${esc(L.LAYOUTS[k].desc)}">${st2 === 'lock' ? '<span class="lk">🔒 PRO</span>' : ''}${layoutIcon(k)}<b>${esc(L.LAYOUTS[k].label)}</b></button>`;
+      const hot = L.LAYOUTS[k].hot;
+      return `<button class="lay ${st2 === 'lock' ? 'locked' : ''} ${hot ? 'hot' : ''}" data-lay="${k}" title="${esc(L.LAYOUTS[k].desc)}">${st2 === 'lock' ? '<span class="lk">🔒 PRO</span>' : ''}${hot ? '<span class="hot-tag">🔥 Tendance TikTok</span>' : ''}${layoutIcon(k)}<b>${esc(L.LAYOUTS[k].label)}</b>${hot ? '<small>Clip en haut, vidéo satisfaisante en bas : le format qui garde les gens jusqu’à la fin.</small>' : ''}</button>`;
     }).join('');
     $$('.lay', grid).forEach((b) => b.addEventListener('click', () => {
       if (layoutAllowed(b.dataset.lay) === 'lock') { $('#exErr').innerHTML = 'Ce format est inclus dans les offres Pro et Créateur. <a href="#offres" data-close>Voir les offres</a>'; return; }
@@ -782,8 +791,10 @@
 
   async function exportAll() {
     try {
-      const layout = layoutAllowed(S.lastLayout) === 'ok' ? S.lastLayout : 'game_full';
-      const r = await api(`api/jobs/${S.jobId}/export`, { method: 'POST', body: { all: true, layout, camRect: S.camRect, corner: S.corner, focusX: 0.5, useAiTitles: true } });
+      if (S.mode === 'server' && !S.bgs) { try { S.bgs = (await api('api/backgrounds')).backgrounds; } catch { S.bgs = []; } }
+      const layout = defaultLayout();
+      const bgId = S.lastBg || S.bgs?.[0]?.id || null;
+      const r = await api(`api/jobs/${S.jobId}/export`, { method: 'POST', body: { all: true, layout, bgId, camRect: S.camRect, corner: S.corner, focusX: 0.5, useAiTitles: true, progressBar: effectsAllowed() } });
       S.user = r.user; renderHeader();
       toast(`${r.ids.length} clips en cours de montage (format : ${L.LAYOUTS[layout].label}).`);
       loadJob(S.jobId);

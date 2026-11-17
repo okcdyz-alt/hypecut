@@ -195,6 +195,13 @@ h1 { font-family: Anton, Impact, sans-serif; font-weight: 400; font-size: clamp(
 .lay svg { width: 100%; height: 54px; }
 .lay b { font-size: 12px; }
 .lay .lk { position: absolute; top: 6px; right: 8px; font-size: 11px; color: var(--orange); font-weight: 800; }
+.lay.hot { grid-column: 1 / -1; display: grid; grid-template-columns: 54px 1fr; grid-template-rows: auto auto auto; column-gap: 12px; row-gap: 3px; align-items: center; padding: 10px 12px; border: 1px solid transparent; background: linear-gradient(#150d22, #150d22) padding-box, var(--grad) border-box; box-shadow: 0 8px 26px rgba(255, 61, 139, .18); }
+.lay.hot svg { grid-row: 1 / 4; width: 54px; height: 86px; }
+.lay.hot b { font-size: 15px; }
+.lay.hot small { color: var(--muted); font-size: 12px; line-height: 1.35; }
+.lay.hot.active { background: linear-gradient(#2a1230, #2a1230) padding-box, var(--grad) border-box; }
+.lay .hot-tag { justify-self: start; font-size: 11px; font-weight: 900; letter-spacing: .3px; text-transform: uppercase; background: var(--grad); color: #160a1e; border-radius: 999px; padding: 2px 9px; }
+.lay.hot .lk { top: 10px; right: 12px; }
 .cam-pick { position: relative; max-width: 380px; user-select: none; touch-action: none; cursor: crosshair; border-radius: 10px; overflow: hidden; border: 1px solid var(--line2); }
 .cam-pick img { display: block; width: 100%; pointer-events: none; }
 .cam-rect { position: absolute; border: 2px solid var(--teal); background: rgba(46, 230, 214, 0.15); box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.45); pointer-events: none; }
@@ -234,6 +241,10 @@ input[type=range] { width: 100%; accent-color: var(--pink); }
 /* ---------- Présentation (page d'accueil) ---------- */
 body.has-job .mkt { display: none; }
 .mk-sec { margin-top: 90px; }
+.mk-sec#spot { margin-top: 70px; }
+.hero-chip { margin-top: 18px; display: inline-flex; align-items: center; gap: 10px; border: 1px solid var(--line2); background: rgba(255, 255, 255, .05); color: var(--text); border-radius: 999px; padding: 6px 16px 6px 6px; font: inherit; font-size: 14px; cursor: pointer; transition: background .15s; }
+.hero-chip:hover { background: rgba(255, 255, 255, .1); }
+.hero-chip b { background: var(--grad); color: #160a1e; border-radius: 999px; padding: 3px 10px; font-size: 12px; }
 .mk-title { text-align: center; font-family: Anton, Impact, sans-serif; font-weight: 400; text-transform: uppercase; letter-spacing: .5px; font-size: clamp(30px, 4.4vw, 46px); margin: 0 0 14px; }
 .steps3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 28px; }
 .step3 { background: var(--card); border: 1px solid var(--line); border-radius: var(--r); padding: 22px; }
@@ -257,6 +268,16 @@ body.has-job .mkt { display: none; }
 .lay-blur .mid { top: 32%; bottom: 32%; }
 .lay-satis .half { bottom: 50%; }
 .satis { position: absolute; left: 0; right: 0; bottom: 0; height: 50%; background: #120c1f; display: grid; place-items: center; overflow: hidden; border-top: 3px solid #000; }
+/* Tapis qu'on nettoie : la bande propre avance sous la brosse */
+.rug { position: absolute; left: 0; right: 0; bottom: 0; height: 50%; overflow: hidden; border-top: 3px solid #000;
+  background: repeating-linear-gradient(45deg, #5b4a33 0 7px, #4a3b28 7px 14px), #4a3b28; }
+.rug::before { content: ''; position: absolute; inset: 0; background:
+  radial-gradient(circle at 50% 50%, #ffad3d 0 9%, transparent 10%) 0 0 / 34px 34px,
+  repeating-linear-gradient(45deg, #ff3d8b 0 7px, #8b5cf6 7px 14px);
+  clip-path: inset(0 100% 0 0); animation: rugclean 4s cubic-bezier(.5,0,.5,1) infinite; }
+.rug::after { content: ''; position: absolute; top: -5%; bottom: -5%; width: 16%; left: 0; border-radius: 10px; background: linear-gradient(90deg, #d9d9e6, #ffffff 45%, #a9a9b8); box-shadow: 0 0 14px rgba(255,255,255,.5), inset -3px 0 0 #7d7d90; animation: rugbrush 4s cubic-bezier(.5,0,.5,1) infinite; }
+@keyframes rugclean { 0% { clip-path: inset(0 100% 0 0); } 85%, 100% { clip-path: inset(0 0 0 0); } }
+@keyframes rugbrush { 0% { left: -16%; } 85%, 100% { left: 100%; } }
 .satis i { position: absolute; width: 60%; aspect-ratio: 1; border-radius: 42%; border: 6px solid; animation: spin 4s linear infinite; }
 .satis i:nth-child(1) { border-color: #ffad3d; }
 .satis i:nth-child(2) { border-color: #ff3d8b; width: 44%; animation-duration: 3s; animation-direction: reverse; }
@@ -347,6 +368,15 @@ html:not([lang=en]) .en-only { display: none; }
 .bg-item .st { font-weight: 500; color: var(--muted); padding-top: 0; white-space: normal; }
 .bg-item .del { position: absolute; top: 6px; right: 6px; background: rgba(0,0,0,.7); border: 0; color: #fff; border-radius: 8px; width: 26px; height: 26px; cursor: pointer; }
 .adm-bg-form input { flex: 1; min-width: 0; }
-.lay-satis .half { bottom: 40%; }
-.lay-satis .satis { height: 40%; }
-.lay-satis .ttl { top: 54%; }
+/* ---------- Format vedette : écran partagé satisfaisant ---------- */
+.spot { display: grid; grid-template-columns: auto 1fr; gap: 48px; align-items: center; max-width: 900px; margin: 30px auto 0; padding: 34px 40px; border-radius: 24px; border: 1px solid transparent;
+  background: linear-gradient(160deg, #1a0f2a, #120b1e) padding-box, var(--grad) border-box; box-shadow: 0 30px 80px rgba(255, 61, 139, .15); }
+.spot .scr { width: 220px; }
+.spot .scr .ttl { font-size: 16px; }
+.spot-tag { display: inline-block; font-size: 12px; font-weight: 900; letter-spacing: .4px; text-transform: uppercase; background: var(--grad); color: #160a1e; border-radius: 999px; padding: 4px 12px; }
+.spot h2 { font-family: Anton, Impact, sans-serif; font-weight: 400; text-transform: uppercase; font-size: clamp(28px, 3.6vw, 40px); line-height: 1.05; margin: 14px 0 12px; }
+.spot p { color: var(--muted); margin: 0 0 16px; }
+.spot ul { list-style: none; padding: 0; margin: 0 0 22px; display: grid; gap: 9px; }
+.spot li { padding-left: 28px; position: relative; }
+.spot li::before { content: '✓'; position: absolute; left: 0; top: 0; width: 20px; height: 20px; border-radius: 6px; background: rgba(46, 230, 214, .15); color: var(--teal); font-weight: 900; font-size: 12px; display: grid; place-items: center; }
+@media (max-width: 760px) { .spot { grid-template-columns: 1fr; justify-items: center; text-align: center; padding: 28px 20px; gap: 26px; } .spot ul { justify-items: start; text-align: left; } }
