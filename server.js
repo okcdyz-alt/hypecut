@@ -117,6 +117,8 @@ route('POST', '/api/billing/checkout', async (req, res) => {
   const u = requireUser(req);
   if (!stripe.enabled()) throw auth.httpError(503, 'Le paiement en ligne arrive très bientôt.');
   const b = await readJson(req);
+  if (b.waiver !== true) throw auth.httpError(400, 'Coche la case de demande d’accès immédiat pour continuer.');
+  q.run('INSERT INTO ledger(user_id, delta, reason) VALUES(?, 0, ?)', u.id, `renonciation rétractation acceptée (${b.product}) ${new Date().toISOString()}`);
   ok(res, { url: await stripe.checkout(u, b.product, PUBLIC_URL) });
 });
 route('POST', '/api/billing/portal', async (req, res) => {

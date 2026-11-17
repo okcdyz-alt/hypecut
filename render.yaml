@@ -3,19 +3,19 @@ services:
   - type: web
     name: hypecut
     runtime: docker
-    plan: standard          # 2 Go de RAM : nécessaire pour monter des clips en 1080p
+    plan: starter           # 512 Mo : 1 clip à la fois ; passer en « standard » si beaucoup de monde
     region: frankfurt       # au plus près des utilisateurs français
     healthCheckPath: /api/health
     autoDeploy: true
     disk:
       name: hypecut-data    # comptes, crédits, vidéos en cours (persistant)
       mountPath: /var/data
-      sizeGB: 20
+      sizeGB: 10
     envVars:
       - key: DATA_DIR
         value: /var/data
       - key: MAX_PARALLEL_JOBS
-        value: "2"
+        value: "1"
       - key: CLOUDINARY_URL       # cloudinary://CLE:SECRET@NOM_DU_CLOUD
         sync: false
       - key: STRIPE_SECRET_KEY    # sk_live_… ou sk_test_…

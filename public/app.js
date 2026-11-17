@@ -79,6 +79,7 @@
       }
     } catch { /* mode démo */ }
     if (S.mode === 'demo') setupDemo();
+    if (S.mode === 'demo') $('#waiverBox').classList.add('hidden');
     else { await refreshMe(); launchBar(); }
     renderPlans();
     bind();
@@ -846,8 +847,10 @@ Réponds UNIQUEMENT avec un objet JSON : {"titre": "42 caractères max, sans has
 
   async function buy(product, btn) {
     if (!S.user) { openAuth('signup', 'Crée ton compte pour choisir une offre.'); return; }
+    const w = $('#waiverCheck');
+    if (!w.checked) { const box = $('#waiverBox'); box.classList.add('shake'); box.scrollIntoView({ behavior: 'smooth', block: 'center' }); toast('Coche la case d’accès immédiat pour continuer.'); return; }
     btn.disabled = true;
-    try { const r = await api('api/billing/checkout', { method: 'POST', body: { product } }); location.href = r.url; }
+    try { const r = await api('api/billing/checkout', { method: 'POST', body: { product, waiver: true } }); location.href = r.url; }
     catch (e) { toast(e.message, 5000); btn.disabled = false; }
   }
 
