@@ -60,7 +60,7 @@
     launch: { active: Date.now() < Date.parse('2026-11-30T23:59:59+01:00'), code: 'GTAVI', bonusActive: Date.now() < Date.parse('2026-11-26T23:59:59+01:00') },
     plans: [
       { id: 'free', name: 'Essai gratuit', price: 0, credits: 3, perks: ['3 clips offerts (5 pendant la semaine de sortie)', '720p avec filigrane', 'Vidéos jusqu’à 20 min', 'Formats 9:16, 1:1 et 16:9'] },
-      { id: 'pro', name: 'Pro', price: 799, launchPrice: 399, credits: 100, perks: ['100 clips par mois', '1080p sans filigrane', 'Vidéos jusqu’à 2 h', 'Titres, légendes et hashtags IA', 'Tous les formats caméra', 'Recadrage IA qui suit l’action'] },
+      { id: 'pro', name: 'Pro', price: 799, launchPrice: 399, credits: 100, perks: ['100 clips par mois', '1080p sans filigrane', 'Vidéos jusqu’à 2 h', 'Titres, légendes et hashtags automatiques', 'Tous les formats caméra', 'Recadrage IA qui suit l’action'] },
       { id: 'creator', name: 'Créateur', price: 1999, credits: 400, perks: ['400 clips par mois', '1080p 60 i/s, qualité maximale', 'VOD jusqu’à 6 h', 'Tout Pro inclus', 'File d’attente prioritaire', 'Export de tous les clips en un clic', 'Sous-titres automatiques (bientôt)'] },
     ],
     packs: [{ id: 'pack20', name: 'Pack 20 clips', price: 299, credits: 20 }],
@@ -471,7 +471,7 @@
       return `<article class="clip" data-i="${i}">
         <div class="thumb" style="background-image:url('${esc(c.thumb)}')" data-play="${i}" role="button" tabindex="0" aria-label="Lire l’aperçu du clip ${i + 1}">
           <span class="badge rank">#${i + 1}</span><span class="badge hype">🔥 ${c.hype}</span>
-          <span class="badge dur">${fmt(st.end - st.start)}</span>${ai ? `<span class="badge viral">Viralité IA ${ai.viralite}/10</span>` : ''}
+          <span class="badge dur">${fmt(st.end - st.start)}</span>${ai ? `<span class="badge viral">Potentiel ${ai.viralite}/10</span>` : ''}
         </div>
         <div class="body">
           <input class="title" value="${esc(st.title)}" data-title="${i}" aria-label="Titre du clip ${i + 1}" maxlength="90">
@@ -853,7 +853,7 @@ Réponds UNIQUEMENT avec un objet JSON : {"titre": "42 caractères max, sans has
     const pass = c.launch?.pass?.active ? c.launch.pass : null;
     $('#plans').innerHTML = c.plans.map((p) => {
       if (pass && p.id === 'free') {
-        p = { ...p, name: 'Pass lancement GTA VI', perks: [`${pass.credits} clips offerts`, '1080p sans filigrane', 'Tous les formats caméra', 'Titres, légendes et hashtags IA', 'Vidéos jusqu’à 2 h', `Jusqu’au ${new Date(pass.ends).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })}`] };
+        p = { ...p, name: 'Pass lancement GTA VI', perks: [`${pass.credits} clips offerts`, 'Sans filigrane', 'Tous les formats caméra', 'Titres, légendes et hashtags automatiques', 'Vidéos jusqu’à 2 h', `Jusqu’au ${new Date(pass.ends).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })}`] };
       }
       const featured = pass ? p.id === 'free' : p.id === 'pro';
       const lp = p.launchPrice;
