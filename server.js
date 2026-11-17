@@ -111,6 +111,11 @@ route('POST', '/api/auth/logout', (req, res) => {
   ok(res, { ok: true }, { 'Set-Cookie': auth.sessionCookie('', SECURE) });
 });
 route('GET', '/api/me', (req, res) => { const u = auth.currentUser(req); ok(res, { user: u ? userView(u) : null }); });
+route('POST', '/api/billing/sync', async (req, res) => {
+  const u = requireUser(req);
+  if (auth.rateLimit('sync:' + u.id, 20, 3600e3)) await stripe.syncUser(u);
+  ok(res, { user: userView(q.get('SELECT * FROM users WHERE id = ?', u.id)) });
+});
 
 // ---------- Paiement ----------
 route('POST', '/api/billing/checkout', async (req, res) => {

@@ -86,7 +86,15 @@
     route();
     window.addEventListener('hashchange', route);
     const p = new URLSearchParams(location.search).get('paiement');
-    if (p === 'ok') toast('Paiement confirmé, merci ! Ton offre est active.', 6000);
+    if (p === 'ok') {
+      toast('Paiement confirmé, activation de ton offre…', 6000);
+      for (let i = 0; i < 5 && S.user; i++) {
+        try { const r = await api('api/billing/sync', { method: 'POST', body: {} }); S.user = r.user; renderHeader(); if (r.user.plan !== 'free' || i === 4) break; } catch { break; }
+        await new Promise((r) => setTimeout(r, 2000));
+      }
+      if (S.user && S.user.plan !== 'free') toast(`Merci ! Ton offre ${S.user.planName} est active (${S.user.credits} crédits).`, 6000);
+      history.replaceState(null, '', location.pathname + location.hash);
+    }
     if (p === 'annule') toast('Paiement annulé : rien n’a été débité.');
   }
 
@@ -899,7 +907,11 @@ Réponds UNIQUEMENT avec un objet JSON : {"titre": "42 caractères max, sans has
     } catch (e) { box.innerHTML = `<p class="err">${esc(e.message)}</p>`; }
   }
 
-  function renderAccount() {
+  async function renderAccount() {
+    if (S.user && S.cfg?.services?.stripe && !S._synced) {
+      S._synced = true;
+      try { const r = await api('api/billing/sync', { method: 'POST', body: {} }); S.user = r.user; renderHeader(); } catch {}
+    }
     const box = $('#accountCard'); const u = S.user;
     if (!u) { box.innerHTML = '<p>Tu n’es pas connecté.</p><button class="btn primary" data-open-auth>Se connecter</button>'; return; }
     box.innerHTML = `
