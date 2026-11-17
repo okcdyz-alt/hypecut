@@ -200,6 +200,11 @@ route('POST', '/api/upload/:id/finish', async (req, res, { params }) => {
   ok(res, { id: j.id });
 });
 
+route('POST', '/api/upload', (req, res) => {
+  req.resume();
+  throw auth.httpError(409, 'Le site a été mis à jour : recharge la page (Ctrl+Maj+R ou Cmd+Maj+R) puis relance l’envoi.');
+});
+
 route('GET', '/api/jobs', (req, res) => {
   const u = requireUser(req);
   ok(res, { jobs: q.all('SELECT * FROM jobs WHERE user_id = ? ORDER BY created_at DESC LIMIT 30', u.id).map((j) => {
@@ -283,7 +288,7 @@ const server = http.createServer(async (req, res) => {
     const file = path.join(PUBLIC_DIR, rel);
     if (!file.startsWith(PUBLIC_DIR)) return send(res, 403, 'Interdit');
     if (!fs.existsSync(file)) return serveFile(req, res, path.join(PUBLIC_DIR, 'index.html'));
-    return serveFile(req, res, file, /\.(js|css)$/.test(file) ? 300 : 0);
+    return serveFile(req, res, file, 0);
   } catch (e) {
     const status = e.status || 500;
     if (status >= 500) console.error(e);
