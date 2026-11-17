@@ -1,0 +1,12 @@
+{
+  "name": "hypecut",
+  "version": "1.0.0",
+  "private": true,
+  "description": "HYPECUT : clips de moments forts par IA (prêt pour la sortie de GTA VI)",
+  "main": "server.js",
+  "engines": { "node": ">=22.13" },
+  "scripts": {
+    "start": "node --no-warnings server.js",
+    "dev": "PORT=3000 node --no-warnings --watch server.js"
+  }
+}

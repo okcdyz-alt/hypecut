@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HYPECUT — Clips de moments forts par IA</title>
+<meta name="description" content="Colle un lien ou importe ta vidéo : l'IA trouve les moments forts et crée des clips prêts pour TikTok, Shorts et Reels. Prêt pour la sortie de GTA VI.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="sky" aria-hidden="true"></div>
+
+<header class="top">
+  <a class="logo" href="#creer" aria-label="HYPECUT, accueil"><span class="logo-mark">▲</span>HYPECUT</a>
+  <nav class="nav" id="nav">
+    <a href="#creer" data-view="creer">Créer</a>
+    <a href="#mes-clips" data-view="mes-clips" class="srv">Mes clips</a>
+    <a href="#offres" data-view="offres">Offres</a>
+  </nav>
+  <div class="account srv">
+    <span class="credits hidden" id="creditPill" title="1 crédit = 1 clip exporté"></span>
+    <button class="btn ghost sm" id="btnLogin">Connexion</button>
+    <a class="btn ghost sm hidden" id="btnAccount" href="#compte">Mon compte</a>
+  </div>
+</header>
+
+<div class="launch hidden" id="launchBar"></div>
+<div class="demo hidden" id="demoBar">Version démo : tout est traité dans ton navigateur, rien n’est envoyé. Les liens YouTube/Twitch, la HD sans filigrane et les comptes arrivent avec le site complet.</div>
+
+<main>
+  <!-- ============ CRÉER ============ -->
+  <section class="view" id="view-creer">
+    <div class="hero">
+      <p class="eyebrow" id="countdown">Prêt pour la sortie de GTA VI</p>
+      <h1>Tes meilleurs moments,<br><span class="grad">découpés par l’IA.</span></h1>
+      <p class="lead">Colle un lien ou importe ta vidéo de gameplay. HYPECUT repère les poursuites, les explosions et les cris, puis te sort des clips verticaux prêts pour TikTok, Shorts et Reels.</p>
+    </div>
+
+    <div class="card source" id="sourceCard">
+      <div class="tabs" role="tablist">
+        <button class="tab active" data-tab="link" role="tab" aria-selected="true">🔗 Coller un lien</button>
+        <button class="tab" data-tab="file" role="tab" aria-selected="false">📁 Importer un fichier</button>
+      </div>
+
+      <div class="tabpane" id="pane-link">
+        <label class="field">
+          <span>Lien de la vidéo</span>
+          <input type="url" id="linkInput" placeholder="twitch.tv/videos/… · kick.com/… · youtube.com/… · lien .mp4" autocomplete="off">
+        </label>
+        <p class="hint" id="linkHint">Twitch et Kick (VOD et clips), YouTube, Google Drive, Dropbox, Vimeo, Streamable ou lien direct vers un fichier vidéo.</p>
+        <label class="check"><input type="checkbox" id="rightsCheck"> <span>Je confirme avoir le droit d’utiliser cette vidéo (c’est mon contenu, ou j’ai l’accord de son auteur).</span></label>
+        <p class="hint warn" id="ytWarn" hidden>⚠️ Les conditions de YouTube interdisent de télécharger une vidéo sans l’accord de son auteur. N’utilise ce lien que pour ta propre chaîne ou avec permission.</p>
+        <p class="hint" id="linkDemo" hidden>Les liens arrivent avec le site complet. En attendant, importe ton fichier.</p>
+      </div>
+
+      <div class="tabpane hidden" id="pane-file">
+        <label class="drop" id="drop">
+          <input type="file" id="fileInput" accept="video/*" hidden>
+          <span class="drop-icon">⬆</span>
+          <strong>Dépose ta vidéo ici</strong>
+          <span>ou clique pour choisir un fichier (MP4, MOV, WEBM…)</span>
+          <span class="file-name" id="fileName"></span>
+        </label>
+      </div>
+
+      <div class="settings">
+        <label class="field sm"><span>Durée des clips</span>
+          <select id="clipLen"><option value="15">15 s</option><option value="30" selected>30 s</option><option value="45">45 s</option><option value="60">60 s</option></select></label>
+        <label class="field sm"><span>Nombre de clips</span>
+          <select id="count"><option>3</option><option selected>5</option><option>8</option><option>12</option></select></label>
+        <label class="field sm"><span>Priorité</span>
+          <select id="priority"><option value="balanced" selected>Équilibré</option><option value="action">Action (mouvement)</option><option value="audio">Son (cris, explosions)</option></select></label>
+      </div>
+      <button class="btn primary big" id="btnAnalyze">⚡ Trouver les moments forts</button>
+      <p class="err" id="sourceErr" role="alert"></p>
+    </div>
+
+    <div class="card progress hidden" id="progressCard" aria-live="polite">
+      <div class="prog-head"><strong id="progTitle">Analyse en cours…</strong><span id="progPct">0 %</span></div>
+      <div class="bar"><i id="progBar"></i></div>
+      <p class="hint" id="progMsg"></p>
+    </div>
+
+    <div class="workspace hidden" id="workspace">
+      <div class="ws-head">
+        <div>
+          <h2 id="wsTitle">Moments forts</h2>
+          <p class="hint" id="wsSub"></p>
+        </div>
+        <div class="ws-actions">
+          <button class="btn ghost sm hidden" id="btnAiAll">✨ Titres IA</button>
+          <button class="btn ghost sm hidden" id="btnExportAll">⬇ Exporter tout</button>
+          <button class="btn ghost sm" id="btnNew">＋ Nouvelle vidéo</button>
+        </div>
+      </div>
+      <div class="player-wrap">
+        <video id="player" controls playsinline preload="metadata"></video>
+        <canvas id="timeline" height="64" aria-label="Intensité de la vidéo dans le temps. Clique pour te déplacer."></canvas>
+        <p class="legend"><span class="sw hot"></span> intensité détectée · <span class="sw sel"></span> clips proposés · clique sur la courbe pour te déplacer</p>
+      </div>
+      <p class="banner warn hidden" id="expiredBar">La vidéo source a été supprimée de nos serveurs (24 h). Tu peux encore revoir les moments forts, mais il faut relancer l’analyse pour exporter.</p>
+      <div class="clips" id="clips"></div>
+    </div>
+  </section>
+
+  <!-- ============ MES CLIPS ============ -->
+  <section class="view hidden" id="view-mes-clips">
+    <h2 class="page-title">Mes vidéos analysées</h2>
+    <div class="history" id="history"></div>
+  </section>
+
+  <!-- ============ OFFRES ============ -->
+  <section class="view hidden" id="view-offres">
+    <h2 class="page-title">Choisis ton offre</h2>
+    <p class="lead center" id="offersLead">Essaie gratuitement, puis passe à la vitesse supérieure.</p>
+    <div class="plans" id="plans"></div>
+    <div class="pack card" id="packCard"></div>
+    <p class="hint center">Paiement sécurisé par Stripe : carte bancaire, Apple Pay, Google Pay, PayPal. Abonnement sans engagement, résiliable en un clic.</p>
+  </section>
+
+  <!-- ============ COMPTE ============ -->
+  <section class="view hidden" id="view-compte">
+    <h2 class="page-title">Mon compte</h2>
+    <div class="card account-card" id="accountCard"></div>
+  </section>
+</main>
+
+<footer class="foot">
+  <p>HYPECUT n’est ni affilié ni approuvé par Rockstar Games ou Take-Two Interactive. Grand Theft Auto est une marque de Take-Two Interactive. N’utilise que des vidéos dont tu as les droits.</p>
+</footer>
+
+<!-- ============ MODALE EXPORT ============ -->
+<div class="modal hidden" id="exportModal" role="dialog" aria-modal="true" aria-labelledby="exTitle">
+  <div class="sheet">
+    <button class="close" data-close aria-label="Fermer">✕</button>
+    <h3 id="exTitle">Créer le clip</h3>
+    <div class="ex-grid">
+      <div class="ex-preview">
+        <canvas id="exCanvas"></canvas>
+        <p class="hint center" id="exPrevHint">Aperçu du cadrage</p>
+      </div>
+      <div class="ex-options">
+        <p class="label">Format</p>
+        <div class="layouts" id="layoutGrid"></div>
+
+        <div id="camBox" class="hidden">
+          <p class="label">Encadre ta caméra <span class="hint">(glisse sur l’image)</span></p>
+          <div class="cam-pick" id="camPick"><img id="camImg" alt="Image de la vidéo pour encadrer la caméra"><div class="cam-rect" id="camRect"></div></div>
+        </div>
+        <div id="cornerBox" class="hidden">
+          <p class="label">Position de la caméra</p>
+          <div class="seg" id="cornerSeg">
+            <button data-c="tl">↖ Haut gauche</button><button data-c="tr">↗ Haut droite</button><button data-c="bl">↙ Bas gauche</button><button data-c="br">↘ Bas droite</button>
+          </div>
+        </div>
+        <div id="focusBox">
+          <p class="label">Cadrage horizontal du jeu</p>
+          <input type="range" id="focusX" min="0" max="1" step="0.01" value="0.5" aria-label="Cadrage horizontal">
+        </div>
+        <label class="check"><input type="checkbox" id="showTitle" checked> <span>Afficher un titre sur le clip</span></label>
+        <input type="text" id="titleInput" maxlength="90" placeholder="Ex. : La poursuite la plus folle de Vice City">
+        <div class="ex-times">
+          <span>Début</span><button class="btn ghost xs" data-nudge="s:-1">−1 s</button><b id="exStart"></b><button class="btn ghost xs" data-nudge="s:1">+1 s</button>
+          <span>Fin</span><button class="btn ghost xs" data-nudge="e:-1">−1 s</button><b id="exEnd"></b><button class="btn ghost xs" data-nudge="e:1">+1 s</button>
+        </div>
+        <p class="hint" id="exQuality"></p>
+        <button class="btn primary big" id="btnDoExport">⬇ Exporter</button>
+        <p class="err" id="exErr" role="alert"></p>
+        <div class="ex-result hidden" id="exResult">
+          <div class="bar"><i id="exBar"></i></div>
+          <p class="hint" id="exMsg"></p>
+          <video id="exVideo" controls playsinline class="hidden"></video>
+          <div class="row">
+            <a class="btn primary hidden" id="exDownload" target="_blank" rel="noopener">⬇ Télécharger</a>
+            <button class="btn ghost hidden" id="exSave">⬇ Enregistrer</button>
+            <button class="btn ghost hidden" id="exCopy">📋 Copier la légende</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ MODALE CONNEXION ============ -->
+<div class="modal hidden" id="authModal" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+  <div class="sheet small">
+    <button class="close" data-close aria-label="Fermer">✕</button>
+    <h3 id="authTitle">Crée ton compte gratuit</h3>
+    <p class="hint" id="authSub">3 clips offerts pour essayer, sans carte bancaire.</p>
+    <div class="tabs">
+      <button class="tab active" data-auth="signup">Inscription</button>
+      <button class="tab" data-auth="login">Connexion</button>
+    </div>
+    <form id="authForm" novalidate>
+      <label class="field"><span>E-mail</span><input type="email" id="authEmail" autocomplete="email" required></label>
+      <label class="field"><span>Mot de passe</span><input type="password" id="authPass" autocomplete="new-password" minlength="8" required placeholder="8 caractères minimum"></label>
+      <button class="btn primary big" type="submit" id="authSubmit">Créer mon compte</button>
+      <p class="err" id="authErr" role="alert"></p>
+    </form>
+  </div>
+</div>
+
+<div class="toast hidden" id="toast" role="status"></div>
+
+<script src="scoring.js"></script>
+<script src="layouts.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

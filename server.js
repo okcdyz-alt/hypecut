@@ -1,0 +1,272 @@
+// HYPECUT — serveur web (Node.js, sans dépendance externe).
+const http = require('http');
+const fs = require('fs');
+const path = require('path');
+const crypto = require('crypto');
+
+const { q } = require('./lib/db');
+const auth = require('./lib/auth');
+const plans = require('./lib/plans');
+const jobs = require('./lib/jobs');
+const stripe = require('./lib/stripe');
+const cloud = require('./lib/cloudinary');
+const ai = require('./lib/ai');
+const sources = require('./lib/sources');
+const media = require('./lib/media');
+const Layouts = require('./public/layouts');
+
+const PORT = +process.env.PORT || 3000;
+const PUBLIC_URL = (process.env.PUBLIC_URL || process.env.RENDER_EXTERNAL_URL || `http://localhost:${PORT}`).replace(/\/$/, '');
+const SECURE = PUBLIC_URL.startsWith('https://');
+const PUBLIC_DIR = path.join(__dirname, 'public');
+const ALLOW_PLATFORMS = process.env.ALLOW_PLATFORM_LINKS !== 'false';
+
+const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml', '.png': 'image/png', '.jpg': 'image/jpeg', '.ico': 'image/x-icon', '.mp4': 'video/mp4', '.webm': 'video/webm', '.mov': 'video/quicktime', '.mkv': 'video/x-matroska', '.json': 'application/json' };
+
+let ytdlpOk = false;
+media.run(process.env.YTDLP_PATH || 'yt-dlp', ['--version'], { timeoutMs: 10000 }).then(() => (ytdlpOk = true)).catch(() => {});
+
+function send(res, status, body, headers = {}) {
+  const data = typeof body === 'string' || Buffer.isBuffer(body) ? body : JSON.stringify(body);
+  res.writeHead(status, { 'Content-Type': typeof body === 'object' && !Buffer.isBuffer(body) ? 'application/json; charset=utf-8' : 'text/plain; charset=utf-8', 'Cache-Control': 'no-store', ...headers });
+  res.end(data);
+}
+const ok = (res, body, headers) => send(res, 200, body, headers);
+
+async function readBody(req, limit = 1 << 20) {
+  const chunks = []; let n = 0;
+  for await (const c of req) { n += c.length; if (n > limit) throw auth.httpError(413, 'Requête trop volumineuse.'); chunks.push(c); }
+  return Buffer.concat(chunks).toString('utf8');
+}
+async function readJson(req) { const raw = await readBody(req); try { return raw ? JSON.parse(raw) : {}; } catch { throw auth.httpError(400, 'JSON invalide.'); } }
+
+function requireUser(req) { const u = auth.currentUser(req); if (!u) throw auth.httpError(401, 'Connecte-toi pour continuer.'); return u; }
+const clientIp = (req) => String(req.headers['x-forwarded-for'] || req.socket.remoteAddress || '').split(',')[0].trim();
+
+function userView(u) {
+  const p = plans.planOf(u);
+  return { id: u.id, email: u.email, plan: p.id, planName: p.name, credits: u.credits, periodEnd: u.period_end, subscribed: !!u.stripe_sub,
+    features: { res: p.res, fps: p.fps, watermark: p.watermark, maxDurationMin: p.maxDurationMin, maxUploadMb: p.maxUploadMb, camLayouts: p.camLayouts, smartCrop: p.smartCrop && cloud.enabled(), batch: p.batch, ai: ai.enabled() ? p.ai : 'none' } };
+}
+
+function analysisOptions(src) {
+  const clipLen = [15, 30, 45, 60].includes(+src.clipLen) ? +src.clipLen : 30;
+  const count = Math.max(1, Math.min(12, +src.count || 5));
+  const priority = ['balanced', 'audio', 'action'].includes(src.priority) ? src.priority : 'balanced';
+  return { clipLen, count, priority };
+}
+
+function serveFile(req, res, file, cacheSeconds = 0) {
+  fs.stat(file, (err, st) => {
+    if (err || !st.isFile()) return send(res, 404, 'Introuvable');
+    const type = MIME[path.extname(file).toLowerCase()] || 'application/octet-stream';
+    const headers = { 'Content-Type': type, 'Accept-Ranges': 'bytes', 'Cache-Control': cacheSeconds ? `public, max-age=${cacheSeconds}` : 'no-cache' };
+    const range = /bytes=(\d*)-(\d*)/.exec(req.headers.range || '');
+    if (range) {
+      let start = range[1] ? +range[1] : st.size - +range[2];
+      let end = range[1] && range[2] ? +range[2] : st.size - 1;
+      if (!range[1]) end = st.size - 1;
+      if (start >= st.size || start < 0) { res.writeHead(416, { 'Content-Range': `bytes */${st.size}` }); return res.end(); }
+      end = Math.min(end, st.size - 1);
+      res.writeHead(206, { ...headers, 'Content-Range': `bytes ${start}-${end}/${st.size}`, 'Content-Length': end - start + 1 });
+      if (req.method === 'HEAD') return res.end();
+      return fs.createReadStream(file, { start, end }).pipe(res);
+    }
+    res.writeHead(200, { ...headers, 'Content-Length': st.size });
+    if (req.method === 'HEAD') return res.end();
+    fs.createReadStream(file).pipe(res);
+  });
+}
+
+function ownJob(user, id) {
+  const j = q.get('SELECT * FROM jobs WHERE id = ? AND user_id = ?', id, user.id);
+  if (!j) throw auth.httpError(404, 'Analyse introuvable.');
+  return j;
+}
+
+const routes = [];
+const route = (method, pattern, fn) => routes.push({ method, re: new RegExp('^' + pattern.replace(/:(\w+)/g, '(?<$1>[^/]+)') + '$'), fn });
+
+// ---------- Configuration & comptes ----------
+route('GET', '/api/health', (req, res) => ok(res, { ok: true }));
+route('GET', '/api/config', (req, res) => ok(res, {
+  server: true, ...plans.publicPlans(), layouts: Layouts.LAYOUTS,
+  services: { cloudinary: cloud.enabled(), ai: ai.enabled(), stripe: stripe.enabled(), platformLinks: ALLOW_PLATFORMS && ytdlpOk },
+}));
+
+route('POST', '/api/auth/signup', async (req, res) => {
+  if (!auth.rateLimit('signup:' + clientIp(req), 5, 3600e3)) throw auth.httpError(429, 'Trop d’inscriptions depuis ta connexion. Réessaie plus tard.');
+  const b = await readJson(req);
+  const id = auth.signup(b.email, b.password);
+  ok(res, { user: userView(q.get('SELECT * FROM users WHERE id = ?', id)) }, { 'Set-Cookie': auth.sessionCookie(auth.createSession(id), SECURE) });
+});
+route('POST', '/api/auth/login', async (req, res) => {
+  if (!auth.rateLimit('login:' + clientIp(req), 20, 900e3)) throw auth.httpError(429, 'Trop de tentatives. Réessaie dans quelques minutes.');
+  const b = await readJson(req);
+  const id = auth.login(b.email, b.password);
+  ok(res, { user: userView(q.get('SELECT * FROM users WHERE id = ?', id)) }, { 'Set-Cookie': auth.sessionCookie(auth.createSession(id), SECURE) });
+});
+route('POST', '/api/auth/logout', (req, res) => {
+  auth.destroySession(auth.parseCookies(req)[auth.COOKIE]);
+  ok(res, { ok: true }, { 'Set-Cookie': auth.sessionCookie('', SECURE) });
+});
+route('GET', '/api/me', (req, res) => { const u = auth.currentUser(req); ok(res, { user: u ? userView(u) : null }); });
+
+// ---------- Paiement ----------
+route('POST', '/api/billing/checkout', async (req, res) => {
+  const u = requireUser(req);
+  if (!stripe.enabled()) throw auth.httpError(503, 'Le paiement en ligne arrive très bientôt.');
+  const b = await readJson(req);
+  ok(res, { url: await stripe.checkout(u, b.product, PUBLIC_URL) });
+});
+route('POST', '/api/billing/portal', async (req, res) => {
+  const u = requireUser(req);
+  if (!stripe.enabled()) throw auth.httpError(503, 'Le paiement en ligne arrive très bientôt.');
+  ok(res, { url: await stripe.portal(u, PUBLIC_URL) });
+});
+route('POST', '/api/stripe/webhook', async (req, res) => {
+  const raw = await readBody(req, 2 << 20);
+  if (!stripe.verify(raw, req.headers['stripe-signature'])) return send(res, 400, 'signature invalide');
+  await stripe.handleEvent(JSON.parse(raw));
+  ok(res, { received: true });
+});
+
+// ---------- Analyses ----------
+route('POST', '/api/jobs', async (req, res) => {
+  const u = requireUser(req);
+  if (!auth.rateLimit('job:' + u.id, plans.planOf(u).id === 'free' ? 6 : 40, 3600e3)) throw auth.httpError(429, 'Tu as lancé beaucoup d’analyses : patiente un peu.');
+  const b = await readJson(req);
+  if (!b.rights) throw auth.httpError(400, 'Confirme que tu as le droit d’utiliser cette vidéo.');
+  const src = sources.classify(b.url);
+  if (src.platform !== 'direct' && !(ALLOW_PLATFORMS && ytdlpOk)) throw auth.httpError(400, 'Les liens YouTube, Twitch et Kick ne sont pas encore disponibles : importe ton fichier ou colle un lien direct .mp4.');
+  if (src.platform === 'direct') await sources.assertPublicHost(src.host);
+  const id = jobs.createJob(u, { sourceType: 'url', sourceUrl: src.url, options: analysisOptions(b) });
+  jobs.startAnalysis(id, u);
+  ok(res, { id });
+});
+
+route('POST', '/api/upload', async (req, res, { url }) => {
+  const u = requireUser(req);
+  if (!auth.rateLimit('job:' + u.id, plans.planOf(u).id === 'free' ? 6 : 40, 3600e3)) throw auth.httpError(429, 'Tu as lancé beaucoup d’analyses : patiente un peu.');
+  const plan = plans.planOf(u);
+  const max = plan.maxUploadMb * 1048576;
+  const len = +req.headers['content-length'] || 0;
+  if (!len) throw auth.httpError(411, 'Taille du fichier inconnue.');
+  if (len > max) throw auth.httpError(413, `Fichier trop lourd pour ton offre (max ${plan.maxUploadMb} Mo).`);
+  const name = String(url.searchParams.get('name') || 'video.mp4').slice(0, 200);
+  const ext = (path.extname(name).toLowerCase().match(/^\.(mp4|mov|m4v|webm|mkv|avi|ts|flv)$/) || ['.mp4'])[0];
+  const id = jobs.createJob(u, { sourceType: 'upload', title: path.basename(name, path.extname(name)), options: analysisOptions(Object.fromEntries(url.searchParams)) });
+  const dest = path.join(jobs.jobDir(id), 'source' + ext);
+  let got = 0;
+  await new Promise((resolve, reject) => {
+    const w = fs.createWriteStream(dest);
+    req.on('data', (c) => { got += c.length; if (got > max) { req.destroy(); reject(auth.httpError(413, 'Fichier trop lourd.')); } });
+    req.on('error', reject);
+    w.on('error', reject);
+    w.on('finish', resolve);
+    req.pipe(w);
+  }).catch((e) => { q.run("UPDATE jobs SET status = 'error', message = 'Envoi interrompu.' WHERE id = ?", id); throw e; });
+  jobs.startAnalysis(id, u);
+  ok(res, { id });
+});
+
+route('GET', '/api/jobs', (req, res) => {
+  const u = requireUser(req);
+  ok(res, { jobs: q.all('SELECT * FROM jobs WHERE user_id = ? ORDER BY created_at DESC LIMIT 30', u.id).map((j) => {
+    const v = jobs.jobView(j, false);
+    const r = j.result ? JSON.parse(j.result) : null;
+    v.clipCount = r?.clips?.length || 0; v.thumb = r?.clips?.[0]?.thumb || null; v.duration = r?.duration || null;
+    return v;
+  }) });
+});
+route('GET', '/api/jobs/:id', (req, res, { params }) => {
+  const u = requireUser(req);
+  const j = ownJob(u, params.id);
+  ok(res, { job: jobs.jobView(j), exports: q.all('SELECT * FROM exports WHERE job_id = ? ORDER BY created_at DESC', j.id).map(jobs.exportView), user: userView(u) });
+});
+
+// ---------- Exports ----------
+function exportOptions(b, clip) {
+  const num = (v, d) => (Number.isFinite(+v) ? +v : d);
+  const start = Math.max(0, num(b.start, clip.start));
+  const end = Math.max(start + 1, Math.min(start + 180, num(b.end, clip.end)));
+  const cr = b.camRect && ['x', 'y', 'w', 'h'].every((k) => Number.isFinite(+b.camRect[k]))
+    ? { x: Math.max(0, Math.min(0.98, +b.camRect.x)), y: Math.max(0, Math.min(0.98, +b.camRect.y)), w: Math.max(0.02, Math.min(1, +b.camRect.w)), h: Math.max(0.02, Math.min(1, +b.camRect.h)) } : null;
+  return {
+    layout: String(b.layout || 'game_full'), start, end, camRect: cr,
+    focusX: Math.max(0, Math.min(1, num(b.focusX, 0.5))), corner: ['tl', 'tr', 'bl', 'br'].includes(b.corner) ? b.corner : 'tl',
+    title: b.showTitle === false ? '' : String(b.title || '').slice(0, 90),
+  };
+}
+route('POST', '/api/jobs/:id/export', async (req, res, { params }) => {
+  const u = requireUser(req);
+  const j = ownJob(u, params.id);
+  if (j.status === 'expired') throw auth.httpError(410, 'La vidéo source a expiré : relance l’analyse pour exporter.');
+  if (j.status !== 'done') throw auth.httpError(409, 'L’analyse n’est pas terminée.');
+  const b = await readJson(req);
+  const result = JSON.parse(j.result);
+  const idxs = b.all ? result.clips.map((_, i) => i) : [Math.trunc(+b.clipIdx)];
+  if (b.all && !plans.planOf(u).batch) throw Object.assign(auth.httpError(402, 'L’export de tous les clips en un clic est inclus dans l’offre Créateur.'), { upgrade: true });
+  const ids = [];
+  for (const i of idxs) {
+    const clip = result.clips[i];
+    if (!clip) throw auth.httpError(400, 'Clip introuvable.');
+    const fresh = q.get('SELECT * FROM users WHERE id = ?', u.id);
+    const opts = exportOptions(b.all ? { ...b, start: clip.start, end: clip.end, title: b.useAiTitles ? clip.ai?.titre || '' : b.title } : b, clip);
+    ids.push(jobs.createExport(fresh, j, i, opts));
+  }
+  ok(res, { ids, user: userView(q.get('SELECT * FROM users WHERE id = ?', u.id)) });
+});
+route('GET', '/api/exports/:id', (req, res, { params }) => {
+  const u = requireUser(req);
+  const e = q.get('SELECT * FROM exports WHERE id = ? AND user_id = ?', params.id, u.id);
+  if (!e) throw auth.httpError(404, 'Export introuvable.');
+  ok(res, { export: jobs.exportView(e) });
+});
+
+// ---------- Serveur HTTP ----------
+const server = http.createServer(async (req, res) => {
+  const url = new URL(req.url, 'http://x');
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  try {
+    if (url.pathname.startsWith('/api/')) {
+      // Protection CSRF simple : les requêtes qui modifient doivent venir du site lui-même
+      if (req.method === 'POST' && url.pathname !== '/api/stripe/webhook') {
+        const origin = req.headers.origin;
+        if (origin && origin !== PUBLIC_URL && !origin.startsWith('http://localhost')) throw auth.httpError(403, 'Origine refusée.');
+      }
+      for (const r of routes) {
+        if (r.method !== req.method) continue;
+        const m = r.re.exec(url.pathname);
+        if (m) return await r.fn(req, res, { url, params: m.groups || {} });
+      }
+      return send(res, 404, { error: 'Route inconnue' });
+    }
+    if (url.pathname.startsWith('/media/')) {
+      const rel = path.normalize(decodeURIComponent(url.pathname.slice(7))).replace(/^(\.\.[/\\])+/, '');
+      if (!/^(exports\/[\w-]+\.mp4|[\w-]+\/(thumb_\d+\.jpg|frame\.jpg|preview\.mp4|source\.\w+))$/.test(rel)) return send(res, 404, 'Introuvable');
+      return serveFile(req, res, path.join(jobs.MEDIA_DIR, rel), /\.jpg$/.test(rel) ? 86400 : 0);
+    }
+    let rel = path.normalize(decodeURIComponent(url.pathname)).replace(/^(\.\.[/\\])+/, '');
+    if (rel === '/' || rel === '\\') rel = '/index.html';
+    const file = path.join(PUBLIC_DIR, rel);
+    if (!file.startsWith(PUBLIC_DIR)) return send(res, 403, 'Interdit');
+    if (!fs.existsSync(file)) return serveFile(req, res, path.join(PUBLIC_DIR, 'index.html'));
+    return serveFile(req, res, file, /\.(js|css)$/.test(file) ? 300 : 0);
+  } catch (e) {
+    const status = e.status || 500;
+    if (status >= 500) console.error(e);
+    if (!res.headersSent) send(res, status, { error: status >= 500 && !e.user ? 'Erreur interne, réessaie.' : e.message, upgrade: !!e.upgrade });
+  }
+});
+server.requestTimeout = 0; // envois de gros fichiers
+server.headersTimeout = 60e3;
+
+server.listen(PORT, () => {
+  console.log(`HYPECUT en ligne sur ${PUBLIC_URL} (port ${PORT})`);
+  console.log(`Services : Cloudinary ${cloud.enabled() ? 'oui' : 'non'} · IA ${ai.enabled() ? 'oui' : 'non'} · Stripe ${stripe.enabled() ? 'oui' : 'non'} · police ${media.FONT || 'aucune'}`);
+  stripe.init(PUBLIC_URL);
+});
+
+module.exports = server;
