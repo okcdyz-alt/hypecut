@@ -14,6 +14,7 @@
     split_half: { label: 'Moitié / moitié',        desc: '50 % caméra, 50 % jeu',              ratio: '9:16', cam: true,  tier: 'pro' },
     cam_bubble: { label: 'Caméra en bulle',        desc: 'Bulle ronde dans un coin',           ratio: '9:16', cam: true,  tier: 'pro' },
     cam_pip:    { label: 'Caméra incrustée',       desc: 'Petit cadre caméra dans un coin',    ratio: '9:16', cam: true,  tier: 'pro' },
+    satis_split: { label: 'Écran partagé satisfaisant', desc: 'Clip en haut, vidéo satisfaisante en bas', ratio: '9:16', cam: false, tier: 'pro', serverOnly: true, bg: true },
     game_ai:    { label: 'Recadrage IA',           desc: 'Le cadre suit l’action (Cloudinary)', ratio: '9:16', cam: false, tier: 'pro', serverOnly: true },
     square:     { label: 'Carré 1:1',              desc: 'Instagram, X',                       ratio: '1:1',  cam: false, tier: 'free' },
     landscape:  { label: 'Paysage 16:9',           desc: 'YouTube classique',                  ratio: '16:9', cam: false, tier: 'free' },
@@ -29,6 +30,7 @@
   const even = (v) => Math.max(2, Math.round(v / 2) * 2);
 
   /** Sous-rectangle de `src` au ratio tw/th, centré sur (fx, fy) (0-1). */
+  // (exporté pour le rendu des vidéos de fond)
   function cover(src, tw, th, fx, fy) {
     const ta = tw / th;
     let w, h;
@@ -89,6 +91,14 @@
         const dst = { x: (W - dw) / 2, y: (H - dh) / 2, w: dw, h: dh };
         ops.push({ kind: 'video', role: 'game', src: full, dst });
         if (layout === 'game_blur') title = { y: Math.round(Math.max(H * 0.05, dst.y * 0.45)), anchor: 'top' };
+        break;
+      }
+      case 'satis_split': {
+        const gh = H * 0.6;
+        game({ x: 0, y: 0, w: W, h: gh });
+        ops.push({ kind: 'bg', role: 'satis', dst: { x: 0, y: gh, w: W, h: H - gh } });
+        ops.push({ kind: 'fill', color: '#000000', dst: { x: 0, y: gh - 3, w: W, h: 6 } });
+        title = { y: Math.round(gh), anchor: 'center' };
         break;
       }
       case 'cam_top': {
@@ -164,5 +174,5 @@
     return lines.slice(0, 3);
   }
 
-  return { LAYOUTS, outSize, compose, wrapTitle };
+  return { LAYOUTS, outSize, compose, wrapTitle, cover };
 });

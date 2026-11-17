@@ -336,3 +336,17 @@ body.has-job .mkt { display: none; }
 .account { margin-left: 0; }
 .top .lang-btn { margin-left: auto; }
 html:not([lang=en]) .en-only { display: none; }
+
+/* ---------- Vidéos de fond ---------- */
+.bg-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 8px; }
+.bg-grid.admin { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); margin-top: 12px; }
+.bg-item { position: relative; border: 2px solid var(--line2); border-radius: 12px; overflow: hidden; background: #000; cursor: pointer; padding: 0; text-align: left; }
+.bg-item.active { border-color: var(--pink); box-shadow: 0 0 0 2px rgba(255,61,139,.35); }
+.bg-item img, .bg-item .ph { display: block; width: 100%; aspect-ratio: 16/10; object-fit: cover; background: #1a1328; }
+.bg-item span { display: block; font-size: 11px; font-weight: 700; padding: 5px 7px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bg-item .st { font-weight: 500; color: var(--muted); padding-top: 0; white-space: normal; }
+.bg-item .del { position: absolute; top: 6px; right: 6px; background: rgba(0,0,0,.7); border: 0; color: #fff; border-radius: 8px; width: 26px; height: 26px; cursor: pointer; }
+.adm-bg-form input { flex: 1; min-width: 0; }
+.lay-satis .half { bottom: 40%; }
+.lay-satis .satis { height: 40%; }
+.lay-satis .ttl { top: 54%; }

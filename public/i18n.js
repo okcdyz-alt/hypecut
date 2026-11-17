@@ -170,7 +170,14 @@
     'Aucune erreur d’export récente.': 'No recent export errors.', 'Dernières erreurs d’export': 'Latest export errors', 'Aucun compte trouvé.': 'No account found.', 'Compte mis à jour.': 'Account updated.',
     'Clips': 'Clips', 'Crédits': 'Credits', 'Inscrit le': 'Signed up', 'Actions': 'Actions', 'Appliquer': 'Apply', 'offre…': 'plan…', 'Gratuit': 'Free',
     '💳 = abonnement Stripe actif. Changer l’offre ici l’offre sans paiement (geste commercial).': '💳 = active Stripe subscription. Changing the plan here grants it without payment (goodwill gesture).',
-    'Accès réservé.': 'Restricted access.', 'Crédits à offrir': 'Credits to grant', 'Ton lien de parrainage': 'Your referral link',
+    'Accès réservé.': 'Restricted access.',
+    'Écran partagé satisfaisant': 'Satisfying split screen', 'Clip en haut, vidéo satisfaisante en bas': 'Clip on top, satisfying video below',
+    'Vidéo satisfaisante (en bas)': 'Satisfying video (bottom)', 'Aucune vidéo satisfaisante pour l’instant.': 'No satisfying videos yet.',
+    'Choisis une vidéo satisfaisante pour le bas de l’écran.': 'Pick a satisfying video for the bottom of the screen.',
+    'Téléchargement ou conversion impossible. Vérifie que le lien mène bien à un fichier vidéo.': 'Download or conversion failed. Check that the link points to a video file.',
+    'Vidéos satisfaisantes (bibliothèque)': 'Satisfying videos (library)', 'Ajouter': 'Add', 'Retirer': 'Remove', 'La bibliothèque est vide.': 'The library is empty.',
+    '⏳ Conversion en cours…': '⏳ Converting…', 'Vidéo ajoutée : conversion en cours…': 'Video added: converting…', 'Colle d’abord le lien de la vidéo.': 'Paste the video link first.',
+    'Nom (ex. : Nettoyage de tapis)': 'Name (e.g. Rug cleaning)', 'Lien de la vidéo de fond': 'Background video link', 'Nom de la vidéo': 'Video name', 'Crédits à offrir': 'Credits to grant', 'Ton lien de parrainage': 'Your referral link',
   };
 
   const P = [
@@ -219,6 +226,7 @@
     [/^Vidéo trop lourde pour ton offre \(max (\d+) Mo\)\.$/, (m) => `Video too large for your plan (max ${m[1]} MB).`],
     [/^Récupération depuis (.+)…$/, (m) => `Fetching from ${m[1] === 'la plateforme' ? 'the platform' : m[1]}…`],
     [/^Erreur (\d+)$/, (m) => `Error ${m[1]}`],
+    [/^✅ Prête · (\d+) s$/, (m) => `✅ Ready · ${m[1]} s`],
     [/^(✅|⏳) (.+?) ·( .*)?$/, (m) => `${m[1]} ${D[m[2]] || m[2]} ·${m[3] ? m[3].replace(' %', '%').replace('(file :', '(queue:') : ''}`],
     [/^⚠️ (.+?) : (.+)$/, (m) => `⚠️ ${D[m[1]] || m[1]}: ${D[m[2]] || m[2]}`],
   ];
@@ -227,8 +235,10 @@
     const lead = text.match(/^\s*/)[0], trail = text.match(/\s*$/)[0];
     const core = text.trim();
     if (!core) return null;
-    if (D[core]) return lead + D[core] + trail;
-    for (const [re, fn] of P) { const m = core.match(re); if (m) { const out = fn(m); if (out) return lead + out + trail; } }
+    // En anglais, pas d'espace avant : ; ! ?
+    const fix = (out) => (/^[:;!?]/.test(out) ? '' : lead) + out + trail;
+    if (D[core]) return fix(D[core]);
+    for (const [re, fn] of P) { const m = core.match(re); if (m) { const out = fn(m); if (out) return fix(out); } }
     return null;
   }
   const ATTRS = ['placeholder', 'title', 'aria-label', 'alt'];

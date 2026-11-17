@@ -572,7 +572,7 @@
   function layoutAllowed(key) {
     const Lk = L.LAYOUTS[key];
     if (S.mode === 'demo') return Lk.serverOnly ? 'hide' : 'ok';
-    if (Lk.serverOnly && !S.cfg.services?.cloudinary) return 'hide';
+    if (key === 'game_ai' && !S.cfg.services?.cloudinary) return 'hide';
     const f = S.user?.features;
     if (!f) return Lk.tier === 'free' ? 'ok' : 'lock';
     if (key === 'game_ai') return f.smartCrop ? 'ok' : 'lock';
@@ -583,7 +583,7 @@
   function layoutIcon(key) {
     const c = L.compose(key, 1600, 900, { res: 90, corner: 'tl', camRect: { x: 0.02, y: 0.03, w: 0.26, h: 0.3 } });
     const parts = c.ops.map((o) => {
-      const fill = o.kind === 'fill' ? (o.color === '#ffffff' ? '#fff' : '#000') : o.role === 'cam' ? '#2ee6d6' : o.role === 'bg' ? '#4a3b66' : '#ff3d8b';
+      const fill = o.kind === 'fill' ? (o.color === '#ffffff' ? '#fff' : '#000') : o.kind === 'bg' ? '#ffad3d' : o.role === 'cam' ? '#2ee6d6' : o.role === 'bg' ? '#4a3b66' : '#ff3d8b';
       const d = o.dst;
       return o.shape === 'circle' ? `<circle cx="${d.x + d.w / 2}" cy="${d.y + d.h / 2}" r="${d.w / 2}" fill="${fill}"/>` : `<rect x="${d.x}" y="${d.y}" width="${d.w}" height="${d.h}" fill="${fill}" ${o.role === 'game' ? 'opacity=".85"' : ''}/>`;
     }).join('');
@@ -595,7 +595,8 @@
     const c = S.result.clips[i], st = S.clips[i];
     let layout = S.lastLayout;
     if (layoutAllowed(layout) !== 'ok') layout = 'game_full';
-    S.ex = { idx: i, layout, start: st.start, end: st.end, title: st.title, showTitle: true, progressBar: effectsAllowed(), focusX: 0.5, corner: S.corner, camRect: S.camRect || { x: 0.02, y: 0.03, w: 0.26, h: 0.3 }, img: null, frame: null, busy: false };
+    if (S.mode === 'server' && !S.bgs) { try { S.bgs = (await api('api/backgrounds')).backgrounds; } catch { S.bgs = []; } }
+    S.ex = { idx: i, layout, bgId: S.lastBg || S.bgs?.[0]?.id || null, start: st.start, end: st.end, title: st.title, showTitle: true, progressBar: effectsAllowed(), focusX: 0.5, corner: S.corner, camRect: S.camRect || { x: 0.02, y: 0.03, w: 0.26, h: 0.3 }, img: null, frame: null, busy: false };
     $('#titleInput').value = st.title; $('#showTitle').checked = true; $('#focusX').value = 0.5;
     $('#progressBar').checked = effectsAllowed(); $('#pbLock').classList.toggle('hidden', effectsAllowed());
     $('#exErr').innerHTML = ''; $('#exResult').classList.add('hidden');
@@ -620,9 +621,18 @@
     drawCamRect(); drawPreview();
   }
 
+  function renderBgPicker() {
+    const grid = $('#bgGrid'); const list = S.bgs || [];
+    if (!list.length) { grid.innerHTML = `<p class="hint">Aucune vidéo satisfaisante pour l’instant.${S.user?.isAdmin ? ' Ajoute-en depuis l’onglet <a href="#admin" data-close>Admin</a>.' : ''}</p>`; return; }
+    grid.innerHTML = list.map((b) => `<button class="bg-item ${b.id === S.ex.bgId ? 'active' : ''}" data-bg="${esc(b.id)}" type="button"><img src="${esc(b.thumb)}" alt=""><span>${esc(b.name)}</span></button>`).join('');
+    $$('[data-bg]', grid).forEach((el) => el.addEventListener('click', () => { S.ex.bgId = S.lastBg = el.dataset.bg; renderBgPicker(); drawPreview(); }));
+  }
+
   function syncLayout() {
     $$('.lay').forEach((b) => b.classList.toggle('active', b.dataset.lay === S.ex.layout));
     const Lk = L.LAYOUTS[S.ex.layout];
+    $('#bgBox').classList.toggle('hidden', !Lk.bg);
+    if (Lk.bg) renderBgPicker();
     $('#camBox').classList.toggle('hidden', !Lk.cam);
     $('#cornerBox').classList.toggle('hidden', !['cam_bubble', 'cam_pip'].includes(S.ex.layout));
     $('#focusBox').classList.toggle('hidden', ['game_blur', 'landscape', 'game_ai'].includes(S.ex.layout));
@@ -651,6 +661,10 @@
       if (op.kind === 'video') {
         if (op.effect === 'blur') ctx.filter = `blur(${Math.round(comp.W / 30)}px) brightness(0.9) saturate(1.15)`;
         ctx.drawImage(src, op.src.x, op.src.y, op.src.w, op.src.h, op.dst.x, op.dst.y, op.dst.w, op.dst.h);
+      } else if (op.kind === 'bg') {
+        const bgImg = drawComp.bgImg;
+        if (bgImg) { const c = L.cover({ x: 0, y: 0, w: bgImg.naturalWidth, h: bgImg.naturalHeight }, op.dst.w, op.dst.h, 0.5, 0.5); ctx.drawImage(bgImg, c.x, c.y, c.w, c.h, op.dst.x, op.dst.y, op.dst.w, op.dst.h); }
+        else { ctx.fillStyle = '#120c1f'; ctx.fillRect(op.dst.x, op.dst.y, op.dst.w, op.dst.h); }
       } else { ctx.fillStyle = op.color; ctx.fillRect(op.dst.x, op.dst.y, op.dst.w, op.dst.h); }
       ctx.restore();
     }
@@ -685,6 +699,13 @@
 
   function drawPreview() {
     const ex = S.ex; if (!ex || !ex.img) return;
+    const bg = (S.bgs || []).find((b) => b.id === ex.bgId);
+    drawComp.bgImg = null;
+    if (L.LAYOUTS[ex.layout]?.bg && bg) {
+      S._bgImgs = S._bgImgs || {};
+      if (S._bgImgs[bg.thumb]) drawComp.bgImg = S._bgImgs[bg.thumb];
+      else loadImg(bg.thumb).then((im) => { if (im) { S._bgImgs[bg.thumb] = im; drawPreview(); } });
+    }
     const comp = L.compose(ex.layout === 'game_ai' ? 'game_full' : ex.layout, ex.img.naturalWidth, ex.img.naturalHeight, previewOpts());
     const cv = $('#exCanvas'); cv.width = comp.W; cv.height = comp.H;
     drawComp(cv.getContext('2d'), comp, ex.img, ex.showTitle ? titleLinesFor(ex.layout, ex.title) : [], wantsWatermark(), ex.progressBar ? 0.6 : null);
@@ -730,7 +751,8 @@
 
   async function serverExport(ex) {
     $('#exMsg').textContent = 'Envoi de la demande…';
-    const body = { clipIdx: ex.idx, layout: ex.layout, start: ex.start, end: ex.end, camRect: ex.camRect, corner: ex.corner, focusX: ex.focusX, title: ex.title, showTitle: ex.showTitle, progressBar: !!ex.progressBar };
+    if (L.LAYOUTS[ex.layout]?.bg && !ex.bgId) throw new Error('Choisis une vidéo satisfaisante pour le bas de l’écran.');
+    const body = { bgId: ex.bgId, clipIdx: ex.idx, layout: ex.layout, start: ex.start, end: ex.end, camRect: ex.camRect, corner: ex.corner, focusX: ex.focusX, title: ex.title, showTitle: ex.showTitle, progressBar: !!ex.progressBar };
     const r = await api(`api/jobs/${S.jobId}/export`, { method: 'POST', body });
     S.user = r.user; renderHeader(); syncQuality();
     const id = r.ids[0];
@@ -1013,6 +1035,8 @@ Réponds UNIQUEMENT avec un objet JSON : {"titre": "42 caractères max, sans has
       S._admBound = true;
       $('#admRefresh').addEventListener('click', renderAdmin);
       $('#admGo').addEventListener('click', searchAdminUsers);
+      $('#bgAdd').addEventListener('click', addBackground);
+      renderAdminBgs();
       $('#admQ').addEventListener('keydown', (e) => { if (e.key === 'Enter') searchAdminUsers(); });
       searchAdminUsers();
     }
@@ -1033,6 +1057,23 @@ Réponds UNIQUEMENT avec un objet JSON : {"titre": "42 caractères max, sans has
         ${h.lastErrors.length ? `<div class="card" style="margin-top:12px"><b>Dernières erreurs d’export</b><table class="adm-table"><tbody>${h.lastErrors.map((e) => `<tr><td class="bad-dot">${esc(new Date(e.created_at.replace(' ', 'T') + 'Z').toLocaleString(LOC))}</td><td>${esc(e.message || '')}</td></tr>`).join('')}</tbody></table></div>` : `<p class="hint ok-dot">Aucune erreur d’export récente.</p>`}`;
       bindChart('chU'); bindChart('chC');
     } catch (e) { box.innerHTML = `<p class="err">${esc(e.message)}</p>`; }
+  }
+
+  async function renderAdminBgs() {
+    const box = $('#admBg');
+    try {
+      const { backgrounds } = await api('api/admin/backgrounds');
+      S.bgs = null; // la liste publique sera rechargée
+      box.innerHTML = backgrounds.length ? backgrounds.map((b) => `<div class="bg-item"><button class="del" data-del="${esc(b.id)}" title="Retirer" aria-label="Retirer ${esc(b.name)}">✕</button>${b.thumb ? `<img src="${esc(b.thumb)}" alt="">` : '<div class="ph"></div>'}<span>${esc(b.name)}</span><span class="st">${b.status === 'ready' ? `✅ Prête · ${Math.round(b.duration || 0)} s` : b.status === 'error' ? `⚠️ ${esc(b.message || 'Échec')}` : '⏳ Conversion en cours…'}</span></div>`).join('') : '<p class="hint">La bibliothèque est vide.</p>';
+      $$('[data-del]', box).forEach((el) => el.addEventListener('click', async () => { await api('api/admin/backgrounds/' + el.dataset.del, { method: 'DELETE' }).catch(() => {}); renderAdminBgs(); }));
+      if (backgrounds.some((b) => b.status === 'processing')) { clearTimeout(S._bgT); S._bgT = setTimeout(() => { if (location.hash === '#admin') renderAdminBgs(); }, 4000); }
+    } catch (e) { box.innerHTML = `<p class="err">${esc(e.message)}</p>`; }
+  }
+  async function addBackground() {
+    const url = $('#bgUrl').value.trim(), name = $('#bgName').value.trim();
+    if (!url) { toast('Colle d’abord le lien de la vidéo.'); return; }
+    try { await api('api/admin/backgrounds', { method: 'POST', body: { url, name: name || 'Vidéo satisfaisante', source: url } }); $('#bgUrl').value = ''; $('#bgName').value = ''; toast('Vidéo ajoutée : conversion en cours…'); renderAdminBgs(); }
+    catch (e) { toast(e.message, 5000); }
   }
 
   async function searchAdminUsers() {

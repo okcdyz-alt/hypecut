@@ -15,8 +15,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<script src="i18n.js?v=14"></script>
-<link rel="stylesheet" href="style.css?v=13">
+<script src="i18n.js?v=16"></script>
+<link rel="stylesheet" href="style.css?v=15">
 </head>
 <body>
 <div class="sky" aria-hidden="true"></div>
@@ -189,6 +189,17 @@
   <section class="view hidden" id="view-admin">
     <div class="adm-head"><h2 class="page-title">Tableau de bord</h2><button class="btn ghost sm" id="admRefresh">↻ Actualiser</button></div>
     <div id="admBody"><p class="hint">Chargement…</p></div>
+    <h3 class="adm-h">Vidéos satisfaisantes (bibliothèque)</h3>
+    <div class="card">
+      <p class="hint" style="margin-top:0">Colle le lien d’une vidéo <b>libre de droits</b> (page Pexels, ou lien direct .mp4 Pixabay/Pexels). Le site la télécharge, la convertit (60 s max, sans son) et la propose à tous les utilisateurs du format « Écran partagé satisfaisant ».</p>
+      <div class="adm-search adm-bg-form">
+        <input type="url" id="bgUrl" placeholder="https://www.pexels.com/video/…" aria-label="Lien de la vidéo de fond">
+        <input type="text" id="bgName" placeholder="Nom (ex. : Nettoyage de tapis)" maxlength="60" aria-label="Nom de la vidéo">
+        <button class="btn primary sm" id="bgAdd">Ajouter</button>
+      </div>
+      <div class="bg-grid admin" id="admBg"></div>
+    </div>
+
     <h3 class="adm-h">Gestion des comptes</h3>
     <div class="card">
       <div class="adm-search"><input type="search" id="admQ" placeholder="Rechercher un e-mail…" aria-label="Rechercher un compte"><button class="btn primary sm" id="admGo">Rechercher</button></div>
@@ -226,6 +237,10 @@
         <div id="camBox" class="hidden">
           <p class="label">Encadre ta caméra <span class="hint">(glisse sur l’image)</span></p>
           <div class="cam-pick" id="camPick"><img id="camImg" alt="Image de la vidéo pour encadrer la caméra"><div class="cam-rect" id="camRect"></div></div>
+        </div>
+        <div id="bgBox" class="hidden">
+          <p class="label">Vidéo satisfaisante (en bas)</p>
+          <div class="bg-grid" id="bgGrid"></div>
         </div>
         <div id="cornerBox" class="hidden">
           <p class="label">Position de la caméra</p>
@@ -285,8 +300,8 @@
 
 <div class="toast hidden" id="toast" role="status"></div>
 
-<script src="scoring.js?v=13"></script>
-<script src="layouts.js?v=13"></script>
-<script src="app.js?v=13"></script>
+<script src="scoring.js?v=15"></script>
+<script src="layouts.js?v=15"></script>
+<script src="app.js?v=15"></script>
 </body>
 </html>

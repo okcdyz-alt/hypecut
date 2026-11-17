@@ -15,6 +15,7 @@ const sources = require('./lib/sources');
 const media = require('./lib/media');
 const referral = require('./lib/referral');
 const admin = require('./lib/admin');
+const library = require('./lib/library');
 const Layouts = require('./public/layouts');
 
 const PORT = +process.env.PORT || 3000;
@@ -127,6 +128,15 @@ route('POST', '/api/admin/users/:id', async (req, res, { params }) => {
   const b = await readJson(req);
   ok(res, { user: admin.updateUser(params.id, b, a.email) });
 });
+route('GET', '/api/backgrounds', (req, res) => { requireUser(req); ok(res, { backgrounds: library.list(false) }); });
+route('GET', '/api/admin/backgrounds', (req, res) => { requireAdmin(req); ok(res, { backgrounds: library.list(true) }); });
+route('POST', '/api/admin/backgrounds', async (req, res) => {
+  requireAdmin(req);
+  const b = await readJson(req);
+  if (!b.url) throw auth.httpError(400, 'Colle le lien de la vidéo.');
+  ok(res, { id: library.add(b) });
+});
+route('DELETE', '/api/admin/backgrounds/:id', (req, res, { params }) => { requireAdmin(req); library.remove(params.id); ok(res, { ok: true }); });
 route('POST', '/api/billing/sync', async (req, res) => {
   const u = requireUser(req);
   if (auth.rateLimit('sync:' + u.id, 20, 3600e3)) await stripe.syncUser(u);
@@ -253,6 +263,7 @@ function exportOptions(b, clip) {
     focusX: Math.max(0, Math.min(1, num(b.focusX, 0.5))), corner: ['tl', 'tr', 'bl', 'br'].includes(b.corner) ? b.corner : 'tl',
     title: b.showTitle === false ? '' : String(b.title || '').slice(0, 90),
     progressBar: b.progressBar === true,
+    bgId: typeof b.bgId === 'string' ? b.bgId.slice(0, 64) : null,
   };
 }
 route('POST', '/api/jobs/:id/export', async (req, res, { params }) => {
@@ -302,7 +313,7 @@ const server = http.createServer(async (req, res) => {
     }
     if (url.pathname.startsWith('/media/')) {
       const rel = path.normalize(decodeURIComponent(url.pathname.slice(7))).replace(/^(\.\.[/\\])+/, '');
-      if (!/^(exports\/[\w-]+\.mp4|[\w-]+\/(thumb_\d+\.jpg|frame\.jpg|preview\.mp4|source\.\w+))$/.test(rel)) return send(res, 404, 'Introuvable');
+      if (!/^(library\/[\w-]+\.(mp4|jpg)|exports\/[\w-]+\.mp4|[\w-]+\/(thumb_\d+\.jpg|frame\.jpg|preview\.mp4|source\.\w+))$/.test(rel)) return send(res, 404, 'Introuvable');
       return serveFile(req, res, path.join(jobs.MEDIA_DIR, rel), /\.jpg$/.test(rel) ? 86400 : 0);
     }
     let rel = path.normalize(decodeURIComponent(url.pathname)).replace(/^(\.\.[/\\])+/, '');
