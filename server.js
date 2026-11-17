@@ -55,7 +55,7 @@ function analysisOptions(src) {
   const clipLen = [15, 30, 45, 60].includes(+src.clipLen) ? +src.clipLen : 30;
   const count = Math.max(1, Math.min(12, +src.count || 5));
   const priority = ['balanced', 'audio', 'action'].includes(src.priority) ? src.priority : 'balanced';
-  return { clipLen, count, priority };
+  return { clipLen, count, priority, lang: src.lang === 'en' ? 'en' : 'fr' };
 }
 
 function serveFile(req, res, file, cacheSeconds = 0) {

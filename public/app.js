@@ -18,7 +18,9 @@
 
   // ---------------------------------------------------------------- utilitaires
   const fmt = (s) => { s = Math.max(0, s || 0); const m = Math.floor(s / 60), r = Math.floor(s % 60); return `${m}:${String(r).padStart(2, '0')}`; };
-  const eur = (c) => (c / 100).toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' });
+  const EN = window.HC_LANG === 'en';
+  const LOC = EN ? 'en-GB' : 'fr-FR';
+  const eur = (c) => (c / 100).toLocaleString(EN ? 'en-IE' : 'fr-FR', { style: 'currency', currency: 'EUR' });
   const esc = (t) => String(t ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const tick = () => new Promise((r) => setTimeout(r, 0));
   let toastT;
@@ -29,7 +31,7 @@
     if (opts.body !== undefined) { init.headers['Content-Type'] = 'application/json'; init.body = JSON.stringify(opts.body); }
     const r = await fetch(path, init);
     const j = await r.json().catch(() => ({}));
-    if (!r.ok) { const e = new Error(j.error || `Erreur ${r.status}`); e.status = r.status; e.upgrade = j.upgrade; throw e; }
+    if (!r.ok) { const e = new Error((window.HCt || String)(j.error || `Erreur ${r.status}`)); e.status = r.status; e.upgrade = j.upgrade; throw e; }
     return j;
   }
   function errHtml(e) {
@@ -118,7 +120,7 @@
     const pro = S.cfg.plans.find((p) => p.id === 'pro');
     const bar = $('#launchBar');
     if (l.pass?.active) {
-      bar.innerHTML = `🎮 Pass lancement GTA VI : toutes les fonctions Pro offertes jusqu’au ${new Date(l.pass.ends).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })} · ${l.pass.credits} clips gratuits sans filigrane, avec formats caméra et titres automatiques · <a href="#creer">J’en profite</a>`;
+      bar.innerHTML = `🎮 Pass lancement GTA VI : toutes les fonctions Pro offertes jusqu’au ${new Date(l.pass.ends).toLocaleDateString(LOC, { day: 'numeric', month: 'long' })} · ${l.pass.credits} clips gratuits sans filigrane, avec formats caméra et titres automatiques · <a href="#creer">J’en profite</a>`;
       bar.classList.remove('hidden');
       return;
     }
@@ -283,7 +285,7 @@
   function closeModals() { $$('.modal').forEach((m) => m.classList.add('hidden')); }
 
   // ---------------------------------------------------------------- lancement d'une analyse
-  function analysisParams() { return { clipLen: +$('#clipLen').value, count: +$('#count').value, priority: $('#priority').value }; }
+  function analysisParams() { return { clipLen: +$('#clipLen').value, count: +$('#count').value, priority: $('#priority').value, lang: EN ? 'en' : 'fr' }; }
 
   async function startAnalysis() {
     const err = $('#sourceErr'); err.textContent = '';
@@ -325,7 +327,7 @@
         try {
           const r = await fetch(`api/upload/${id}?offset=${offset}`, { method: 'PUT', body: part, credentials: 'same-origin', headers: { 'Content-Type': 'application/octet-stream' } });
           const j = await r.json().catch(() => ({}));
-          if (!r.ok) { const e = new Error(j.error || `Erreur ${r.status}`); e.status = r.status; e.upgrade = j.upgrade; throw e; }
+          if (!r.ok) { const e = new Error((window.HCt || String)(j.error || `Erreur ${r.status}`)); e.status = r.status; e.upgrade = j.upgrade; throw e; }
           break;
         } catch (e) {
           if (e.status && e.status < 500 && e.status !== 408 && e.status !== 429) throw e;
@@ -395,7 +397,7 @@
   }
 
   function initClips() {
-    S.clips = S.result.clips.map((c, i) => ({ start: c.start, end: c.end, title: c.ai?.titre || `Moment fort n°${i + 1}` }));
+    S.clips = S.result.clips.map((c, i) => ({ start: c.start, end: c.end, title: c.ai?.titre || (EN ? `Highlight #${i + 1}` : `Moment fort n°${i + 1}`) }));
   }
 
   // ---------------------------------------------------------------- analyse locale (démo)
@@ -888,7 +890,7 @@ Réponds UNIQUEMENT avec un objet JSON : {"titre": "42 caractères max, sans has
     const pass = c.launch?.pass?.active ? c.launch.pass : null;
     $('#plans').innerHTML = c.plans.map((p) => {
       if (pass && p.id === 'free') {
-        p = { ...p, name: 'Pass lancement GTA VI', perks: [`${pass.credits} clips offerts`, 'Sans filigrane', 'Tous les formats caméra', 'Titres, légendes et hashtags automatiques', 'Vidéos jusqu’à 2 h', `Jusqu’au ${new Date(pass.ends).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })}`] };
+        p = { ...p, name: 'Pass lancement GTA VI', perks: [`${pass.credits} clips offerts`, 'Sans filigrane', 'Tous les formats caméra', 'Titres, légendes et hashtags automatiques', 'Vidéos jusqu’à 2 h', `Jusqu’au ${new Date(pass.ends).toLocaleDateString(LOC, { day: 'numeric', month: 'long' })}`] };
       }
       const featured = pass ? p.id === 'free' : p.id === 'pro';
       const lp = p.launchPrice;
@@ -928,7 +930,7 @@ Réponds UNIQUEMENT avec un objet JSON : {"titre": "42 caractères max, sans has
       box.innerHTML = jobs.map((j) => `<a class="hist" href="#analyse-${esc(j.id)}">
         ${j.thumb ? `<img src="${esc(j.thumb)}" alt="">` : '<div class="ph"></div>'}
         <div class="meta"><strong>${esc(j.title || j.sourceUrl || 'Vidéo')}</strong>
-        <span class="hint">${new Date(j.createdAt.replace(' ', 'T') + 'Z').toLocaleString('fr-FR', { dateStyle: 'medium', timeStyle: 'short' })}${j.clipCount ? ` · ${j.clipCount} clips` : ''}${j.duration ? ` · ${fmt(j.duration)}` : ''}</span></div>
+        <span class="hint">${new Date(j.createdAt.replace(' ', 'T') + 'Z').toLocaleString(LOC, { dateStyle: 'medium', timeStyle: 'short' })}${j.clipCount ? ` · ${j.clipCount} clips` : ''}${j.duration ? ` · ${fmt(j.duration)}` : ''}</span></div>
         <span class="status ${j.status === 'done' ? 'done' : j.status === 'error' ? 'error' : ''}">${esc(STATUS[j.status] || j.status)}</span></a>`).join('');
     } catch (e) { box.innerHTML = `<p class="err">${esc(e.message)}</p>`; }
   }
@@ -944,7 +946,7 @@ Réponds UNIQUEMENT avec un objet JSON : {"titre": "42 caractères max, sans has
       <div class="kv"><span>E-mail</span><b>${esc(u.email)}</b></div>
       <div class="kv"><span>Offre</span><b>${esc(u.planName)}</b></div>
       <div class="kv"><span>Crédits restants</span><b>${u.credits}</b></div>
-      ${u.periodEnd ? `<div class="kv"><span>Renouvellement</span><b>${new Date(u.periodEnd).toLocaleDateString('fr-FR')}</b></div>` : ''}
+      ${u.periodEnd ? `<div class="kv"><span>Renouvellement</span><b>${new Date(u.periodEnd).toLocaleDateString(LOC)}</b></div>` : ''}
       <div class="kv"><span>Qualité d’export</span><b>${u.features.res}p ${u.features.fps} i/s${u.features.watermark ? ' · filigrane' : ''}</b></div>
       <div class="row">
         ${u.subscribed ? '<button class="btn ghost" id="btnPortal">Gérer mon abonnement</button>' : '<a class="btn primary" href="#offres">Passer à Pro</a>'}
@@ -970,7 +972,7 @@ Réponds UNIQUEMENT avec un objet JSON : {"titre": "42 caractères max, sans has
   }
 
   // ---------------------------------------------------------------- admin
-  const nf = (n) => Number(n || 0).toLocaleString('fr-FR');
+  const nf = (n) => Number(n || 0).toLocaleString(LOC);
   const mb = (b) => b >= 1073741824 ? `${(b / 1073741824).toFixed(1)} Go` : `${Math.round(b / 1048576)} Mo`;
   const LAYOUT_NAMES = () => Object.fromEntries(Object.entries(L.LAYOUTS).map(([k, v]) => [k, v.label]));
 
@@ -983,7 +985,7 @@ Réponds UNIQUEMENT avec un objet JSON : {"titre": "42 caractères max, sans has
       const x = i * step + (step - bw) / 2, top = y(d.n), h = H - padB - top;
       const r = Math.min(4, h / 2, bw / 2);
       const path = h > 0.5 ? `M${x},${H - padB} V${top + r} Q${x},${top} ${x + r},${top} H${x + bw - r} Q${x + bw},${top} ${x + bw},${top + r} V${H - padB} Z` : '';
-      const label = new Date(d.day + 'T12:00:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+      const label = new Date(d.day + 'T12:00:00').toLocaleDateString(LOC, { day: 'numeric', month: 'short' });
       return `<g data-i="${i}" data-l="${esc(label)}" data-v="${d.n}"><path class="bar" d="${path}"/><rect class="hit" x="${i * step}" y="0" width="${step}" height="${H}"/>${i % 3 === 0 || i === n - 1 ? `<text class="axis" x="${x + bw / 2}" y="${H - 4}" text-anchor="middle">${esc(label)}</text>` : ''}</g>`;
     }).join('');
     return `<div class="chart-card" id="${id}"><h4>${esc(title)}</h4><p class="sub">${esc(sub)}</p>
@@ -1028,7 +1030,7 @@ Réponds UNIQUEMENT avec un objet JSON : {"titre": "42 caractères max, sans has
         <p class="hint">Estimation au prix plein, hors réductions et frais Stripe. Les montants exacts sont dans ton tableau de bord Stripe.</p>
         <h3 class="adm-h">Santé du serveur</h3>
         ${tiles([[`${h.queue.running}/${h.queue.max}`, 'traitements en cours'], [nf(h.queue.waiting), 'en file d’attente', h.queue.waiting > 5], [nf(h.failed24h), 'exports en échec (24 h)', h.failed24h > 0], [nf(h.jobsFailed24h), 'analyses en échec (24 h)', h.jobsFailed24h > 3], [mb(h.mediaBytes), 'vidéos stockées'], [h.disk ? mb(h.disk.free) : '—', 'espace disque libre', h.disk && h.disk.free < 1073741824], [`${h.memoryMb} Mo`, 'mémoire utilisée', h.memoryMb > 400], [`${h.uptimeH} h`, 'depuis le dernier démarrage']])}
-        ${h.lastErrors.length ? `<div class="card" style="margin-top:12px"><b>Dernières erreurs d’export</b><table class="adm-table"><tbody>${h.lastErrors.map((e) => `<tr><td class="bad-dot">${esc(new Date(e.created_at.replace(' ', 'T') + 'Z').toLocaleString('fr-FR'))}</td><td>${esc(e.message || '')}</td></tr>`).join('')}</tbody></table></div>` : `<p class="hint ok-dot">Aucune erreur d’export récente.</p>`}`;
+        ${h.lastErrors.length ? `<div class="card" style="margin-top:12px"><b>Dernières erreurs d’export</b><table class="adm-table"><tbody>${h.lastErrors.map((e) => `<tr><td class="bad-dot">${esc(new Date(e.created_at.replace(' ', 'T') + 'Z').toLocaleString(LOC))}</td><td>${esc(e.message || '')}</td></tr>`).join('')}</tbody></table></div>` : `<p class="hint ok-dot">Aucune erreur d’export récente.</p>`}`;
       bindChart('chU'); bindChart('chC');
     } catch (e) { box.innerHTML = `<p class="err">${esc(e.message)}</p>`; }
   }
@@ -1039,7 +1041,7 @@ Réponds UNIQUEMENT avec un objet JSON : {"titre": "42 caractères max, sans has
       const { users } = await api('api/admin/users?q=' + encodeURIComponent($('#admQ').value));
       if (!users.length) { box.innerHTML = '<p class="hint">Aucun compte trouvé.</p>'; return; }
       box.innerHTML = `<table class="adm-table"><thead><tr><th>E-mail</th><th>Offre</th><th>Crédits</th><th class="opt">Clips</th><th class="opt">Inscrit le</th><th>Actions</th></tr></thead><tbody>${users.map((u) => `
-        <tr data-id="${esc(u.id)}"><td>${esc(u.email)}</td><td>${esc(u.plan)}${u.subscribed ? ' 💳' : ''}</td><td>${nf(u.credits)}</td><td class="opt">${nf(u.clips)}</td><td class="opt">${esc(new Date(u.created_at.replace(' ', 'T') + 'Z').toLocaleDateString('fr-FR'))}</td>
+        <tr data-id="${esc(u.id)}"><td>${esc(u.email)}</td><td>${esc(u.plan)}${u.subscribed ? ' 💳' : ''}</td><td>${nf(u.credits)}</td><td class="opt">${nf(u.clips)}</td><td class="opt">${esc(new Date(u.created_at.replace(' ', 'T') + 'Z').toLocaleDateString(LOC))}</td>
         <td><div class="adm-act"><input type="number" value="5" step="1" aria-label="Crédits à offrir"><select aria-label="Offre"><option value="">offre…</option><option value="free">Gratuit</option><option value="pro">Pro</option><option value="creator">Créateur</option></select><button class="btn ghost xs">Appliquer</button></div></td></tr>`).join('')}</tbody></table>
         <p class="hint">💳 = abonnement Stripe actif. Changer l’offre ici l’offre sans paiement (geste commercial).</p>`;
       $$('tr[data-id]', box).forEach((tr) => $('button', tr).addEventListener('click', async () => {

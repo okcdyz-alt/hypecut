@@ -330,3 +330,9 @@ body.has-job .mkt { display: none; }
 .ok-dot::before { content: '●'; color: var(--ok); margin-right: 6px; }
 .bad-dot::before { content: '●'; color: var(--danger); margin-right: 6px; }
 @media (max-width: 760px) { .charts2 { grid-template-columns: 1fr; } .adm-table .opt { display: none; } }
+
+/* ---------- Langue ---------- */
+.lang-btn { min-width: 44px; }
+.account { margin-left: 0; }
+.top .lang-btn { margin-left: auto; }
+html:not([lang=en]) .en-only { display: none; }
