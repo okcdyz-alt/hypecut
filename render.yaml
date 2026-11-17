@@ -16,6 +16,10 @@ services:
         value: /var/data
       - key: MAX_PARALLEL_JOBS
         value: "1"
+      - key: MAX_EXPORT_RES       # Starter (512 Mo) : 720 ; Standard : supprimer pour le 1080p
+        value: "720"
+      - key: MAX_EXPORT_FPS
+        value: "30"
       - key: CLOUDINARY_URL       # cloudinary://CLE:SECRET@NOM_DU_CLOUD
         sync: false
       - key: STRIPE_SECRET_KEY    # sk_live_… ou sk_test_…

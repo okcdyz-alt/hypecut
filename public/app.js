@@ -353,6 +353,7 @@
         S.pollT = setTimeout(poll, 1500);
       } catch (e) {
         if (e.status === 404) { hideProgress(); $('#sourceErr').textContent = 'Analyse introuvable.'; return; }
+        if (e.status === 401) { hideProgress(); openAuth('login'); return; }
         S.pollT = setTimeout(poll, 4000);
       }
     };
@@ -697,9 +698,15 @@
     S.user = r.user; renderHeader(); syncQuality();
     const id = r.ids[0];
     const LBL = { queued: 'En file d’attente', rendering: 'Montage du clip', uploading: 'Mise en ligne', ai_crop: 'Recadrage IA en cours' };
+    let fails = 0;
     for (;;) {
       await new Promise((s) => setTimeout(s, 1500));
-      const { export: e } = await api('api/exports/' + id);
+      let e;
+      try { ({ export: e } = await api('api/exports/' + id)); fails = 0; }
+      catch (err) {
+        if ((!err.status || err.status >= 500) && ++fails < 40) { $('#exMsg').textContent = 'Le serveur est très sollicité, on patiente…'; continue; }
+        throw err;
+      }
       $('#exBar').style.width = `${Math.round((e.progress || 0) * 100)}%`;
       if (e.status === 'done') {
         $('#exMsg').textContent = 'Ton clip est prêt ! 🎉';
