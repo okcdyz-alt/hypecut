@@ -15,7 +15,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=9">
+<link rel="stylesheet" href="style.css?v=11">
 </head>
 <body>
 <div class="sky" aria-hidden="true"></div>
@@ -186,6 +186,7 @@
   <section class="view hidden" id="view-compte">
     <h2 class="page-title">Mon compte</h2>
     <div class="card account-card" id="accountCard"></div>
+    <div class="card ref-card hidden" id="refCard"></div>
   </section>
 </main>
 
@@ -222,6 +223,8 @@
           <p class="label">Cadrage horizontal du jeu</p>
           <input type="range" id="focusX" min="0" max="1" step="0.01" value="0.5" aria-label="Cadrage horizontal">
         </div>
+        <p class="label">Effets</p>
+        <label class="check" id="pbLabel"><input type="checkbox" id="progressBar" checked> <span>Barre de progression <span class="hint">(pousse à regarder jusqu’au bout)</span> <span class="lock hidden" id="pbLock">🔒 Pro</span></span></label>
         <label class="check"><input type="checkbox" id="showTitle" checked> <span>Afficher un titre sur le clip</span></label>
         <input type="text" id="titleInput" maxlength="90" placeholder="Ex. : La poursuite la plus folle de Vice City">
         <div class="ex-times">
@@ -268,8 +271,8 @@
 
 <div class="toast hidden" id="toast" role="status"></div>
 
-<script src="scoring.js?v=9"></script>
-<script src="layouts.js?v=9"></script>
-<script src="app.js?v=9"></script>
+<script src="scoring.js?v=11"></script>
+<script src="layouts.js?v=11"></script>
+<script src="app.js?v=11"></script>
 </body>
 </html>

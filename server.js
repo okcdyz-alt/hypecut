@@ -13,6 +13,7 @@ const cloud = require('./lib/cloudinary');
 const ai = require('./lib/ai');
 const sources = require('./lib/sources');
 const media = require('./lib/media');
+const referral = require('./lib/referral');
 const Layouts = require('./public/layouts');
 
 const PORT = +process.env.PORT || 3000;
@@ -41,12 +42,12 @@ async function readBody(req, limit = 1 << 20) {
 async function readJson(req) { const raw = await readBody(req); try { return raw ? JSON.parse(raw) : {}; } catch { throw auth.httpError(400, 'JSON invalide.'); } }
 
 function requireUser(req) { const u = auth.currentUser(req); if (!u) throw auth.httpError(401, 'Connecte-toi pour continuer.'); return u; }
-const clientIp = (req) => String(req.headers['x-forwarded-for'] || req.socket.remoteAddress || '').split(',')[0].trim();
+const clientIp = (req) => String(req.headers['cf-connecting-ip'] || req.headers['true-client-ip'] || req.headers['x-forwarded-for'] || req.socket.remoteAddress || '').split(',')[0].trim();
 
 function userView(u) {
   const p = plans.planOf(u);
   return { id: u.id, email: u.email, plan: p.id, planName: p.name, credits: u.credits, periodEnd: u.period_end, subscribed: !!u.stripe_sub,
-    features: { res: Math.min(p.res, +process.env.MAX_EXPORT_RES || 1080), fps: Math.min(p.fps, +process.env.MAX_EXPORT_FPS || 60), watermark: p.watermark, maxDurationMin: p.maxDurationMin, maxUploadMb: p.maxUploadMb, camLayouts: p.camLayouts, smartCrop: p.smartCrop && cloud.enabled(), batch: p.batch, ai: ai.enabled() ? p.ai : 'none' } };
+    features: { res: Math.min(p.res, +process.env.MAX_EXPORT_RES || 1080), fps: Math.min(p.fps, +process.env.MAX_EXPORT_FPS || 60), watermark: p.watermark, maxDurationMin: p.maxDurationMin, maxUploadMb: p.maxUploadMb, camLayouts: p.camLayouts, effects: !!p.camLayouts, smartCrop: p.smartCrop && cloud.enabled(), batch: p.batch, ai: ai.enabled() ? p.ai : 'none' } };
 }
 
 function analysisOptions(src) {
@@ -98,6 +99,7 @@ route('POST', '/api/auth/signup', async (req, res) => {
   if (!auth.rateLimit('signup:' + clientIp(req), 5, 3600e3)) throw auth.httpError(429, 'Trop d’inscriptions depuis ta connexion. Réessaie plus tard.');
   const b = await readJson(req);
   const id = auth.signup(b.email, b.password);
+  try { referral.attach(id, b.ref, clientIp(req)); } catch (e) { console.warn('[parrainage]', e.message); }
   ok(res, { user: userView(q.get('SELECT * FROM users WHERE id = ?', id)) }, { 'Set-Cookie': auth.sessionCookie(auth.createSession(id), SECURE) });
 });
 route('POST', '/api/auth/login', async (req, res) => {
@@ -111,6 +113,11 @@ route('POST', '/api/auth/logout', (req, res) => {
   ok(res, { ok: true }, { 'Set-Cookie': auth.sessionCookie('', SECURE) });
 });
 route('GET', '/api/me', (req, res) => { const u = auth.currentUser(req); ok(res, { user: u ? userView(u) : null }); });
+route('GET', '/api/referral', (req, res) => {
+  const u = requireUser(req);
+  const st = referral.stats(u.id);
+  ok(res, { ...st, link: `${PUBLIC_URL}/?ref=${st.code}`, referred: !!u.referred_by, rewarded: !!u.ref_rewarded });
+});
 route('POST', '/api/billing/sync', async (req, res) => {
   const u = requireUser(req);
   if (auth.rateLimit('sync:' + u.id, 20, 3600e3)) await stripe.syncUser(u);
@@ -236,6 +243,7 @@ function exportOptions(b, clip) {
     layout: String(b.layout || 'game_full'), start, end, camRect: cr,
     focusX: Math.max(0, Math.min(1, num(b.focusX, 0.5))), corner: ['tl', 'tr', 'bl', 'br'].includes(b.corner) ? b.corner : 'tl',
     title: b.showTitle === false ? '' : String(b.title || '').slice(0, 90),
+    progressBar: b.progressBar === true,
   };
 }
 route('POST', '/api/jobs/:id/export', async (req, res, { params }) => {

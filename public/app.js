@@ -85,6 +85,13 @@
     bind();
     route();
     window.addEventListener('hashchange', route);
+    const ref = new URLSearchParams(location.search).get('ref');
+    if (ref) {
+      S.ref = ref.slice(0, 16);
+      try { localStorage.setItem('hc_ref', S.ref); } catch {}
+      history.replaceState(null, '', location.pathname + location.hash);
+      if (S.mode === 'server' && !S.user) setTimeout(() => openAuth('signup', `Un ami t’invite sur HYPECUT : tu gagnes ${5} clips en plus après ton premier clip 🎁`), 600);
+    } else { try { S.ref = localStorage.getItem('hc_ref') || null; } catch {} }
     const p = new URLSearchParams(location.search).get('paiement');
     if (p === 'ok') {
       toast('Paiement confirmé, activation de ton offre…', 6000);
@@ -207,6 +214,10 @@
     // Export
     $('#focusX').addEventListener('input', (e) => { S.ex.focusX = +e.target.value; drawPreview(); });
     $('#showTitle').addEventListener('change', (e) => { S.ex.showTitle = e.target.checked; drawPreview(); });
+    $('#progressBar').addEventListener('change', (e) => {
+      if (e.target.checked && !effectsAllowed()) { e.target.checked = false; $('#exErr').innerHTML = 'Les effets sont inclus dans les offres Pro et Créateur. <a href="#offres" data-close>Voir les offres</a>'; return; }
+      S.ex.progressBar = e.target.checked; drawPreview();
+    });
     $('#titleInput').addEventListener('input', (e) => { S.ex.title = e.target.value; S.clips[S.ex.idx].title = e.target.value; drawPreview(); });
     $$('#cornerSeg button').forEach((b) => b.addEventListener('click', () => { S.ex.corner = S.corner = b.dataset.c; syncCorner(); drawPreview(); }));
     $$('[data-nudge]').forEach((b) => b.addEventListener('click', () => {
@@ -258,7 +269,8 @@
     e.preventDefault();
     const btn = $('#authSubmit'); btn.disabled = true; $('#authErr').textContent = '';
     try {
-      const r = await api(`api/auth/${authMode}`, { method: 'POST', body: { email: $('#authEmail').value, password: $('#authPass').value } });
+      const r = await api(`api/auth/${authMode}`, { method: 'POST', body: { email: $('#authEmail').value, password: $('#authPass').value, ref: authMode === 'signup' ? S.ref : undefined } });
+      if (authMode === 'signup') { try { localStorage.removeItem('hc_ref'); } catch {} }
       S.user = r.user; renderHeader(); closeModals();
       toast(authMode === 'signup' ? `Bienvenue ! Tu as ${r.user.credits} crédits pour essayer.` : 'Connecté.');
       if (S.result) renderWorkspace();
@@ -550,6 +562,8 @@
     return p;
   }
 
+  function effectsAllowed() { return S.mode === 'demo' || !!S.user?.features?.effects; }
+
   function layoutAllowed(key) {
     const Lk = L.LAYOUTS[key];
     if (S.mode === 'demo') return Lk.serverOnly ? 'hide' : 'ok';
@@ -576,8 +590,9 @@
     const c = S.result.clips[i], st = S.clips[i];
     let layout = S.lastLayout;
     if (layoutAllowed(layout) !== 'ok') layout = 'game_full';
-    S.ex = { idx: i, layout, start: st.start, end: st.end, title: st.title, showTitle: true, focusX: 0.5, corner: S.corner, camRect: S.camRect || { x: 0.02, y: 0.03, w: 0.26, h: 0.3 }, img: null, frame: null, busy: false };
+    S.ex = { idx: i, layout, start: st.start, end: st.end, title: st.title, showTitle: true, progressBar: effectsAllowed(), focusX: 0.5, corner: S.corner, camRect: S.camRect || { x: 0.02, y: 0.03, w: 0.26, h: 0.3 }, img: null, frame: null, busy: false };
     $('#titleInput').value = st.title; $('#showTitle').checked = true; $('#focusX').value = 0.5;
+    $('#progressBar').checked = effectsAllowed(); $('#pbLock').classList.toggle('hidden', effectsAllowed());
     $('#exErr').innerHTML = ''; $('#exResult').classList.add('hidden');
     ['#exDownload', '#exSave', '#exCopy', '#exVideo'].forEach((s) => $(s).classList.add('hidden'));
     $('#btnDoExport').disabled = false;
@@ -623,7 +638,7 @@
   }
 
   /** Dessine une composition sur un canvas (aperçu avec une image, ou export avec la vidéo). */
-  function drawComp(ctx, comp, src, lines, watermark) {
+  function drawComp(ctx, comp, src, lines, watermark, progress) {
     ctx.fillStyle = '#000'; ctx.fillRect(0, 0, comp.W, comp.H);
     for (const op of comp.ops) {
       ctx.save();
@@ -647,6 +662,11 @@
         ctx.fillStyle = '#fff'; ctx.fillText(line, x, y);
       });
     }
+    if (progress !== undefined && progress !== null) {
+      const bh = Math.max(6, Math.round(H * 0.009));
+      ctx.fillStyle = 'rgba(0,0,0,0.45)'; ctx.fillRect(0, H - bh, W, bh);
+      ctx.fillStyle = '#ff3d8b'; ctx.fillRect(0, H - bh, W * Math.max(0, Math.min(1, progress)), bh);
+    }
     if (watermark) {
       const fs = Math.round(Math.min(W, H) * 0.045);
       ctx.font = `${fs}px Anton, Impact, sans-serif`; ctx.textBaseline = 'alphabetic';
@@ -662,7 +682,7 @@
     const ex = S.ex; if (!ex || !ex.img) return;
     const comp = L.compose(ex.layout === 'game_ai' ? 'game_full' : ex.layout, ex.img.naturalWidth, ex.img.naturalHeight, previewOpts());
     const cv = $('#exCanvas'); cv.width = comp.W; cv.height = comp.H;
-    drawComp(cv.getContext('2d'), comp, ex.img, ex.showTitle ? titleLinesFor(ex.layout, ex.title) : [], wantsWatermark());
+    drawComp(cv.getContext('2d'), comp, ex.img, ex.showTitle ? titleLinesFor(ex.layout, ex.title) : [], wantsWatermark(), ex.progressBar ? 0.6 : null);
   }
 
   function bindCamPicker() {
@@ -705,7 +725,7 @@
 
   async function serverExport(ex) {
     $('#exMsg').textContent = 'Envoi de la demande…';
-    const body = { clipIdx: ex.idx, layout: ex.layout, start: ex.start, end: ex.end, camRect: ex.camRect, corner: ex.corner, focusX: ex.focusX, title: ex.title, showTitle: ex.showTitle };
+    const body = { clipIdx: ex.idx, layout: ex.layout, start: ex.start, end: ex.end, camRect: ex.camRect, corner: ex.corner, focusX: ex.focusX, title: ex.title, showTitle: ex.showTitle, progressBar: !!ex.progressBar };
     const r = await api(`api/jobs/${S.jobId}/export`, { method: 'POST', body });
     S.user = r.user; renderHeader(); syncQuality();
     const id = r.ids[0];
@@ -721,7 +741,7 @@
       }
       $('#exBar').style.width = `${Math.round((e.progress || 0) * 100)}%`;
       if (e.status === 'done') {
-        $('#exMsg').textContent = 'Ton clip est prêt ! 🎉';
+        $('#exMsg').innerHTML = 'Ton clip est prêt ! 🎉 <a href="#compte" data-close>Invite tes amis</a> : 5 clips offerts chacun.';
         const v = $('#exVideo'); v.src = e.url; v.classList.remove('hidden');
         const a = $('#exDownload'); a.href = e.download || e.url; a.classList.remove('hidden');
         $('#exCopy').classList.remove('hidden');
@@ -785,7 +805,7 @@
     const dur = ex.end - ex.start;
     await new Promise((res) => {
       const step = () => {
-        drawComp(ctx, comp, v, lines, true);
+        drawComp(ctx, comp, v, lines, true, ex.progressBar ? (v.currentTime - ex.start) / dur : null);
         const p = (v.currentTime - ex.start) / dur;
         $('#exBar').style.width = `${Math.round(Math.min(1, p) * 100)}%`;
         $('#exMsg').textContent = `Montage en temps réel… ${Math.round(Math.min(1, p) * 100)} % (garde cet onglet ouvert)`;
@@ -927,8 +947,23 @@ Réponds UNIQUEMENT avec un objet JSON : {"titre": "42 caractères max, sans has
         ${u.subscribed ? '<button class="btn ghost" id="btnPortal">Gérer mon abonnement</button>' : '<a class="btn primary" href="#offres">Passer à Pro</a>'}
         <button class="btn ghost" id="btnLogout">Se déconnecter</button>
       </div>`;
+    renderReferral();
     $('#btnLogout').addEventListener('click', async () => { await api('api/auth/logout', { method: 'POST' }).catch(() => {}); S.user = null; renderHeader(); resetWorkspace(); location.hash = '#creer'; toast('Déconnecté.'); });
     $('#btnPortal')?.addEventListener('click', async (e) => { e.target.disabled = true; try { location.href = (await api('api/billing/portal', { method: 'POST' })).url; } catch (err) { toast(err.message); e.target.disabled = false; } });
+  }
+
+  async function renderReferral() {
+    const box = $('#refCard'); if (!box || !S.user) return;
+    box.classList.remove('hidden');
+    try {
+      const r = await api('api/referral');
+      box.innerHTML = `
+        <h3>🎁 Parraine tes amis</h3>
+        <p class="hint">Partage ton lien : quand un ami s’inscrit et crée son premier clip, vous gagnez <b>${r.reward} clips chacun</b>.</p>
+        <div class="ref-link"><input readonly value="${esc(r.link)}" id="refLink" aria-label="Ton lien de parrainage"><button class="btn primary sm" id="refCopy">Copier</button></div>
+        <div class="ref-stats"><div><b>${r.invited}</b><span>inscrits</span></div><div><b>${r.validated}</b><span>validés</span></div><div><b>${r.earned}</b><span>clips gagnés</span></div></div>`;
+      $('#refCopy').addEventListener('click', async () => { try { await navigator.clipboard.writeText(r.link); toast('Lien copié : partage-le à tes amis !'); } catch { $('#refLink').select(); toast('Sélectionne le lien et copie-le.'); } });
+    } catch { box.classList.add('hidden'); }
   }
 
   boot();

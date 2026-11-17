@@ -287,3 +287,14 @@ body.has-job .mkt { display: none; }
 }
 @media (prefers-reduced-motion: reduce) { .scr *, .scr .game { animation: none !important; } }
 .lay-bubble .ttl { top: 40%; }
+
+/* ---------- Parrainage ---------- */
+.ref-card { max-width: 560px; margin-top: 16px; }
+.ref-card h3 { margin: 0 0 6px; }
+.ref-link { display: flex; gap: 8px; margin: 12px 0; }
+.ref-link input { flex: 1; min-width: 0; background: rgba(0,0,0,.35); border: 1px solid var(--line2); border-radius: 10px; padding: 10px 12px; color: var(--teal); font-weight: 600; }
+.ref-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.ref-stats div { background: rgba(0,0,0,.25); border: 1px solid var(--line); border-radius: 12px; padding: 10px; text-align: center; }
+.ref-stats b { display: block; font-size: 22px; }
+.ref-stats span { font-size: 12px; color: var(--muted); }
+#exMsg a { color: var(--teal); }
