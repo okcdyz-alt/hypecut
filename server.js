@@ -147,29 +147,57 @@ route('POST', '/api/jobs', async (req, res) => {
   ok(res, { id });
 });
 
-route('POST', '/api/upload', async (req, res, { url }) => {
+// Envoi de fichier en morceaux (16 Mo) : fiable derrière les proxys, reprise possible en cas de coupure.
+const CHUNK_MB = 16;
+route('POST', '/api/upload/start', async (req, res) => {
   const u = requireUser(req);
-  if (!auth.rateLimit('job:' + u.id, plans.planOf(u).id === 'free' ? 6 : 40, 3600e3)) throw auth.httpError(429, 'Tu as lancé beaucoup d’analyses : patiente un peu.');
+  if (!auth.rateLimit('job:' + u.id, plans.planOf(u).id === 'free' && !plans.planOf(u).launchPass ? 6 : 40, 3600e3)) throw auth.httpError(429, 'Tu as lancé beaucoup d’analyses : patiente un peu.');
+  const b = await readJson(req);
   const plan = plans.planOf(u);
-  const max = plan.maxUploadMb * 1048576;
-  const len = +req.headers['content-length'] || 0;
-  if (!len) throw auth.httpError(411, 'Taille du fichier inconnue.');
-  if (len > max) throw auth.httpError(413, `Fichier trop lourd pour ton offre (max ${plan.maxUploadMb} Mo).`);
-  const name = String(url.searchParams.get('name') || 'video.mp4').slice(0, 200);
+  const size = Math.trunc(+b.size || 0);
+  if (size <= 0) throw auth.httpError(400, 'Fichier vide.');
+  if (size > plan.maxUploadMb * 1048576) throw auth.httpError(413, `Fichier trop lourd pour ton offre (max ${plan.maxUploadMb} Mo).`);
+  const name = String(b.name || 'video.mp4').slice(0, 200);
   const ext = (path.extname(name).toLowerCase().match(/^\.(mp4|mov|m4v|webm|mkv|avi|ts|flv)$/) || ['.mp4'])[0];
-  const id = jobs.createJob(u, { sourceType: 'upload', title: path.basename(name, path.extname(name)), options: analysisOptions(Object.fromEntries(url.searchParams)) });
+  const id = jobs.createJob(u, { sourceType: 'upload', title: path.basename(name, path.extname(name)), options: analysisOptions(b) });
   const dest = path.join(jobs.jobDir(id), 'source' + ext);
-  let got = 0;
-  await new Promise((resolve, reject) => {
-    const w = fs.createWriteStream(dest);
-    req.on('data', (c) => { got += c.length; if (got > max) { req.destroy(); reject(auth.httpError(413, 'Fichier trop lourd.')); } });
-    req.on('error', reject);
-    w.on('error', reject);
-    w.on('finish', resolve);
-    req.pipe(w);
-  }).catch((e) => { q.run("UPDATE jobs SET status = 'error', message = 'Envoi interrompu.' WHERE id = ?", id); throw e; });
-  jobs.startAnalysis(id, u);
-  ok(res, { id });
+  fs.closeSync(fs.openSync(dest, 'w'));
+  q.run("UPDATE jobs SET status = 'uploading', meta = ? WHERE id = ?", JSON.stringify({ upload: { size, file: 'source' + ext } }), id);
+  console.log('[envoi] début', id, `${Math.round(size / 1048576)} Mo`);
+  ok(res, { id, chunkSize: CHUNK_MB * 1048576 });
+});
+
+function uploadingJob(user, id) {
+  const j = ownJob(user, id);
+  const up = JSON.parse(j.meta || '{}').upload;
+  if (j.status !== 'uploading' || !up) throw auth.httpError(409, 'Cet envoi est déjà terminé ou a expiré.');
+  return { j, up, file: path.join(jobs.jobDir(id), up.file) };
+}
+
+route('PUT', '/api/upload/:id', async (req, res, { url, params }) => {
+  const u = requireUser(req);
+  const { up, file } = uploadingJob(u, params.id);
+  const offset = Math.trunc(+url.searchParams.get('offset'));
+  const have = fs.statSync(file).size;
+  if (!(offset >= 0) || offset > have) throw auth.httpError(409, `Morceau hors séquence (reçu jusqu’à ${have}).`);
+  const chunks = []; let n = 0;
+  for await (const c of req) { n += c.length; if (n > (CHUNK_MB + 1) * 1048576) throw auth.httpError(413, 'Morceau trop gros.'); chunks.push(c); }
+  const buf = Buffer.concat(chunks);
+  if (offset + buf.length > up.size) throw auth.httpError(400, 'Le fichier dépasse la taille annoncée.');
+  const fd = fs.openSync(file, 'r+');
+  try { fs.writeSync(fd, buf, 0, buf.length, offset); } finally { fs.closeSync(fd); }
+  ok(res, { received: Math.max(have, offset + buf.length) });
+});
+
+route('POST', '/api/upload/:id/finish', async (req, res, { params }) => {
+  const u = requireUser(req);
+  const { j, up, file } = uploadingJob(u, params.id);
+  const have = fs.statSync(file).size;
+  if (have !== up.size) throw auth.httpError(409, `Envoi incomplet (${have} / ${up.size} octets).`);
+  q.run("UPDATE jobs SET status = 'queued', meta = NULL WHERE id = ?", j.id);
+  console.log('[envoi] terminé', j.id);
+  jobs.startAnalysis(j.id, u);
+  ok(res, { id: j.id });
 });
 
 route('GET', '/api/jobs', (req, res) => {
@@ -234,7 +262,7 @@ const server = http.createServer(async (req, res) => {
   try {
     if (url.pathname.startsWith('/api/')) {
       // Protection CSRF simple : les requêtes qui modifient doivent venir du site lui-même
-      if (req.method === 'POST' && url.pathname !== '/api/stripe/webhook') {
+      if (!['GET', 'HEAD'].includes(req.method) && url.pathname !== '/api/stripe/webhook') {
         const origin = req.headers.origin;
         if (origin && origin !== PUBLIC_URL && !origin.startsWith('http://localhost')) throw auth.httpError(403, 'Origine refusée.');
       }

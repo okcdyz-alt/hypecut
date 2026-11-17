@@ -285,26 +285,39 @@
     btn.disabled = false;
   }
 
-  function uploadFile(file) {
-    return new Promise((resolve, reject) => {
-      const p = analysisParams();
-      const qs = new URLSearchParams({ name: file.name, clipLen: p.clipLen, count: p.count, priority: p.priority });
-      const xhr = new XMLHttpRequest();
-      xhr.open('POST', 'api/upload?' + qs);
-      xhr.setRequestHeader('Content-Type', 'application/octet-stream');
-      showProgress('Envoi de ta vidéo…', 0, `${(file.size / 1048576).toFixed(0)} Mo`);
-      xhr.upload.onprogress = (e) => e.lengthComputable && showProgress('Envoi de ta vidéo…', e.loaded / e.total, `${(e.loaded / 1048576).toFixed(0)} / ${(e.total / 1048576).toFixed(0)} Mo`);
-      xhr.onload = () => {
-        let j = {}; try { j = JSON.parse(xhr.responseText); } catch {}
-        if (xhr.status >= 200 && xhr.status < 300) resolve(j.id);
-        else { const e = new Error(j.error || 'Envoi impossible.'); e.status = xhr.status; e.upgrade = j.upgrade; reject(e); }
-      };
-      xhr.onerror = () => reject(new Error('La connexion a été coupée pendant l’envoi.'));
-      xhr.send(file);
-    });
+  async function uploadFile(file) {
+    const p = analysisParams();
+    const { id, chunkSize } = await api('api/upload/start', { method: 'POST', body: { name: file.name, size: file.size, ...p } });
+    const total = file.size;
+    const mb = (b) => (b / 1048576).toFixed(0);
+    let offset = 0;
+    showProgress('Envoi de ta vidéo…', 0, `0 / ${mb(total)} Mo`);
+    while (offset < total) {
+      const end = Math.min(total, offset + chunkSize);
+      const part = file.slice(offset, end);
+      let tries = 0;
+      for (;;) {
+        try {
+          const r = await fetch(`api/upload/${id}?offset=${offset}`, { method: 'PUT', body: part, credentials: 'same-origin', headers: { 'Content-Type': 'application/octet-stream' } });
+          const j = await r.json().catch(() => ({}));
+          if (!r.ok) { const e = new Error(j.error || `Erreur ${r.status}`); e.status = r.status; e.upgrade = j.upgrade; throw e; }
+          break;
+        } catch (e) {
+          if (e.status && e.status < 500 && e.status !== 408 && e.status !== 429) throw e;
+          if (++tries > 4) throw new Error('La connexion a été coupée pendant l’envoi. Réessaie.');
+          showProgress('Connexion instable, nouvelle tentative…', offset / total, `${mb(offset)} / ${mb(total)} Mo`);
+          await new Promise((s) => setTimeout(s, 1500 * tries));
+        }
+      }
+      offset = end;
+      showProgress('Envoi de ta vidéo…', offset / total, `${mb(offset)} / ${mb(total)} Mo`);
+    }
+    showProgress('Vidéo reçue, démarrage de l’analyse…', 1, '');
+    await api(`api/upload/${id}/finish`, { method: 'POST', body: {} });
+    return id;
   }
 
-  const STATUS = { queued: 'En file d’attente', downloading: 'Récupération de la vidéo', analyzing: 'Recherche des moments forts', thumbs: 'Préparation des aperçus', preview: 'Préparation du lecteur', ai: 'L’IA écrit les titres', done: 'Terminé', error: 'Erreur', expired: 'Expirée' };
+  const STATUS = { uploading: 'Envoi incomplet', queued: 'En file d’attente', downloading: 'Récupération de la vidéo', analyzing: 'Recherche des moments forts', thumbs: 'Préparation des aperçus', preview: 'Préparation du lecteur', ai: 'L’IA écrit les titres', done: 'Terminé', error: 'Erreur', expired: 'Expirée' };
 
   function showProgress(title, p, msg) {
     $('#progressCard').classList.remove('hidden');
