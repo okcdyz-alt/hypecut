@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=6">
+<link rel="stylesheet" href="style.css?v=7">
 </head>
 <body>
 <div class="sky" aria-hidden="true"></div>
@@ -116,7 +116,7 @@
   <section class="view hidden" id="view-offres">
     <h2 class="page-title">Choisis ton offre</h2>
     <p class="lead center" id="offersLead">Essaie gratuitement, puis passe à la vitesse supérieure.</p>
-    <label class="check waiver" id="waiverBox"><input type="checkbox" id="waiverCheck"> <span>Je demande l’accès immédiat à mes crédits dès le paiement et je renonce expressément à mon droit de rétractation de 14 jours (article L221-28, 13° du Code de la consommation).</span></label>
+    <label class="check waiver" id="waiverBox"><input type="checkbox" id="waiverCheck"> <span>Je demande l’accès immédiat à mes crédits dès le paiement et je renonce expressément à mon droit de rétractation de 14 jours (article L221-28, 13° du Code de la consommation). J’accepte les <a href="legal.html#cgv" target="_blank">conditions générales de vente</a>.</span></label>
     <div class="plans" id="plans"></div>
     <div class="pack card" id="packCard"></div>
     <p class="hint center">Paiement sécurisé par Stripe : carte bancaire, Apple Pay, Google Pay, PayPal. Abonnement sans engagement, résiliable en un clic.</p>
@@ -130,6 +130,7 @@
 </main>
 
 <footer class="foot">
+  <p class="foot-links srv"><a href="legal.html#mentions">Mentions légales</a> · <a href="legal.html#cgv">CGV / CGU</a> · <a href="legal.html#confidentialite">Confidentialité</a> · <a href="mailto:okcdyz@gmail.com">Contact</a></p>
   <p>HYPECUT n’est ni affilié ni approuvé par Rockstar Games ou Take-Two Interactive. Grand Theft Auto est une marque de Take-Two Interactive. N’utilise que des vidéos dont tu as les droits.</p>
 </footer>
 
@@ -199,6 +200,7 @@
       <label class="field"><span>E-mail</span><input type="email" id="authEmail" autocomplete="email" required></label>
       <label class="field"><span>Mot de passe</span><input type="password" id="authPass" autocomplete="new-password" minlength="8" required placeholder="8 caractères minimum"></label>
       <button class="btn primary big" type="submit" id="authSubmit">Créer mon compte</button>
+      <p class="hint srv" id="authLegal">En créant un compte, tu acceptes les <a href="legal.html#cgv" target="_blank">conditions générales</a> et la <a href="legal.html#confidentialite" target="_blank">politique de confidentialité</a>.</p>
       <p class="err" id="authErr" role="alert"></p>
     </form>
   </div>
@@ -206,8 +208,8 @@
 
 <div class="toast hidden" id="toast" role="status"></div>
 
-<script src="scoring.js?v=6"></script>
-<script src="layouts.js?v=6"></script>
-<script src="app.js?v=6"></script>
+<script src="scoring.js?v=7"></script>
+<script src="layouts.js?v=7"></script>
+<script src="app.js?v=7"></script>
 </body>
 </html>

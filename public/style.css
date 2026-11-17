@@ -224,3 +224,8 @@ input[type=range] { width: 100%; accent-color: var(--pink); }
   .ex-preview { max-width: 240px; margin: 0 auto; }
   .hist img, .hist .ph { width: 92px; }
 }
+
+.foot-links { margin-bottom: 8px; }
+.foot-links a { color: var(--muted); }
+.foot-links a:hover { color: var(--text); }
+#authLegal a { color: var(--teal); }

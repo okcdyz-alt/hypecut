@@ -242,6 +242,7 @@
     const free = S.cfg?.plans?.find((p) => p.id === 'free');
     $('#authSub').textContent = m === 'signup' ? `${free?.credits || 3} clips offerts pour essayer, sans carte bancaire.` : 'Connecte-toi pour retrouver tes clips.';
     $('#authSubmit').textContent = m === 'signup' ? 'Créer mon compte' : 'Se connecter';
+    $('#authLegal')?.classList.toggle('hidden', m !== 'signup' || S.mode !== 'server');
     $('#authPass').setAttribute('autocomplete', m === 'signup' ? 'new-password' : 'current-password');
   }
   async function submitAuth(e) {
