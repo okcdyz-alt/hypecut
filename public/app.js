@@ -159,7 +159,7 @@
     $('#btnAccount').classList.toggle('hidden', !u);
     const pill = $('#creditPill');
     pill.classList.toggle('hidden', !u);
-    if (u) pill.textContent = `${u.credits} crédit${u.credits > 1 ? 's' : ''} · ${u.planName}`;
+    if (u) pill.innerHTML = `${u.level ? `<span class="lvl-dot" title="Niveau ${esc(u.level.name)}">${u.level.emoji}</span> ` : ''}<span>${u.credits} crédit${u.credits > 1 ? 's' : ''} · ${esc(u.planName)}</span>`;
     $('#navAdmin').classList.toggle('hidden', !u?.isAdmin);
     renderPlans();
   }
@@ -169,14 +169,16 @@
     const h = (location.hash || '#creer').slice(1);
     let view = h;
     if (h.startsWith('analyse-')) { view = 'creer'; const id = h.slice(8); if (id !== S.jobId) loadJob(id); }
-    if (!['creer', 'mes-clips', 'offres', 'compte', 'admin'].includes(view)) view = 'creer';
+    if (!['creer', 'mes-clips', 'offres', 'compte', 'admin', 'revenus', 'defi'].includes(view)) view = 'creer';
     if (view === 'admin' && !S.user?.isAdmin) view = 'creer';
-    if (S.mode === 'demo' && ['mes-clips', 'compte'].includes(view)) view = 'creer';
+    if (S.mode === 'demo' && ['mes-clips', 'compte', 'revenus', 'defi'].includes(view)) view = 'creer';
     $$('.view').forEach((v) => v.classList.toggle('hidden', v.id !== 'view-' + view));
     $$('#nav a').forEach((a) => a.classList.toggle('active', a.dataset.view === view));
     if (view === 'mes-clips') renderHistory();
     if (view === 'compte') renderAccount();
     if (view === 'admin') renderAdmin();
+    if (view === 'revenus') renderRevenue();
+    if (view === 'defi') renderChallenge();
     if (view !== 'creer' || !h.startsWith('analyse-')) window.scrollTo({ top: 0 });
   }
 
@@ -982,14 +984,209 @@ Réponds UNIQUEMENT avec un objet JSON : {"titre": "42 caractères max, sans has
       <div class="kv"><span>Crédits restants</span><b>${u.credits}</b></div>
       ${u.periodEnd ? `<div class="kv"><span>Renouvellement</span><b>${new Date(u.periodEnd).toLocaleDateString(LOC)}</b></div>` : ''}
       <div class="kv"><span>Qualité d’export</span><b>${u.features.res}p ${u.features.fps} i/s${u.features.watermark ? ' · filigrane' : ''}</b></div>
+      <label class="check mail-pref"><input type="checkbox" id="mailPref" ${u.emailOptOut ? '' : 'checked'}> <span>Recevoir les conseils et les annonces de défis par e-mail</span></label>
       <div class="row">
         ${u.subscribed ? '<button class="btn ghost" id="btnPortal">Gérer mon abonnement</button>' : '<a class="btn primary" href="#offres">Passer à Pro</a>'}
         <button class="btn ghost" id="btnLogout">Se déconnecter</button>
       </div>`;
+    renderLevel();
     renderUgc();
     renderReferral();
+    $('#mailPref').addEventListener('change', async (e) => { try { const r = await api('api/me/emails', { method: 'POST', body: { optOut: !e.target.checked } }); S.user = r.user; toast(e.target.checked ? 'C’est noté : tu recevras nos conseils et défis.' : 'C’est noté : plus de conseils ni d’annonces par e-mail.'); } catch (err) { toast(err.message); e.target.checked = !e.target.checked; } });
     $('#btnLogout').addEventListener('click', async () => { await api('api/auth/logout', { method: 'POST' }).catch(() => {}); S.user = null; renderHeader(); resetWorkspace(); location.hash = '#creer'; toast('Déconnecté.'); });
     $('#btnPortal')?.addEventListener('click', async (e) => { e.target.disabled = true; try { location.href = (await api('api/billing/portal', { method: 'POST' })).url; } catch (err) { toast(err.message); e.target.disabled = false; } });
+  }
+
+  // ---------------------------------------------------------------- revenus du clippeur
+  function revMoney(v, cur) {
+    const n = Number(v || 0).toLocaleString(LOC, { minimumFractionDigits: v % 1 ? 2 : 0, maximumFractionDigits: 2 });
+    return cur === '€' ? `${n} €` : `${n} $`;
+  }
+  async function renderRevenue(data) {
+    const box = $('#revBody'), curBox = $('#revCur');
+    if (!S.user) { curBox.innerHTML = ''; box.innerHTML = '<div class="card center"><p>Connecte-toi pour suivre tes revenus de clippeur.</p><button class="btn primary" data-open-auth>Se connecter</button></div>'; return; }
+    let d = data;
+    try { if (!d) d = await api('api/revenue'); } catch (e) { box.innerHTML = `<p class="err">${esc(e.message)}</p>`; return; }
+    S.rev = d;
+    const c = d.currency, m = (v) => revMoney(v, c), sm = d.summary;
+    curBox.innerHTML = d.currencies.map((x) => `<button data-cur="${esc(x)}" class="${x === c ? 'active' : ''}">${x === '€' ? 'Euros €' : 'Dollars $'}</button>`).join('');
+    $$('[data-cur]', curBox).forEach((b) => b.addEventListener('click', async () => { try { renderRevenue(await api('api/revenue/currency', { method: 'POST', body: { currency: b.dataset.cur } })); } catch (e) { toast(e.message); } }));
+    const plan = (S.cfg?.plans || []).find((p) => p.id === S.user.plan);
+    const camps = d.campaigns.filter((x) => !x.archived);
+    const today = new Date().toISOString().slice(0, 10);
+    const tiles = [[m(sm.total), 'gagnés au total'], [m(sm.received), 'déjà reçus'], [m(sm.pending), 'en attente de paiement'], [m(sm.monthTotal), 'ce mois-ci'], [nf(sm.views), 'vues au total'], [m(sm.rpm), 'en moyenne pour 1 000 vues']];
+    box.innerHTML = `
+      <div class="tiles">${tiles.map(([v, k]) => `<div class="tile"><div class="v">${esc(v)}</div><div class="k">${esc(k)}</div></div>`).join('')}</div>
+      ${plan && plan.price && sm.monthTotal > 0 ? `<p class="hint rev-roi">💡 Ce mois-ci, tu as gagné ${esc(m(sm.monthTotal))} ; ton offre ${esc(plan.name)} coûte ${esc(eur(plan.price))} par mois.</p>` : ''}
+      <div class="charts1">${barChart('chRev', 'Gains par semaine', '8 dernières semaines, selon la date de publication', d.weeks, m)}</div>
+
+      <div class="rev-grid">
+        <div class="card">
+          <h3 class="rev-h">📋 Mes campagnes</h3>
+          ${d.campaigns.length ? `<table class="adm-table rev-camps"><thead><tr><th>Campagne</th><th>Tarif / 1 000 vues</th><th>Clips</th><th>Gains</th><th></th></tr></thead><tbody>${d.campaigns.map((x) => `
+            <tr data-cid="${esc(x.id)}" class="${x.archived ? 'muted-row' : ''}"><td><b>${esc(x.name)}</b><br><span class="hint">${esc(x.platform || '')}${x.archived ? ' · terminée' : ''}</span></td><td>${esc(m(x.rate))}</td><td>${nf(x.clips)}</td><td>${esc(m(x.total))}</td>
+            <td class="nowrap"><button class="btn ghost xs" data-arch>${x.archived ? 'Réactiver' : 'Terminer'}</button> <button class="btn ghost xs" data-cdel aria-label="Supprimer la campagne ${esc(x.name)}">✕</button></td></tr>`).join('')}</tbody></table>` : '<p class="hint">Ajoute la campagne que tu as rejointe (par exemple sur Content Rewards ou Whop) et son tarif pour 1 000 vues.</p>'}
+          <div class="rev-form">
+            <input id="rcName" maxlength="60" placeholder="Nom (ex. : Clips GTA VI de Streamer X)" aria-label="Nom de la campagne">
+            <select id="rcPlat" aria-label="Plateforme">${d.platforms.map((p) => `<option>${esc(p)}</option>`).join('')}</select>
+            <input id="rcRate" inputmode="decimal" placeholder="Tarif pour 1 000 vues (${esc(c)})" aria-label="Tarif pour 1 000 vues">
+            <button class="btn primary sm" id="rcAdd">Ajouter la campagne</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 class="rev-h">🎬 Ajouter un clip publié</h3>
+          <div class="rev-form">
+            <select id="rpCamp" aria-label="Campagne"><option value="">Sans campagne</option>${camps.map((x) => `<option value="${esc(x.id)}">${esc(x.name)}</option>`).join('')}</select>
+            <input id="rpUrl" type="url" placeholder="Lien du clip (TikTok, Reels, Shorts…)" aria-label="Lien du clip">
+            <div class="rev-row"><label>Publié le<input id="rpDate" type="date" value="${today}" max="${today}"></label><label>Vues<input id="rpViews" inputmode="numeric" placeholder="0"></label></div>
+            <div class="rev-row"><label>Montant (${esc(c)})<input id="rpAmount" inputmode="decimal" placeholder="Auto"></label><label class="check rev-paid"><input type="checkbox" id="rpPaid"> <span>Déjà payé</span></label></div>
+            <p class="hint">Laisse « Montant » vide : il est estimé avec le tarif de la campagne (vues ÷ 1 000 × tarif).</p>
+            <button class="btn primary sm" id="rpAdd">Ajouter le clip</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:14px">
+        <h3 class="rev-h">📈 Mes clips publiés</h3>
+        ${d.posts.length ? `<div class="table-scroll"><table class="adm-table rev-posts"><thead><tr><th>Clip</th><th class="opt">Publié le</th><th>Vues</th><th>Gains</th><th>Payé</th><th></th></tr></thead><tbody>${d.posts.map((p) => `
+          <tr data-pid="${esc(p.id)}"><td>${p.url ? `<a href="${esc(p.url)}" target="_blank" rel="noopener noreferrer">${esc(p.title || hostOf(p.url))} ↗</a>` : esc(p.title || 'Clip')}<br><span class="hint">${esc(p.campaign || 'Sans campagne')}</span></td>
+          <td class="opt">${esc(new Date(p.postedOn + 'T12:00:00').toLocaleDateString(LOC))}</td>
+          <td><input class="rev-views" inputmode="numeric" value="${p.views}" aria-label="Vues"></td>
+          <td>${esc(m(p.value))}${p.estimated ? '<br><span class="hint">estimé</span>' : ''}</td>
+          <td><input type="checkbox" class="rev-paidbox" ${p.paid ? 'checked' : ''} aria-label="Payé"></td>
+          <td><button class="btn ghost xs" data-pdel aria-label="Supprimer ce clip">✕</button></td></tr>`).join('')}</tbody></table></div>
+          <p class="hint">Mets à jour les vues quand elles bougent, et coche « Payé » quand l’argent est arrivé.</p>` : '<p class="hint">Aucun clip pour l’instant. Ajoute ton premier clip publié ci-dessus.</p>'}
+      </div>
+      <p class="hint center">Ces chiffres sont ceux que tu saisis : HYPECUT ne connaît pas tes revenus réels. Les gains dépendent de chaque campagne et ne sont jamais garantis.</p>`;
+    bindChart('chRev');
+    const send = async (path, body, method = 'POST') => { try { renderRevenue(await api(path, { method, body })); return true; } catch (e) { toast(e.message, 5000); return false; } };
+    $('#rcAdd').addEventListener('click', () => send('api/revenue/campaigns', { name: $('#rcName').value, platform: $('#rcPlat').value, rate: $('#rcRate').value }));
+    $('#rpAdd').addEventListener('click', () => send('api/revenue/posts', { campaignId: $('#rpCamp').value, url: $('#rpUrl').value, postedOn: $('#rpDate').value, views: $('#rpViews').value || 0, amount: $('#rpAmount').value, paid: $('#rpPaid').checked }));
+    $$('tr[data-cid]', box).forEach((tr) => {
+      const x = d.campaigns.find((k) => k.id === tr.dataset.cid);
+      $('[data-arch]', tr).addEventListener('click', () => send('api/revenue/campaigns/' + x.id, { name: x.name, platform: x.platform, rate: x.rate, archived: !x.archived }));
+      $('[data-cdel]', tr).addEventListener('click', () => { if (confirm(`Supprimer la campagne « ${x.name} » ? Ses clips restent, sans campagne.`)) send('api/revenue/campaigns/' + x.id, undefined, 'DELETE'); });
+    });
+    $$('tr[data-pid]', box).forEach((tr) => {
+      const p = d.posts.find((k) => k.id === tr.dataset.pid);
+      const save = (patch) => send('api/revenue/posts/' + p.id, { campaignId: p.campaignId, url: p.url, title: p.title, postedOn: p.postedOn, views: p.views, amount: p.amount, paid: p.paid, ...patch });
+      $('.rev-views', tr).addEventListener('change', (e) => save({ views: e.target.value || 0 }));
+      $('.rev-paidbox', tr).addEventListener('change', (e) => save({ paid: e.target.checked }));
+      $('[data-pdel]', tr).addEventListener('click', () => { if (confirm('Supprimer ce clip de ton suivi ?')) send('api/revenue/posts/' + p.id, undefined, 'DELETE'); });
+    });
+  }
+  function hostOf(u) { try { return new URL(u).hostname.replace(/^www\./, ''); } catch { return 'Clip'; } }
+
+  // ---------------------------------------------------------------- défi GTA VI
+  const RANK = { 1: '🥇', 2: '🥈', 3: '🥉' };
+  const dShort = (iso) => new Date(iso).toLocaleDateString(LOC, { day: 'numeric', month: 'long' });
+  function timeLeft(iso) {
+    const ms = new Date(iso) - Date.now(); if (ms <= 0) return 'terminé';
+    const d = Math.floor(ms / 86400e3), h = Math.floor((ms % 86400e3) / 3600e3);
+    return d ? `encore ${d} j ${h} h` : `encore ${h} h ${Math.floor((ms % 3600e3) / 60e3)} min`;
+  }
+  async function renderChallenge(data) {
+    const box = $('#defiBody');
+    let d = data;
+    try { if (!d) d = await api('api/challenges'); } catch (e) { box.innerHTML = `<p class="err">${esc(e.message)}</p>`; return; }
+    const c = d.current, prizes = (p) => `<div class="ch-prizes">${p.map((n, i) => n ? `<div><span>${RANK[i + 1]}</span><b>${nf(n)} clips</b></div>` : '').join('')}</div>`;
+    const mineList = (arr) => arr.length ? `<div class="ugc-list">${arr.map((e) => `<div class="ugc-item"><div class="meta"><a href="${esc(e.url)}" target="_blank" rel="noopener noreferrer">${esc(e.title || hostOf(e.url))} ↗</a><span class="hint">Envoyé le ${esc(new Date(e.created_at.replace(' ', 'T') + 'Z').toLocaleDateString(LOC))}</span></div>${e.rank ? `<span class="status done">${RANK[e.rank]} Gagnant</span>` : '<span class="status">✅ Participe</span>'}</div>`).join('')}</div>` : '';
+    box.innerHTML = `
+      ${c ? `<div class="card ch-card">
+        <div class="ch-top"><span class="pill-live">● EN COURS</span><span class="hint">${esc(timeLeft(c.endsAt))} · jusqu’au ${esc(dShort(c.endsAt))} · ${nf(c.entries)} participation${c.entries > 1 ? 's' : ''}</span></div>
+        <p class="ch-kicker">${esc(c.title)}</p><h3 class="ch-theme">${esc(c.theme)}</h3>
+        ${c.description ? `<p class="hint">${esc(c.description)}</p>` : ''}
+        ${prizes(c.prizes)}
+        ${S.user ? (c.mine.length < d.maxEntries ? `
+          <div class="rev-form">
+            <input id="chUrl" type="url" placeholder="Lien de ton clip publié (TikTok, Reels ou Shorts)" aria-label="Lien de ton clip">
+            <input id="chTitle" maxlength="80" placeholder="Titre (facultatif)" aria-label="Titre du clip">
+            <label class="check"><input type="checkbox" id="chAccept"> <span>J’ai 18 ans ou plus, j’ai les droits sur ce clip et j’accepte le <a href="legal.html#defis" target="_blank">règlement du défi</a>.</span></label>
+            <button class="btn primary" id="chSend">🏆 Je participe</button>
+          </div>` : `<p class="hint">Tu as envoyé ${d.maxEntries} clips : c’est le maximum pour ce défi. Bonne chance !</p>`)
+        : '<p><button class="btn primary" data-open-auth>Se connecter pour participer</button></p>'}
+        ${mineList(c.mine)}
+      </div>` : `<div class="card center"><p><b>Pas de défi en cours pour le moment.</b></p>${d.next ? `<p class="hint">Prochain défi : « ${esc(d.next.theme)} », à partir du ${esc(dShort(d.next.startsAt))}.</p>` : ''}</div>`}
+      ${c && d.next ? `<p class="hint center">Ensuite : « ${esc(d.next.theme)} », à partir du ${esc(dShort(d.next.startsAt))}.</p>` : ''}
+      <div class="card ch-how"><h3 class="rev-h">Comment ça marche ?</h3><ol>
+        <li>Crée ton clip sur le thème de la semaine (avec HYPECUT, c’est plus rapide 😉).</li>
+        <li>Publie-le sur ton compte TikTok, Instagram ou YouTube, en public.</li>
+        <li>Envoie le lien ici avant la fin du défi (${d.maxEntries} clips max).</li>
+        <li>Le jury choisit les 3 meilleurs clips (idée, montage, moment) : les gagnants reçoivent leurs clips et sont affichés ici.</li>
+      </ol><p class="hint">Participation gratuite, sans achat. Utilise uniquement ton propre gameplay ou un clip fait avec l’accord du créateur.</p></div>
+      ${d.past.length ? `<h3 class="adm-h">Défis passés</h3><div class="ch-past">${d.past.map((p) => `<div class="card"><p class="ch-kicker">${esc(p.title)} · ${esc(dShort(p.startsAt))} → ${esc(dShort(p.endsAt))}</p><b>${esc(p.theme)}</b>
+        ${p.winners.length ? `<div class="ugc-list">${p.winners.map((w) => `<div class="ugc-item"><span>${RANK[w.rank]}</span><div class="meta"><a href="${esc(w.url)}" target="_blank" rel="noopener noreferrer">${esc(w.name)} ↗</a>${w.title ? `<span class="hint">${esc(w.title)}</span>` : ''}</div></div>`).join('')}</div>` : '<p class="hint">Résultats bientôt.</p>'}</div>`).join('')}</div>` : ''}`;
+    $('#chSend')?.addEventListener('click', async (e) => {
+      const url = $('#chUrl').value.trim();
+      if (!url) { toast('Colle d’abord le lien de ton clip.'); return; }
+      e.target.disabled = true;
+      try { const r = await api(`api/challenges/${c.id}/entries`, { method: 'POST', body: { url, title: $('#chTitle').value, accept: $('#chAccept').checked } }); toast('C’est envoyé : tu participes au défi ! 🏆', 5000); renderChallenge(r); }
+      catch (err) { toast(err.message, 6000); e.target.disabled = false; }
+    });
+  }
+
+  // admin : défis
+  async function renderAdminChallenges() {
+    const box = $('#admCh'); if (!box) return;
+    try {
+      const { challenges } = await api('api/admin/challenges');
+      const toLocal = (iso) => { const d = new Date(iso); return new Date(d - d.getTimezoneOffset() * 60e3).toISOString().slice(0, 16); };
+      const ST = { live: '● En cours', upcoming: 'À venir', ended: 'Terminé' };
+      const form = (c) => `<div class="ch-form" data-chid="${esc(c?.id || '')}">
+        <input name="title" maxlength="40" placeholder="Titre (Défi n°5)" value="${esc(c?.title || '')}" aria-label="Titre">
+        <input name="theme" maxlength="80" placeholder="Thème" value="${esc(c?.theme || '')}" aria-label="Thème">
+        <input name="description" maxlength="300" placeholder="Description (facultatif)" value="${esc(c?.description || '')}" aria-label="Description">
+        <label>Début<input name="startsAt" type="datetime-local" value="${c ? toLocal(c.startsAt) : ''}"></label>
+        <label>Fin<input name="endsAt" type="datetime-local" value="${c ? toLocal(c.endsAt) : ''}"></label>
+        <label>Prix 🥇 🥈 🥉 (clips)<input name="prizes" value="${esc((c?.prizes || [30, 15, 5]).join(', '))}"></label>
+        <button class="btn primary xs" data-save>${c ? 'Enregistrer' : 'Créer le défi'}</button>${c ? ' <button class="btn ghost xs" data-del>Supprimer</button>' : ''}</div>`;
+      box.innerHTML = `${challenges.map((c) => `<details class="ch-adm"><summary><b>${esc(c.title)} · ${esc(c.theme)}</b> <span class="hint">${esc(ST[c.status])} · ${nf(c.entries)} participation${c.entries > 1 ? 's' : ''}${c.awarded ? ' · prix attribués ✅' : ''}</span></summary>
+        ${form(c)}<div class="ch-entries" data-entries="${esc(c.id)}"><p class="hint">Chargement des participations…</p></div></details>`).join('')}
+        <details class="ch-adm"><summary><b>➕ Nouveau défi</b></summary>${form(null)}</details>`;
+      $$('.ch-form', box).forEach((f) => {
+        const val = (n) => $(`[name=${n}]`, f).value;
+        $('[data-save]', f).addEventListener('click', async () => {
+          const body = { title: val('title'), theme: val('theme'), description: val('description'), startsAt: val('startsAt') && new Date(val('startsAt')).toISOString(), endsAt: val('endsAt') && new Date(val('endsAt')).toISOString(), prizes: val('prizes').split(/[,;\s]+/).filter(Boolean).map(Number) };
+          try { await api('api/admin/challenges' + (f.dataset.chid ? '/' + f.dataset.chid : ''), { method: 'POST', body }); toast('Défi enregistré.'); renderAdminChallenges(); } catch (e) { toast(e.message, 5000); }
+        });
+        $('[data-del]', f)?.addEventListener('click', async () => { if (!confirm('Supprimer ce défi et ses participations ?')) return; try { await api('api/admin/challenges/' + f.dataset.chid, { method: 'DELETE' }); renderAdminChallenges(); } catch (e) { toast(e.message); } });
+      });
+      $$('details.ch-adm', box).forEach((det) => det.addEventListener('toggle', () => { const el = $('[data-entries]', det); if (det.open && el) loadEntries(el, challenges.find((c) => c.id === el.dataset.entries)); }));
+    } catch (e) { box.innerHTML = `<p class="err">${esc(e.message)}</p>`; }
+  }
+  async function loadEntries(el, c) {
+    try {
+      const { entries } = await api(`api/admin/challenges/${c.id}/entries`);
+      el.innerHTML = entries.length ? `<table class="adm-table"><thead><tr><th>Clip</th><th>Compte</th><th>Classement</th><th></th></tr></thead><tbody>${entries.map((e) => `
+        <tr data-eid="${esc(e.id)}" class="${e.removed ? 'muted-row' : ''}"><td><a href="${esc(e.url)}" target="_blank" rel="noopener noreferrer">${esc(e.title || e.name)} ↗</a></td><td>${esc(e.email)}</td>
+        <td><select ${c.awarded || e.removed ? 'disabled' : ''} aria-label="Classement"><option value="">—</option>${[1, 2, 3].map((r) => `<option value="${r}" ${e.rank === r ? 'selected' : ''}>${RANK[r]} ${r}${r === 1 ? 'er' : 'e'}</option>`).join('')}</select></td>
+        <td>${c.awarded ? '' : `<button class="btn ghost xs" data-rm>${e.removed ? 'Remettre' : 'Exclure'}</button>`}</td></tr>`).join('')}</tbody></table>
+        ${c.awarded ? '<p class="hint">Prix attribués.</p>' : `<button class="btn primary sm" data-award ${c.status !== 'ended' ? 'disabled title="Disponible à la fin du défi"' : ''}>🏆 Attribuer les prix (${c.prizes.join(' / ')} clips)</button>`}` : '<p class="hint">Aucune participation pour l’instant.</p>';
+      $$('tr[data-eid]', el).forEach((tr) => {
+        const e = entries.find((x) => x.id === tr.dataset.eid);
+        $('select', tr).addEventListener('change', async (ev) => { try { await api('api/admin/entries/' + e.id, { method: 'POST', body: { rank: ev.target.value } }); loadEntries(el, c); } catch (err) { toast(err.message); } });
+        $('[data-rm]', tr)?.addEventListener('click', async () => { try { await api('api/admin/entries/' + e.id, { method: 'POST', body: { removed: !e.removed } }); loadEntries(el, c); } catch (err) { toast(err.message); } });
+      });
+      $('[data-award]', el)?.addEventListener('click', async () => {
+        if (!confirm('Verser les prix aux gagnants ? C’est définitif.')) return;
+        try { const r = await api(`api/admin/challenges/${c.id}/award`, { method: 'POST', body: {} }); toast(`Prix versés à ${r.paid.length} gagnant${r.paid.length > 1 ? 's' : ''}.`); renderAdminChallenges(); } catch (err) { toast(err.message, 5000); }
+      });
+    } catch (e) { el.innerHTML = `<p class="err">${esc(e.message)}</p>`; }
+  }
+
+  // ---------------------------------------------------------------- niveaux de clippeur
+  async function renderLevel() {
+    const box = $('#levelCard'); if (!box || !S.user || S.mode !== 'server') return;
+    box.classList.remove('hidden');
+    try {
+      const r = await api('api/levels'), l = r.level;
+      box.innerHTML = `
+        <div class="lvl-head"><span class="lvl-badge lvl-${esc(l.key)}">${l.emoji}</span><div><h3>Niveau ${esc(l.name)}</h3>
+        <p class="hint">${nf(r.clips)} clip${r.clips > 1 ? 's' : ''} créé${r.clips > 1 ? 's' : ''}${r.next ? ` · encore ${nf(r.toNext)} pour passer ${esc(r.next.name)} ${r.next.emoji}` : ' · niveau maximum atteint 🔥'}</p></div></div>
+        ${r.next ? `<div class="lvl-bar" role="progressbar" aria-valuenow="${r.pct}" aria-valuemin="0" aria-valuemax="100" aria-label="Progression vers le niveau ${esc(r.next.name)}"><i style="width:${Math.max(3, r.pct)}%"></i></div>` : ''}
+        <div class="lvl-list">${r.levels.map((x) => `<div class="lvl-row ${x.id <= l.id ? 'got' : ''}"><span class="e">${x.emoji}</span><div><b>${esc(x.name)}</b> <span class="hint">dès ${nf(x.min)} clips</span><br><span class="hint">${x.perks.map(esc).join(' · ')}</span></div>${x.id <= l.id ? '<span class="ok">✓</span>' : ''}</div>`).join('')}</div>`;
+    } catch { box.classList.add('hidden'); }
   }
 
   // ---------------------------------------------------------------- programme créateur
@@ -1055,7 +1252,7 @@ Réponds UNIQUEMENT avec un objet JSON : {"titre": "42 caractères max, sans has
   const mb = (b) => b >= 1073741824 ? `${(b / 1073741824).toFixed(1)} Go` : `${Math.round(b / 1048576)} Mo`;
   const LAYOUT_NAMES = () => Object.fromEntries(Object.entries(L.LAYOUTS).map(([k, v]) => [k, v.label]));
 
-  function barChart(id, title, sub, data) {
+  function barChart(id, title, sub, data, fmtV = nf) {
     const W = 560, H = 150, padB = 18, padT = 8, n = data.length;
     const max = Math.max(1, ...data.map((d) => d.n));
     const step = W / n, bw = Math.max(4, step - 6);
@@ -1065,10 +1262,10 @@ Réponds UNIQUEMENT avec un objet JSON : {"titre": "42 caractères max, sans has
       const r = Math.min(4, h / 2, bw / 2);
       const path = h > 0.5 ? `M${x},${H - padB} V${top + r} Q${x},${top} ${x + r},${top} H${x + bw - r} Q${x + bw},${top} ${x + bw},${top + r} V${H - padB} Z` : '';
       const label = new Date(d.day + 'T12:00:00').toLocaleDateString(LOC, { day: 'numeric', month: 'short' });
-      return `<g data-i="${i}" data-l="${esc(label)}" data-v="${d.n}"><path class="bar" d="${path}"/><rect class="hit" x="${i * step}" y="0" width="${step}" height="${H}"/>${i % 3 === 0 || i === n - 1 ? `<text class="axis" x="${x + bw / 2}" y="${H - 4}" text-anchor="middle">${esc(label)}</text>` : ''}</g>`;
+      return `<g data-i="${i}" data-l="${esc(label)}" data-v="${esc(fmtV(d.n))}"><path class="bar" d="${path}"/><rect class="hit" x="${i * step}" y="0" width="${step}" height="${H}"/>${i % 3 === 0 || i === n - 1 ? `<text class="axis" x="${x + bw / 2}" y="${H - 4}" text-anchor="middle">${esc(label)}</text>` : ''}</g>`;
     }).join('');
     return `<div class="chart-card" id="${id}"><h4>${esc(title)}</h4><p class="sub">${esc(sub)}</p>
-      <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="${esc(title)}"><line class="grid" x1="0" x2="${W}" y1="${y(max)}" y2="${y(max)}"/><text class="axis" x="0" y="${y(max) - 2}">${nf(max)}</text><line class="grid" x1="0" x2="${W}" y1="${H - padB}" y2="${H - padB}"/>${bars}</svg>
+      <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="${esc(title)}"><line class="grid" x1="0" x2="${W}" y1="${y(max)}" y2="${y(max)}"/><text class="axis" x="0" y="${y(max) - 2}">${esc(fmtV(max))}</text><line class="grid" x1="0" x2="${W}" y1="${H - padB}" y2="${H - padB}"/>${bars}</svg>
       <div class="ctip hidden"></div></div>`;
   }
   function bindChart(id) {
@@ -1078,7 +1275,7 @@ Réponds UNIQUEMENT avec un objet JSON : {"titre": "42 caractères max, sans has
       g.addEventListener('mouseenter', () => {
         $$('.bar.on', card).forEach((b) => b.classList.remove('on')); $('.bar', g).classList.add('on');
         const r = $('.hit', g).getBoundingClientRect(), c = card.getBoundingClientRect();
-        tip.innerHTML = `${g.dataset.l} · <b>${nf(g.dataset.v)}</b>`;
+        tip.innerHTML = `${esc(g.dataset.l)} · <b>${esc(g.dataset.v)}</b>`;
         tip.style.left = `${r.left - c.left + r.width / 2}px`; tip.style.top = `${$('.bar', g).getBoundingClientRect().top - c.top || 60}px`;
         tip.classList.remove('hidden');
       });
@@ -1099,6 +1296,8 @@ Réponds UNIQUEMENT avec un objet JSON : {"titre": "42 caractères max, sans has
       searchAdminUsers();
     }
     renderAdminUgc();
+    renderAdminChallenges();
+    renderAdminMail();
     try {
       const d = await api('api/admin/stats');
       const h = d.health, names = LAYOUT_NAMES();
@@ -1115,6 +1314,18 @@ Réponds UNIQUEMENT avec un objet JSON : {"titre": "42 caractères max, sans has
         ${tiles([[`${h.queue.running}/${h.queue.max}`, 'traitements en cours'], [nf(h.queue.waiting), 'en file d’attente', h.queue.waiting > 5], [nf(h.failed24h), 'exports en échec (24 h)', h.failed24h > 0], [nf(h.jobsFailed24h), 'analyses en échec (24 h)', h.jobsFailed24h > 3], [mb(h.mediaBytes), 'vidéos stockées'], [h.disk ? mb(h.disk.free) : '—', 'espace disque libre', h.disk && h.disk.free < 1073741824], [`${h.memoryMb} Mo`, 'mémoire utilisée', h.memoryMb > 400], [`${h.uptimeH} h`, 'depuis le dernier démarrage']])}
         ${h.lastErrors.length ? `<div class="card" style="margin-top:12px"><b>Dernières erreurs d’export</b><table class="adm-table"><tbody>${h.lastErrors.map((e) => `<tr><td class="bad-dot">${esc(new Date(e.created_at.replace(' ', 'T') + 'Z').toLocaleString(LOC))}</td><td>${esc(e.message || '')}</td></tr>`).join('')}</tbody></table></div>` : `<p class="hint ok-dot">Aucune erreur d’export récente.</p>`}`;
       bindChart('chU'); bindChart('chC');
+    } catch (e) { box.innerHTML = `<p class="err">${esc(e.message)}</p>`; }
+  }
+
+  async function renderAdminMail() {
+    const box = $('#admMail'); if (!box) return;
+    try {
+      const m = await api('api/admin/mail');
+      box.innerHTML = m.enabled
+        ? `<div class="tiles">${[[nf(m.today) + ' / ' + nf(m.limit), 'e-mails envoyés sur 24 h'], [nf(m.week), 'e-mails sur 7 jours'], [nf(m.optedOut), 'désinscrits des conseils']].map(([v, k]) => `<div class="tile"><div class="v">${esc(v)}</div><div class="k">${esc(k)}</div></div>`).join('')}</div>
+           <p class="hint">Envoi depuis ${esc(m.from)} via Brevo. <button class="btn ghost xs" id="mailTest">Envoyer un e-mail de test</button></p>`
+        : '<p class="hint warn-dot">E-mails désactivés : ajoute <b>BREVO_API_KEY</b> et <b>MAIL_FROM</b> dans les variables d’environnement Render pour les activer.</p>';
+      $('#mailTest')?.addEventListener('click', async (e) => { e.target.disabled = true; try { const r = await api('api/admin/mail/test', { method: 'POST', body: {} }); toast(`E-mail de test envoyé à ${r.to}.`, 5000); } catch (err) { toast(err.message, 6000); } e.target.disabled = false; });
     } catch (e) { box.innerHTML = `<p class="err">${esc(e.message)}</p>`; }
   }
 

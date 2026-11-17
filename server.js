@@ -15,6 +15,10 @@ const sources = require('./lib/sources');
 const media = require('./lib/media');
 const referral = require('./lib/referral');
 const ugc = require('./lib/ugc');
+const levels = require('./lib/levels');
+const revenue = require('./lib/revenue');
+const challenge = require('./lib/challenge');
+const mail = require('./lib/mail');
 const admin = require('./lib/admin');
 const library = require('./lib/library');
 const Layouts = require('./public/layouts');
@@ -49,7 +53,8 @@ const clientIp = (req) => String(req.headers['cf-connecting-ip'] || req.headers[
 
 function userView(u) {
   const p = plans.planOf(u);
-  return { id: u.id, email: u.email, isAdmin: admin.isAdmin(u), plan: p.id, planName: p.name, credits: u.credits, periodEnd: u.period_end, subscribed: !!u.stripe_sub,
+  const lv = levels.levelFor(levels.clipCount(u.id));
+  return { id: u.id, email: u.email, isAdmin: admin.isAdmin(u), level: { key: lv.key, name: lv.name, emoji: lv.emoji }, plan: p.id, planName: p.name, credits: u.credits, emailOptOut: !!u.email_opt_out, periodEnd: u.period_end, subscribed: !!u.stripe_sub,
     features: { res: Math.min(p.res, +process.env.MAX_EXPORT_RES || 1080), fps: Math.min(p.fps, +process.env.MAX_EXPORT_FPS || 60), watermark: p.watermark, maxDurationMin: p.maxDurationMin, maxUploadMb: p.maxUploadMb, camLayouts: p.camLayouts, effects: !!p.camLayouts, smartCrop: p.smartCrop && cloud.enabled(), batch: p.batch, ai: ai.enabled() ? p.ai : 'none' } };
 }
 
@@ -103,6 +108,7 @@ route('POST', '/api/auth/signup', async (req, res) => {
   const b = await readJson(req);
   const id = auth.signup(b.email, b.password);
   try { referral.attach(id, b.ref, clientIp(req)); } catch (e) { console.warn('[parrainage]', e.message); }
+  mail.event(id, 'welcome', '', { credits: q.get('SELECT credits FROM users WHERE id = ?', id)?.credits ?? 3 });
   ok(res, { user: userView(q.get('SELECT * FROM users WHERE id = ?', id)) }, { 'Set-Cookie': auth.sessionCookie(auth.createSession(id), SECURE) });
 });
 route('POST', '/api/auth/login', async (req, res) => {
@@ -121,7 +127,27 @@ route('GET', '/api/referral', (req, res) => {
   const st = referral.stats(u.id);
   ok(res, { ...st, link: `${PUBLIC_URL}/?ref=${st.code}`, referred: !!u.referred_by, rewarded: !!u.ref_rewarded });
 });
+route('POST', '/api/me/emails', async (req, res) => { const u = requireUser(req); mail.setOptOut(u.id, !!(await readJson(req)).optOut); ok(res, { user: userView(q.get('SELECT * FROM users WHERE id = ?', u.id)) }); });
+route('GET', '/api/admin/mail', (req, res) => { requireAdmin(req); ok(res, mail.stats()); });
+route('POST', '/api/admin/mail/test', async (req, res) => { const a = requireAdmin(req); await mail.test(a); ok(res, { ok: true, to: a.email }); });
+// ---------- Tableau de bord des revenus ----------
+route('GET', '/api/revenue', (req, res) => { const u = requireUser(req); ok(res, revenue.dashboard(u.id)); });
+route('POST', '/api/revenue/currency', async (req, res) => { const u = requireUser(req); revenue.setCurrency(u.id, (await readJson(req)).currency); ok(res, revenue.dashboard(u.id)); });
+route('POST', '/api/revenue/campaigns', async (req, res) => { const u = requireUser(req); revenue.saveCampaign(u.id, await readJson(req)); ok(res, revenue.dashboard(u.id)); });
+route('POST', '/api/revenue/campaigns/:id', async (req, res, { params }) => { const u = requireUser(req); revenue.saveCampaign(u.id, await readJson(req), params.id); ok(res, revenue.dashboard(u.id)); });
+route('DELETE', '/api/revenue/campaigns/:id', (req, res, { params }) => { const u = requireUser(req); revenue.deleteCampaign(u.id, params.id); ok(res, revenue.dashboard(u.id)); });
+route('POST', '/api/revenue/posts', async (req, res) => { const u = requireUser(req); revenue.savePost(u.id, await readJson(req)); ok(res, revenue.dashboard(u.id)); });
+route('POST', '/api/revenue/posts/:id', async (req, res, { params }) => { const u = requireUser(req); revenue.savePost(u.id, await readJson(req), params.id); ok(res, revenue.dashboard(u.id)); });
+route('DELETE', '/api/revenue/posts/:id', (req, res, { params }) => { const u = requireUser(req); revenue.deletePost(u.id, params.id); ok(res, revenue.dashboard(u.id)); });
+// ---------- Défi GTA VI de la semaine ----------
+route('GET', '/api/challenges', (req, res) => { const u = auth.currentUser(req); ok(res, challenge.overview(u?.id)); });
+route('POST', '/api/challenges/:id/entries', async (req, res, { params }) => {
+  const u = requireUser(req);
+  challenge.enter(u.id, params.id, await readJson(req));
+  ok(res, challenge.overview(u.id));
+});
 // ---------- Programme créateur (crédits contre une vidéo publiée sur HYPECUT) ----------
+route('GET', '/api/levels', (req, res) => { const u = requireUser(req); ok(res, levels.forUser(u.id)); });
 route('GET', '/api/ugc', (req, res) => { const u = requireUser(req); ok(res, ugc.forUser(u.id)); });
 route('POST', '/api/ugc', async (req, res) => {
   const u = requireUser(req);
@@ -141,7 +167,21 @@ route('GET', '/api/admin/ugc', (req, res, { url }) => { requireAdmin(req); ok(re
 route('POST', '/api/admin/ugc/:id', async (req, res, { params }) => {
   const a = requireAdmin(req);
   const b = await readJson(req);
-  ok(res, { submission: ugc.review(params.id, b, a.email) });
+  const sub = ugc.review(params.id, b, a.email);
+  if (sub.granted > 0) { const owner = q.get('SELECT user_id FROM ugc_submissions WHERE id = ?', params.id)?.user_id; if (owner) mail.event(owner, 'ugc_approved', `${params.id}:${sub.views}`, sub); }
+  ok(res, { submission: sub });
+});
+route('GET', '/api/admin/challenges', (req, res) => { requireAdmin(req); ok(res, { challenges: challenge.adminList() }); });
+route('POST', '/api/admin/challenges', async (req, res) => { requireAdmin(req); challenge.save(await readJson(req)); ok(res, { challenges: challenge.adminList() }); });
+route('POST', '/api/admin/challenges/:id', async (req, res, { params }) => { requireAdmin(req); challenge.save(await readJson(req), params.id); ok(res, { challenges: challenge.adminList() }); });
+route('DELETE', '/api/admin/challenges/:id', (req, res, { params }) => { requireAdmin(req); challenge.remove(params.id); ok(res, { challenges: challenge.adminList() }); });
+route('GET', '/api/admin/challenges/:id/entries', (req, res, { params }) => { requireAdmin(req); ok(res, { entries: challenge.adminEntries(params.id) }); });
+route('POST', '/api/admin/entries/:id', async (req, res, { params }) => { requireAdmin(req); challenge.setEntry(params.id, await readJson(req)); ok(res, { ok: true }); });
+route('POST', '/api/admin/challenges/:id/award', (req, res, { params }) => {
+  const a = requireAdmin(req);
+  const paid = challenge.award(params.id, a.email);
+  for (const p of paid) mail.event(p.userId, 'challenge_win', params.id, p);
+  ok(res, { paid, challenges: challenge.adminList() });
 });
 route('GET', '/api/backgrounds', (req, res) => { requireUser(req); ok(res, { backgrounds: library.list(false) }); });
 route('GET', '/api/admin/backgrounds', (req, res) => { requireAdmin(req); ok(res, { backgrounds: library.list(true) }); });
@@ -326,6 +366,11 @@ const server = http.createServer(async (req, res) => {
       }
       return send(res, 404, { error: 'Route inconnue' });
     }
+    if (url.pathname === '/unsubscribe') {
+      const done = mail.unsubscribe(url.searchParams.get('u'), url.searchParams.get('t'));
+      if (req.method === 'POST') return send(res, done ? 200 : 400, done ? 'ok' : 'lien invalide');
+      return send(res, done ? 200 : 400, `<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>HYPECUT</title></head><body style="font-family:Arial,sans-serif;background:#0a0712;color:#f4f0ff;display:grid;place-items:center;min-height:90vh;text-align:center;padding:20px"><div><h1>${done ? 'C’est noté ✅' : 'Lien invalide'}</h1><p>${done ? 'Tu ne recevras plus nos conseils ni nos annonces de défis. Les e-mails liés à ton compte (gains, résultats) continuent.' : 'Ce lien de désinscription n’est pas valide.'}</p><p><a style="color:#2ee6d6" href="/#compte">Gérer mes e-mails depuis mon compte</a></p></div></body></html>`, { 'Content-Type': 'text/html; charset=utf-8' });
+    }
     if (url.pathname.startsWith('/media/')) {
       const rel = path.normalize(decodeURIComponent(url.pathname.slice(7))).replace(/^(\.\.[/\\])+/, '');
       if (!/^(library\/[\w-]+\.(mp4|jpg)|exports\/[\w-]+\.mp4|[\w-]+\/(thumb_\d+\.jpg|frame\.jpg|preview\.mp4|source\.\w+))$/.test(rel)) return send(res, 404, 'Introuvable');
@@ -350,6 +395,8 @@ server.listen(PORT, () => {
   console.log(`HYPECUT en ligne sur ${PUBLIC_URL} (port ${PORT})`);
   console.log(`Services : Cloudinary ${cloud.enabled() ? 'oui' : 'non'} · IA ${ai.enabled() ? 'oui' : 'non'} · Stripe ${stripe.enabled() ? 'oui' : 'non'} · police ${media.FONT || 'aucune'}`);
   stripe.init(PUBLIC_URL);
+  console.log(`E-mails : ${mail.enabled() ? 'oui (Brevo)' : 'non (BREVO_API_KEY et MAIL_FROM absents)'}`);
+  mail.start();
 });
 
 module.exports = server;

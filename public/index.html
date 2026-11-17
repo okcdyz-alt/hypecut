@@ -26,6 +26,8 @@
   <nav class="nav" id="nav">
     <a href="#creer" data-view="creer">Créer</a>
     <a href="#mes-clips" data-view="mes-clips" class="srv">Mes clips</a>
+    <a href="#revenus" data-view="revenus" class="srv">Revenus</a>
+    <a href="#defi" data-view="defi" class="srv">Défi GTA VI</a>
     <a href="#offres" data-view="offres">Offres</a>
     <a href="#admin" data-view="admin" class="hidden" id="navAdmin">Admin</a>
   </nav>
@@ -194,6 +196,20 @@
     <div class="history" id="history"></div>
   </section>
 
+  <!-- ============ REVENUS ============ -->
+  <section class="view hidden" id="view-revenus">
+    <div class="adm-head"><h2 class="page-title">Mes revenus de clippeur</h2><div class="seg cur-seg" id="revCur" aria-label="Devise"></div></div>
+    <p class="lead center">Note tes campagnes et tes clips publiés : tu vois ce que tu gagnes, ce qui reste à payer et ce qui marche le mieux.</p>
+    <div id="revBody"><p class="hint">Chargement…</p></div>
+  </section>
+
+  <!-- ============ DÉFI ============ -->
+  <section class="view hidden" id="view-defi">
+    <h2 class="page-title">🏆 Le défi GTA VI de la semaine</h2>
+    <p class="lead center">Un thème par semaine. Publie ton meilleur clip, envoie le lien : les 3 meilleurs gagnent des clips.</p>
+    <div id="defiBody"><p class="hint">Chargement…</p></div>
+  </section>
+
   <!-- ============ OFFRES ============ -->
   <section class="view hidden" id="view-offres">
     <h2 class="page-title">Choisis ton offre</h2>
@@ -231,6 +247,18 @@
       <div id="admUgc"><p class="hint">Chargement…</p></div>
     </div>
 
+    <h3 class="adm-h">E-mails automatiques</h3>
+    <div class="card">
+      <p class="hint" style="margin-top:0">Envoyés tout seuls : bienvenue, premier clip pas encore créé (après 24 h), crédits épuisés, inactif depuis 14 jours, nouveau défi, nouveau niveau, vidéo validée, victoire à un défi. Chaque e-mail part une seule fois, et les conseils respectent la désinscription.</p>
+      <div id="admMail"><p class="hint">Chargement…</p></div>
+    </div>
+
+    <h3 class="adm-h">Défis GTA VI</h3>
+    <div class="card">
+      <p class="hint" style="margin-top:0">Ouvre un défi pour modifier son thème ou ses dates, voir les participations et choisir les 3 gagnants. À la fin du défi, « Attribuer les prix » verse les clips et prévient les gagnants par e-mail.</p>
+      <div id="admCh"><p class="hint">Chargement…</p></div>
+    </div>
+
     <h3 class="adm-h">Gestion des comptes</h3>
     <div class="card">
       <div class="adm-search"><input type="search" id="admQ" placeholder="Rechercher un e-mail…" aria-label="Rechercher un compte"><button class="btn primary sm" id="admGo">Rechercher</button></div>
@@ -242,6 +270,7 @@
   <section class="view hidden" id="view-compte">
     <h2 class="page-title">Mon compte</h2>
     <div class="card account-card" id="accountCard"></div>
+    <div class="card lvl-card hidden" id="levelCard"></div>
     <div class="card ugc-card hidden" id="ugcCard"></div>
     <div class="card ref-card hidden" id="refCard"></div>
   </section>
