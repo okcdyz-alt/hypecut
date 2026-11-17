@@ -345,6 +345,9 @@ route('GET', '/api/jobs/:id', (req, res, { params }) => {
 });
 
 // ---------- Exports ----------
+/** Position libre { x, y } entre 0 et 1 (centre du texte), ou null. */
+const posOf = (p) => (p && Number.isFinite(+p.x) && Number.isFinite(+p.y) ? { x: Math.max(0, Math.min(1, +p.x)), y: Math.max(0, Math.min(1, +p.y)) } : null);
+
 function exportOptions(b, clip) {
   const num = (v, d) => (Number.isFinite(+v) ? +v : d);
   const start = Math.max(0, num(b.start, clip.start));
@@ -357,6 +360,7 @@ function exportOptions(b, clip) {
     title: b.showTitle === false ? '' : String(b.title || '').slice(0, 90),
     progressBar: b.progressBar === true,
     subtitles: b.subtitles === true,
+    titlePos: posOf(b.titlePos), subPos: posOf(b.subPos),
     bgId: typeof b.bgId === 'string' ? b.bgId.slice(0, 64) : null,
   };
 }

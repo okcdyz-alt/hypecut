@@ -466,3 +466,7 @@ html:not([lang=en]) .en-only { display: none; }
 .range-box .hint { margin: 6px 0 0; }
 
 .sample-line { text-align: center; margin: 10px 0 0; font-size: 14px; color: var(--muted); }
+
+#exCanvas { touch-action: none; }
+#exCanvas.dragging { cursor: grabbing !important; }
+.drag-hint { margin: 4px 0 0; }

@@ -246,6 +246,7 @@
     $('#btnDoExport').addEventListener('click', doExport);
     $('#exCopy').addEventListener('click', copyCaption);
     bindCamPicker();
+    bindTextDrag();
   }
 
   function setTab(t) {
@@ -627,7 +628,7 @@
     const c = S.result.clips[i], st = S.clips[i];
     if (S.mode === 'server' && !S.bgs) { try { S.bgs = (await api('api/backgrounds')).backgrounds; } catch { S.bgs = []; } }
     const layout = defaultLayout();
-    S.ex = { idx: i, layout, bgId: S.lastBg || S.bgs?.[0]?.id || null, start: st.start, end: st.end, title: st.title, showTitle: true, progressBar: effectsAllowed(), subtitles: effectsAllowed() && S.mode !== 'demo', focusX: 0.5, corner: S.corner, camRect: S.camRect || { x: 0.02, y: 0.03, w: 0.26, h: 0.3 }, img: null, frame: null, busy: false };
+    S.ex = { idx: i, layout, bgId: S.lastBg || S.bgs?.[0]?.id || null, start: st.start, end: st.end, title: st.title, showTitle: true, progressBar: effectsAllowed(), subtitles: effectsAllowed() && S.mode !== 'demo', titlePos: S.titlePos || null, subPos: S.subPos || null, focusX: 0.5, corner: S.corner, camRect: S.camRect || { x: 0.02, y: 0.03, w: 0.26, h: 0.3 }, img: null, frame: null, busy: false };
     $('#titleInput').value = st.title; $('#showTitle').checked = true; $('#focusX').value = 0.5;
     $('#progressBar').checked = effectsAllowed(); $('#pbLock').classList.toggle('hidden', effectsAllowed());
     $('#subtitlesOn').checked = S.ex.subtitles; $('#subLock').classList.toggle('hidden', effectsAllowed()); $('#subLabel').classList.toggle('hidden', S.mode === 'demo');
@@ -686,7 +687,8 @@
   }
 
   /** Dessine une composition sur un canvas (aperçu avec une image, ou export avec la vidéo). */
-  function drawComp(ctx, comp, src, lines, watermark, progress, subs) {
+  function drawComp(ctx, comp, src, lines, watermark, progress, subs, pos = {}) {
+    drawComp.boxes = {};
     ctx.fillStyle = '#000'; ctx.fillRect(0, 0, comp.W, comp.H);
     for (const op of comp.ops) {
       ctx.save();
@@ -705,20 +707,28 @@
     if (lines && lines.length) {
       const fs = Math.round(W * (W > H ? 0.045 : 0.068)), lh = Math.round(fs * 1.32), pad = Math.round(fs * 0.28);
       const blockH = lh * lines.length;
-      let y0 = comp.title.anchor === 'center' ? comp.title.y - blockH / 2 : comp.title.y;
+      let y0 = pos.title ? pos.title.y * H - blockH / 2 : comp.title.anchor === 'center' ? comp.title.y - blockH / 2 : comp.title.y;
       y0 = Math.max(8, Math.min(H - blockH - 8, y0));
       ctx.font = `${fs}px Anton, Impact, "Arial Black", sans-serif`; ctx.textBaseline = 'top';
+      const maxW = Math.max(...lines.map((l) => ctx.measureText(l).width));
+      const cx = pos.title ? Math.max(maxW / 2 + pad + 8, Math.min(W - maxW / 2 - pad - 8, pos.title.x * W)) : W / 2;
+      drawComp.boxes.title = { x0: cx - maxW / 2 - pad, x1: cx + maxW / 2 + pad, y0: y0 - pad, y1: y0 + blockH + pad, cx, cy: y0 + blockH / 2 };
       lines.forEach((line, i) => {
-        const w = ctx.measureText(line).width, x = (W - w) / 2, y = y0 + i * lh;
+        const w = ctx.measureText(line).width, x = cx - w / 2, y = y0 + i * lh;
         ctx.fillStyle = 'rgba(0,0,0,0.62)'; ctx.fillRect(x - pad, y - pad * 0.6, w + pad * 2, fs * 1.15 + pad * 1.2);
         ctx.fillStyle = '#fff'; ctx.fillText(line, x, y);
       });
+      if (pos.guides) { const b = drawComp.boxes.title; ctx.save(); ctx.setLineDash([fs * 0.25, fs * 0.2]); ctx.lineWidth = Math.max(2, W * 0.004); ctx.strokeStyle = 'rgba(255,210,61,.9)'; ctx.strokeRect(b.x0, b.y0, b.x1 - b.x0, b.y1 - b.y0); ctx.restore(); }
     }
     if (subs) {
-      const fs = Math.round(W > H ? H * 0.075 : W * 0.085), y = L.subtitleY(comp, (lines || []).length), words = ['TES', 'SOUS-TITRES', 'ICI'];
+      const fs = Math.round(W > H ? H * 0.075 : W * 0.085), words = ['TES', 'SOUS-TITRES', 'ICI'];
       ctx.font = `${fs}px Anton, Impact, "Arial Black", sans-serif`; ctx.textBaseline = 'middle'; ctx.lineJoin = 'round';
       const sp = fs * 0.28, widths = words.map((w) => ctx.measureText(w).width), total = widths.reduce((a, b) => a + b, 0) + sp * (words.length - 1);
-      let x = (W - total) / 2;
+      const y = pos.sub ? Math.max(fs, Math.min(H - fs, pos.sub.y * H)) : L.subtitleY(comp, (lines || []).length);
+      const cx = pos.sub ? Math.max(total / 2 + 8, Math.min(W - total / 2 - 8, pos.sub.x * W)) : W / 2;
+      drawComp.boxes.sub = { x0: cx - total / 2 - fs * 0.3, x1: cx + total / 2 + fs * 0.3, y0: y - fs * 0.8, y1: y + fs * 0.8, cx, cy: y };
+      if (pos.guides) { ctx.save(); ctx.setLineDash([fs * 0.25, fs * 0.2]); ctx.lineWidth = Math.max(2, W * 0.004); ctx.strokeStyle = 'rgba(46,230,214,.9)'; const b = drawComp.boxes.sub; ctx.strokeRect(b.x0, b.y0, b.x1 - b.x0, b.y1 - b.y0); ctx.restore(); }
+      let x = cx - total / 2;
       words.forEach((w, i) => { ctx.lineWidth = Math.max(4, fs * 0.18); ctx.strokeStyle = '#000'; ctx.strokeText(w, x, y); ctx.fillStyle = i === 1 ? '#ffd23d' : '#fff'; ctx.fillText(w, x, y); x += widths[i] + sp; });
     }
     if (progress !== undefined && progress !== null) {
@@ -748,7 +758,37 @@
     }
     const comp = L.compose(ex.layout === 'game_ai' ? 'game_full' : ex.layout, ex.img.naturalWidth, ex.img.naturalHeight, previewOpts());
     const cv = $('#exCanvas'); cv.width = comp.W; cv.height = comp.H;
-    drawComp(cv.getContext('2d'), comp, ex.img, ex.showTitle ? titleLinesFor(ex.layout, ex.title) : [], wantsWatermark(), ex.progressBar ? 0.6 : null, !!ex.subtitles && ex.layout !== 'game_ai');
+    drawComp(cv.getContext('2d'), comp, ex.img, ex.showTitle ? titleLinesFor(ex.layout, ex.title) : [], wantsWatermark(), ex.progressBar ? 0.6 : null, !!ex.subtitles && ex.layout !== 'game_ai', { title: ex.titlePos, sub: ex.subPos, guides: true });
+    $('#posReset').classList.toggle('hidden', !ex.titlePos && !ex.subPos);
+  }
+
+  /** Glisser-déposer du titre et des sous-titres sur l'aperçu (positions libres, en proportion de l'image). */
+  function bindTextDrag() {
+    const cv = $('#exCanvas');
+    let drag = null;
+    const at = (e) => { const r = cv.getBoundingClientRect(); return { x: (e.clientX - r.left) * (cv.width / r.width), y: (e.clientY - r.top) * (cv.height / r.height) }; };
+    const hit = (p) => {
+      const B = drawComp.boxes || {};
+      for (const k of ['sub', 'title']) { const b = B[k]; if (b && p.x >= b.x0 && p.x <= b.x1 && p.y >= b.y0 && p.y <= b.y1) return k; }
+      return null;
+    };
+    cv.addEventListener('pointerdown', (e) => {
+      if (!S.ex) return;
+      const p = at(e), k = hit(p); if (!k) return;
+      const b = drawComp.boxes[k];
+      drag = { k, dx: b.cx - p.x, dy: b.cy - p.y };
+      cv.setPointerCapture(e.pointerId); cv.classList.add('dragging'); e.preventDefault();
+    });
+    cv.addEventListener('pointermove', (e) => {
+      const p = at(e);
+      if (!drag) { cv.style.cursor = hit(p) ? 'grab' : 'default'; return; }
+      const v = { x: Math.max(0, Math.min(1, (p.x + drag.dx) / cv.width)), y: Math.max(0, Math.min(1, (p.y + drag.dy) / cv.height)) };
+      if (drag.k === 'title') S.ex.titlePos = S.titlePos = v; else S.ex.subPos = S.subPos = v;
+      drawPreview();
+    });
+    const end = () => { drag = null; cv.classList.remove('dragging'); };
+    cv.addEventListener('pointerup', end); cv.addEventListener('pointercancel', end);
+    $('#posReset').addEventListener('click', () => { S.ex.titlePos = S.ex.subPos = S.titlePos = S.subPos = null; drawPreview(); });
   }
 
   function bindCamPicker() {
@@ -792,7 +832,7 @@
   async function serverExport(ex) {
     $('#exMsg').textContent = 'Envoi de la demande…';
     if (L.LAYOUTS[ex.layout]?.bg && !ex.bgId) throw new Error('Choisis une vidéo satisfaisante pour le bas de l’écran.');
-    const body = { bgId: ex.bgId, clipIdx: ex.idx, layout: ex.layout, start: ex.start, end: ex.end, camRect: ex.camRect, corner: ex.corner, focusX: ex.focusX, title: ex.title, showTitle: ex.showTitle, progressBar: !!ex.progressBar, subtitles: !!ex.subtitles };
+    const body = { bgId: ex.bgId, clipIdx: ex.idx, layout: ex.layout, start: ex.start, end: ex.end, camRect: ex.camRect, corner: ex.corner, focusX: ex.focusX, title: ex.title, showTitle: ex.showTitle, progressBar: !!ex.progressBar, subtitles: !!ex.subtitles, titlePos: ex.titlePos, subPos: ex.subPos };
     const r = await api(`api/jobs/${S.jobId}/export`, { method: 'POST', body });
     S.user = r.user; renderHeader(); syncQuality();
     const id = r.ids[0];
@@ -825,7 +865,7 @@
       if (S.mode === 'server' && !S.bgs) { try { S.bgs = (await api('api/backgrounds')).backgrounds; } catch { S.bgs = []; } }
       const layout = defaultLayout();
       const bgId = S.lastBg || S.bgs?.[0]?.id || null;
-      const r = await api(`api/jobs/${S.jobId}/export`, { method: 'POST', body: { all: true, layout, bgId, camRect: S.camRect, corner: S.corner, focusX: 0.5, useAiTitles: true, progressBar: effectsAllowed(), subtitles: effectsAllowed() } });
+      const r = await api(`api/jobs/${S.jobId}/export`, { method: 'POST', body: { all: true, layout, bgId, camRect: S.camRect, corner: S.corner, focusX: 0.5, useAiTitles: true, progressBar: effectsAllowed(), subtitles: effectsAllowed(), titlePos: S.titlePos || null, subPos: S.subPos || null } });
       S.user = r.user; renderHeader();
       toast(`${r.ids.length} clips en cours de montage (format : ${L.LAYOUTS[layout].label}).`);
       loadJob(S.jobId);
@@ -860,7 +900,7 @@
     await document.fonts?.load?.('64px Anton').catch(() => {});
     $('#exMsg').textContent = 'Préparation…';
     await seek(v, ex.start);
-    drawComp(ctx, comp, v, lines, true);
+    drawComp(ctx, comp, v, lines, true, null, false, { title: ex.titlePos });
     const stream = cv.captureStream(30);
     loc.dest.stream.getAudioTracks().forEach((t) => stream.addTrack(t));
     const types = ['video/mp4;codecs=avc1.42E01E,mp4a.40.2', 'video/mp4', 'video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm'];
@@ -874,7 +914,7 @@
     const dur = ex.end - ex.start;
     await new Promise((res) => {
       const step = () => {
-        drawComp(ctx, comp, v, lines, true, ex.progressBar ? (v.currentTime - ex.start) / dur : null);
+        drawComp(ctx, comp, v, lines, true, ex.progressBar ? (v.currentTime - ex.start) / dur : null, false, { title: ex.titlePos });
         const p = (v.currentTime - ex.start) / dur;
         $('#exBar').style.width = `${Math.round(Math.min(1, p) * 100)}%`;
         $('#exMsg').textContent = `Montage en temps réel… ${Math.round(Math.min(1, p) * 100)} % (garde cet onglet ouvert)`;

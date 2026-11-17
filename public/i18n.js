@@ -151,6 +151,7 @@
     '⏱ Choisir un passage de la vidéo': '⏱ Choose a part of the video', 'Début': 'Start', 'Fin': 'End',
     'Seul ce passage est récupéré et analysé : c’est plus rapide. Laisse vide pour analyser toute la vidéo.': 'Only this part is fetched and analysed, which is faster. Leave empty to analyse the whole video.',
     'Pas de vidéo sous la main ?': 'No video at hand?', '🎮 Essayer avec une vidéo d’exemple': '🎮 Try with a sample video',
+    '✋ Fais glisser le titre et les sous-titres pour les placer où tu veux.': '✋ Drag the title and subtitles to place them wherever you like.', '↺ Positions par défaut': '↺ Default positions',
     '🎁 Parraine tes amis': '🎁 Invite your friends', 'Ton lien de parrainage': 'Your referral link', 'Copier': 'Copy', 'inscrits': 'signed up', 'validés': 'validated', 'clips gagnés': 'clips earned',
     'Lien copié : partage-le à tes amis !': 'Link copied: share it with your friends!', 'Sélectionne le lien et copie-le.': 'Select the link and copy it.',
     // ---- statuts
