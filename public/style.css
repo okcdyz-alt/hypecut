@@ -454,3 +454,5 @@ html:not([lang=en]) .en-only { display: none; }
 
 .mail-pref { font-size: 13px; margin: 12px 0 4px; }
 .warn-dot::before { content: '●'; color: #ffad3d; margin-right: 6px; }
+
+#sourceErr, #exErr, .err { white-space: pre-line; text-align: left; }

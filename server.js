@@ -230,6 +230,7 @@ route('POST', '/api/jobs', async (req, res) => {
   if (!['twitch', 'kick'].includes(src.platform)) throw auth.httpError(400, src.platform === 'youtube'
     ? 'Les liens YouTube ne sont pas acceptés : importe ton fichier vidéo (onglet « Importer un fichier »). Pour ta propre vidéo YouTube, télécharge-la depuis YouTube Studio.'
     : 'Seuls les liens Twitch et Kick sont acceptés. Pour une autre vidéo, importe le fichier (onglet « Importer un fichier »).');
+  require('./lib/diagnose').assertUsableLink(src);
   if (src.platform !== 'direct' && !(ALLOW_PLATFORMS && ytdlpOk)) throw auth.httpError(400, 'Les liens Twitch et Kick sont momentanément indisponibles : importe ton fichier vidéo.');
   if (src.platform === 'direct') await sources.assertPublicHost(src.host);
   const id = jobs.createJob(u, { sourceType: 'url', sourceUrl: src.url, options: analysisOptions(b) });
