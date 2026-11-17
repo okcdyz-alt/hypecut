@@ -118,7 +118,7 @@
     const pro = S.cfg.plans.find((p) => p.id === 'pro');
     const bar = $('#launchBar');
     if (l.pass?.active) {
-      bar.innerHTML = `🎮 Pass lancement GTA VI : toutes les fonctions Pro offertes jusqu’au ${new Date(l.pass.ends).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })} · ${l.pass.credits} clips gratuits en 1080p, sans filigrane, avec formats caméra et titres IA · <a href="#creer">J’en profite</a>`;
+      bar.innerHTML = `🎮 Pass lancement GTA VI : toutes les fonctions Pro offertes jusqu’au ${new Date(l.pass.ends).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })} · ${l.pass.credits} clips gratuits sans filigrane, avec formats caméra et titres automatiques · <a href="#creer">J’en profite</a>`;
       bar.classList.remove('hidden');
       return;
     }
@@ -158,6 +158,7 @@
     const pill = $('#creditPill');
     pill.classList.toggle('hidden', !u);
     if (u) pill.textContent = `${u.credits} crédit${u.credits > 1 ? 's' : ''} · ${u.planName}`;
+    $('#navAdmin').classList.toggle('hidden', !u?.isAdmin);
     renderPlans();
   }
 
@@ -166,12 +167,14 @@
     const h = (location.hash || '#creer').slice(1);
     let view = h;
     if (h.startsWith('analyse-')) { view = 'creer'; const id = h.slice(8); if (id !== S.jobId) loadJob(id); }
-    if (!['creer', 'mes-clips', 'offres', 'compte'].includes(view)) view = 'creer';
+    if (!['creer', 'mes-clips', 'offres', 'compte', 'admin'].includes(view)) view = 'creer';
+    if (view === 'admin' && !S.user?.isAdmin) view = 'creer';
     if (S.mode === 'demo' && ['mes-clips', 'compte'].includes(view)) view = 'creer';
     $$('.view').forEach((v) => v.classList.toggle('hidden', v.id !== 'view-' + view));
     $$('#nav a').forEach((a) => a.classList.toggle('active', a.dataset.view === view));
     if (view === 'mes-clips') renderHistory();
     if (view === 'compte') renderAccount();
+    if (view === 'admin') renderAdmin();
     if (view !== 'creer' || !h.startsWith('analyse-')) window.scrollTo({ top: 0 });
   }
 
@@ -964,6 +967,87 @@ Réponds UNIQUEMENT avec un objet JSON : {"titre": "42 caractères max, sans has
         <div class="ref-stats"><div><b>${r.invited}</b><span>inscrits</span></div><div><b>${r.validated}</b><span>validés</span></div><div><b>${r.earned}</b><span>clips gagnés</span></div></div>`;
       $('#refCopy').addEventListener('click', async () => { try { await navigator.clipboard.writeText(r.link); toast('Lien copié : partage-le à tes amis !'); } catch { $('#refLink').select(); toast('Sélectionne le lien et copie-le.'); } });
     } catch { box.classList.add('hidden'); }
+  }
+
+  // ---------------------------------------------------------------- admin
+  const nf = (n) => Number(n || 0).toLocaleString('fr-FR');
+  const mb = (b) => b >= 1073741824 ? `${(b / 1073741824).toFixed(1)} Go` : `${Math.round(b / 1048576)} Mo`;
+  const LAYOUT_NAMES = () => Object.fromEntries(Object.entries(L.LAYOUTS).map(([k, v]) => [k, v.label]));
+
+  function barChart(id, title, sub, data) {
+    const W = 560, H = 150, padB = 18, padT = 8, n = data.length;
+    const max = Math.max(1, ...data.map((d) => d.n));
+    const step = W / n, bw = Math.max(4, step - 6);
+    const y = (v) => padT + (H - padB - padT) * (1 - v / max);
+    const bars = data.map((d, i) => {
+      const x = i * step + (step - bw) / 2, top = y(d.n), h = H - padB - top;
+      const r = Math.min(4, h / 2, bw / 2);
+      const path = h > 0.5 ? `M${x},${H - padB} V${top + r} Q${x},${top} ${x + r},${top} H${x + bw - r} Q${x + bw},${top} ${x + bw},${top + r} V${H - padB} Z` : '';
+      const label = new Date(d.day + 'T12:00:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+      return `<g data-i="${i}" data-l="${esc(label)}" data-v="${d.n}"><path class="bar" d="${path}"/><rect class="hit" x="${i * step}" y="0" width="${step}" height="${H}"/>${i % 3 === 0 || i === n - 1 ? `<text class="axis" x="${x + bw / 2}" y="${H - 4}" text-anchor="middle">${esc(label)}</text>` : ''}</g>`;
+    }).join('');
+    return `<div class="chart-card" id="${id}"><h4>${esc(title)}</h4><p class="sub">${esc(sub)}</p>
+      <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="${esc(title)}"><line class="grid" x1="0" x2="${W}" y1="${y(max)}" y2="${y(max)}"/><text class="axis" x="0" y="${y(max) - 2}">${nf(max)}</text><line class="grid" x1="0" x2="${W}" y1="${H - padB}" y2="${H - padB}"/>${bars}</svg>
+      <div class="ctip hidden"></div></div>`;
+  }
+  function bindChart(id) {
+    const card = $('#' + id); if (!card) return;
+    const tip = $('.ctip', card);
+    $$('g[data-i]', card).forEach((g) => {
+      g.addEventListener('mouseenter', () => {
+        $$('.bar.on', card).forEach((b) => b.classList.remove('on')); $('.bar', g).classList.add('on');
+        const r = $('.hit', g).getBoundingClientRect(), c = card.getBoundingClientRect();
+        tip.innerHTML = `${g.dataset.l} · <b>${nf(g.dataset.v)}</b>`;
+        tip.style.left = `${r.left - c.left + r.width / 2}px`; tip.style.top = `${$('.bar', g).getBoundingClientRect().top - c.top || 60}px`;
+        tip.classList.remove('hidden');
+      });
+    });
+    card.addEventListener('mouseleave', () => { tip.classList.add('hidden'); $$('.bar.on', card).forEach((b) => b.classList.remove('on')); });
+  }
+
+  async function renderAdmin() {
+    const box = $('#admBody');
+    if (!S._admBound) {
+      S._admBound = true;
+      $('#admRefresh').addEventListener('click', renderAdmin);
+      $('#admGo').addEventListener('click', searchAdminUsers);
+      $('#admQ').addEventListener('keydown', (e) => { if (e.key === 'Enter') searchAdminUsers(); });
+      searchAdminUsers();
+    }
+    try {
+      const d = await api('api/admin/stats');
+      const h = d.health, names = LAYOUT_NAMES();
+      const tiles = (arr) => `<div class="tiles">${arr.map(([v, k, warn]) => `<div class="tile ${warn ? 'warn' : ''}"><div class="v">${v}</div><div class="k">${esc(k)}</div></div>`).join('')}</div>`;
+      box.innerHTML = `
+        <h3 class="adm-h">Inscrits et activité</h3>
+        ${tiles([[nf(d.users.total), 'comptes au total'], [nf(d.users.today), 'inscrits aujourd’hui'], [nf(d.users.week), 'inscrits sur 7 jours'], [nf(d.users.referred), 'venus par parrainage'], [nf(d.activity.jobs), 'vidéos analysées'], [nf(d.activity.clips), 'clips créés'], [nf(d.activity.clipsWeek), 'clips sur 7 jours']])}
+        <div class="charts2">${barChart('chU', 'Inscriptions par jour', '14 derniers jours', d.users.perDay)}${barChart('chC', 'Clips créés par jour', '14 derniers jours', d.activity.clipsPerDay)}</div>
+        ${d.activity.topLayouts.length ? `<div class="card" style="margin-top:12px"><b>Formats les plus utilisés</b><table class="adm-table"><tbody>${d.activity.topLayouts.map((t) => `<tr><td>${esc(names[t.layout] || t.layout)}</td><td>${nf(t.n)} clip${t.n > 1 ? 's' : ''}</td></tr>`).join('')}</tbody></table></div>` : ''}
+        <h3 class="adm-h">Argent</h3>
+        ${tiles([[nf(d.money.pro), 'abonnés Pro'], [nf(d.money.creator), 'abonnés Créateur'], [eur(d.money.mrr), 'revenu mensuel des abonnements (estimé)'], [nf(d.money.packsMonth), 'packs vendus ce mois'], [eur(d.money.packsRevenueMonth), 'revenu des packs ce mois']])}
+        <p class="hint">Estimation au prix plein, hors réductions et frais Stripe. Les montants exacts sont dans ton tableau de bord Stripe.</p>
+        <h3 class="adm-h">Santé du serveur</h3>
+        ${tiles([[`${h.queue.running}/${h.queue.max}`, 'traitements en cours'], [nf(h.queue.waiting), 'en file d’attente', h.queue.waiting > 5], [nf(h.failed24h), 'exports en échec (24 h)', h.failed24h > 0], [nf(h.jobsFailed24h), 'analyses en échec (24 h)', h.jobsFailed24h > 3], [mb(h.mediaBytes), 'vidéos stockées'], [h.disk ? mb(h.disk.free) : '—', 'espace disque libre', h.disk && h.disk.free < 1073741824], [`${h.memoryMb} Mo`, 'mémoire utilisée', h.memoryMb > 400], [`${h.uptimeH} h`, 'depuis le dernier démarrage']])}
+        ${h.lastErrors.length ? `<div class="card" style="margin-top:12px"><b>Dernières erreurs d’export</b><table class="adm-table"><tbody>${h.lastErrors.map((e) => `<tr><td class="bad-dot">${esc(new Date(e.created_at.replace(' ', 'T') + 'Z').toLocaleString('fr-FR'))}</td><td>${esc(e.message || '')}</td></tr>`).join('')}</tbody></table></div>` : `<p class="hint ok-dot">Aucune erreur d’export récente.</p>`}`;
+      bindChart('chU'); bindChart('chC');
+    } catch (e) { box.innerHTML = `<p class="err">${esc(e.message)}</p>`; }
+  }
+
+  async function searchAdminUsers() {
+    const box = $('#admUsers');
+    try {
+      const { users } = await api('api/admin/users?q=' + encodeURIComponent($('#admQ').value));
+      if (!users.length) { box.innerHTML = '<p class="hint">Aucun compte trouvé.</p>'; return; }
+      box.innerHTML = `<table class="adm-table"><thead><tr><th>E-mail</th><th>Offre</th><th>Crédits</th><th class="opt">Clips</th><th class="opt">Inscrit le</th><th>Actions</th></tr></thead><tbody>${users.map((u) => `
+        <tr data-id="${esc(u.id)}"><td>${esc(u.email)}</td><td>${esc(u.plan)}${u.subscribed ? ' 💳' : ''}</td><td>${nf(u.credits)}</td><td class="opt">${nf(u.clips)}</td><td class="opt">${esc(new Date(u.created_at.replace(' ', 'T') + 'Z').toLocaleDateString('fr-FR'))}</td>
+        <td><div class="adm-act"><input type="number" value="5" step="1" aria-label="Crédits à offrir"><select aria-label="Offre"><option value="">offre…</option><option value="free">Gratuit</option><option value="pro">Pro</option><option value="creator">Créateur</option></select><button class="btn ghost xs">Appliquer</button></div></td></tr>`).join('')}</tbody></table>
+        <p class="hint">💳 = abonnement Stripe actif. Changer l’offre ici l’offre sans paiement (geste commercial).</p>`;
+      $$('tr[data-id]', box).forEach((tr) => $('button', tr).addEventListener('click', async () => {
+        const credits = +$('input', tr).value || 0, plan = $('select', tr).value || undefined;
+        try { await api('api/admin/users/' + tr.dataset.id, { method: 'POST', body: { credits, plan } }); toast('Compte mis à jour.'); searchAdminUsers(); }
+        catch (e) { toast(e.message); }
+      }));
+    } catch (e) { box.innerHTML = `<p class="err">${esc(e.message)}</p>`; }
   }
 
   boot();

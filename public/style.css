@@ -298,3 +298,35 @@ body.has-job .mkt { display: none; }
 .ref-stats b { display: block; font-size: 22px; }
 .ref-stats span { font-size: 12px; color: var(--muted); }
 #exMsg a { color: var(--teal); }
+
+/* ---------- Admin ---------- */
+.adm-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.adm-h { margin: 34px 0 12px; font-size: 20px; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 12px; }
+.tile { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 16px; }
+.tile .v { font-size: 30px; font-weight: 800; line-height: 1.1; }
+.tile .k { font-size: 13px; color: var(--muted); margin-top: 4px; }
+.tile.warn .v { color: var(--orange); }
+.charts2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
+.chart-card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 16px; position: relative; }
+.chart-card h4 { margin: 0 0 2px; font-size: 15px; }
+.chart-card .sub { font-size: 12px; color: var(--muted); margin: 0 0 10px; }
+.chart-card svg { display: block; width: 100%; height: 160px; overflow: visible; }
+.chart-card .bar { fill: #ff3d8b; }
+.chart-card .bar:hover, .chart-card .bar.on { fill: #ff7bb0; }
+.chart-card .hit { fill: transparent; cursor: default; }
+.chart-card .axis { font-size: 10px; fill: var(--muted); }
+.chart-card .grid { stroke: rgba(255,255,255,.07); }
+.ctip { position: absolute; pointer-events: none; background: #1d1530; border: 1px solid var(--line2); border-radius: 8px; padding: 6px 9px; font-size: 12px; white-space: nowrap; transform: translate(-50%, -110%); }
+.ctip b { font-size: 14px; }
+.adm-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.adm-table th, .adm-table td { text-align: left; padding: 8px 6px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+.adm-table th { color: var(--muted); font-weight: 600; }
+.adm-search { display: flex; gap: 8px; margin-bottom: 12px; }
+.adm-search input, .adm-act input, .adm-act select { background: rgba(0,0,0,.35); border: 1px solid var(--line2); border-radius: 10px; padding: 8px 10px; color: var(--text); }
+.adm-search input { flex: 1; min-width: 0; }
+.adm-act { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.adm-act input { width: 74px; }
+.ok-dot::before { content: '●'; color: var(--ok); margin-right: 6px; }
+.bad-dot::before { content: '●'; color: var(--danger); margin-right: 6px; }
+@media (max-width: 760px) { .charts2 { grid-template-columns: 1fr; } .adm-table .opt { display: none; } }

@@ -15,7 +15,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=11">
+<link rel="stylesheet" href="style.css?v=12">
 </head>
 <body>
 <div class="sky" aria-hidden="true"></div>
@@ -26,6 +26,7 @@
     <a href="#creer" data-view="creer">Créer</a>
     <a href="#mes-clips" data-view="mes-clips" class="srv">Mes clips</a>
     <a href="#offres" data-view="offres">Offres</a>
+    <a href="#admin" data-view="admin" class="hidden" id="navAdmin">Admin</a>
   </nav>
   <div class="account srv">
     <span class="credits hidden" id="creditPill" title="1 crédit = 1 clip exporté"></span>
@@ -182,6 +183,17 @@
     <p class="hint center">Paiement sécurisé par Stripe : carte bancaire, Apple Pay, Google Pay, PayPal. Abonnement sans engagement, résiliable en un clic.</p>
   </section>
 
+  <!-- ============ ADMIN ============ -->
+  <section class="view hidden" id="view-admin">
+    <div class="adm-head"><h2 class="page-title">Tableau de bord</h2><button class="btn ghost sm" id="admRefresh">↻ Actualiser</button></div>
+    <div id="admBody"><p class="hint">Chargement…</p></div>
+    <h3 class="adm-h">Gestion des comptes</h3>
+    <div class="card">
+      <div class="adm-search"><input type="search" id="admQ" placeholder="Rechercher un e-mail…" aria-label="Rechercher un compte"><button class="btn primary sm" id="admGo">Rechercher</button></div>
+      <div id="admUsers"></div>
+    </div>
+  </section>
+
   <!-- ============ COMPTE ============ -->
   <section class="view hidden" id="view-compte">
     <h2 class="page-title">Mon compte</h2>
@@ -271,8 +283,8 @@
 
 <div class="toast hidden" id="toast" role="status"></div>
 
-<script src="scoring.js?v=11"></script>
-<script src="layouts.js?v=11"></script>
-<script src="app.js?v=11"></script>
+<script src="scoring.js?v=12"></script>
+<script src="layouts.js?v=12"></script>
+<script src="app.js?v=12"></script>
 </body>
 </html>

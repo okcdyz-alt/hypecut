@@ -14,6 +14,7 @@ const ai = require('./lib/ai');
 const sources = require('./lib/sources');
 const media = require('./lib/media');
 const referral = require('./lib/referral');
+const admin = require('./lib/admin');
 const Layouts = require('./public/layouts');
 
 const PORT = +process.env.PORT || 3000;
@@ -46,7 +47,7 @@ const clientIp = (req) => String(req.headers['cf-connecting-ip'] || req.headers[
 
 function userView(u) {
   const p = plans.planOf(u);
-  return { id: u.id, email: u.email, plan: p.id, planName: p.name, credits: u.credits, periodEnd: u.period_end, subscribed: !!u.stripe_sub,
+  return { id: u.id, email: u.email, isAdmin: admin.isAdmin(u), plan: p.id, planName: p.name, credits: u.credits, periodEnd: u.period_end, subscribed: !!u.stripe_sub,
     features: { res: Math.min(p.res, +process.env.MAX_EXPORT_RES || 1080), fps: Math.min(p.fps, +process.env.MAX_EXPORT_FPS || 60), watermark: p.watermark, maxDurationMin: p.maxDurationMin, maxUploadMb: p.maxUploadMb, camLayouts: p.camLayouts, effects: !!p.camLayouts, smartCrop: p.smartCrop && cloud.enabled(), batch: p.batch, ai: ai.enabled() ? p.ai : 'none' } };
 }
 
@@ -117,6 +118,14 @@ route('GET', '/api/referral', (req, res) => {
   const u = requireUser(req);
   const st = referral.stats(u.id);
   ok(res, { ...st, link: `${PUBLIC_URL}/?ref=${st.code}`, referred: !!u.referred_by, rewarded: !!u.ref_rewarded });
+});
+function requireAdmin(req) { const u = requireUser(req); if (!admin.isAdmin(u)) throw auth.httpError(403, 'Accès réservé.'); return u; }
+route('GET', '/api/admin/stats', (req, res) => { requireAdmin(req); ok(res, admin.stats(jobs.queueState)); });
+route('GET', '/api/admin/users', (req, res, { url }) => { requireAdmin(req); ok(res, { users: admin.searchUsers(url.searchParams.get('q')) }); });
+route('POST', '/api/admin/users/:id', async (req, res, { params }) => {
+  const a = requireAdmin(req);
+  const b = await readJson(req);
+  ok(res, { user: admin.updateUser(params.id, b, a.email) });
 });
 route('POST', '/api/billing/sync', async (req, res) => {
   const u = requireUser(req);
