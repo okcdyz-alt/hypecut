@@ -456,3 +456,13 @@ html:not([lang=en]) .en-only { display: none; }
 .warn-dot::before { content: '●'; color: #ffad3d; margin-right: 6px; }
 
 #sourceErr, #exErr, .err { white-space: pre-line; text-align: left; }
+
+/* Passage de la vidéo */
+.range-box { margin: 12px 0 4px; border: 1px solid var(--line); border-radius: 14px; padding: 10px 14px; background: rgba(0,0,0,.2); }
+.range-box summary { cursor: pointer; font-weight: 700; font-size: 14px; }
+.range-box summary .hint { font-weight: 400; }
+.range-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+.range-row input { width: 100%; }
+.range-box .hint { margin: 6px 0 0; }
+
+.sample-line { text-align: center; margin: 10px 0 0; font-size: 14px; color: var(--muted); }

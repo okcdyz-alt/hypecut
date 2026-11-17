@@ -147,6 +147,10 @@
     'Les liens YouTube ne sont pas acceptés : importe ton fichier vidéo (onglet « Importer un fichier »).': 'YouTube links are not supported: upload your video file (“Upload a file” tab).', 'Seuls les liens Twitch et Kick sont acceptés. Pour une autre vidéo, importe le fichier.': 'Only Twitch and Kick links are supported. For another video, upload the file.',
     'Les liens YouTube ne sont pas acceptés : importe ton fichier vidéo (onglet « Importer un fichier »). Pour ta propre vidéo YouTube, télécharge-la depuis YouTube Studio.': 'YouTube links are not supported: upload your video file (“Upload a file” tab). For your own YouTube video, download it from YouTube Studio.',
     'Seuls les liens Twitch et Kick sont acceptés. Pour une autre vidéo, importe le fichier (onglet « Importer un fichier »).': 'Only Twitch and Kick links are supported. For another video, upload the file (“Upload a file” tab).',
+    'Sous-titres automatiques': 'Automatic subtitles', '(mot par mot, comme sur TikTok)': '(word by word, TikTok style)', 'Écriture des sous-titres': 'Writing subtitles',
+    '⏱ Choisir un passage de la vidéo': '⏱ Choose a part of the video', 'Début': 'Start', 'Fin': 'End',
+    'Seul ce passage est récupéré et analysé : c’est plus rapide. Laisse vide pour analyser toute la vidéo.': 'Only this part is fetched and analysed, which is faster. Leave empty to analyse the whole video.',
+    'Pas de vidéo sous la main ?': 'No video at hand?', '🎮 Essayer avec une vidéo d’exemple': '🎮 Try with a sample video',
     '🎁 Parraine tes amis': '🎁 Invite your friends', 'Ton lien de parrainage': 'Your referral link', 'Copier': 'Copy', 'inscrits': 'signed up', 'validés': 'validated', 'clips gagnés': 'clips earned',
     'Lien copié : partage-le à tes amis !': 'Link copied: share it with your friends!', 'Sélectionne le lien et copie-le.': 'Select the link and copy it.',
     // ---- statuts

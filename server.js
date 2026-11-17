@@ -58,11 +58,31 @@ function userView(u) {
     features: { res: Math.min(p.res, +process.env.MAX_EXPORT_RES || 1080), fps: Math.min(p.fps, +process.env.MAX_EXPORT_FPS || 60), watermark: p.watermark, maxDurationMin: p.maxDurationMin, maxUploadMb: p.maxUploadMb, camLayouts: p.camLayouts, effects: !!p.camLayouts, smartCrop: p.smartCrop && cloud.enabled(), batch: p.batch, ai: ai.enabled() ? p.ai : 'none' } };
 }
 
-function analysisOptions(src) {
+/** « 1:20:00 », « 80:00 », « 4800 » → secondes ; vide → null. */
+function parseClock(v) {
+  const s = String(v ?? '').trim().replace(/\s/g, '').replace(/h/i, ':').replace(/m(in)?/i, ':').replace(/s$/i, '').replace(/:$/, ':0');
+  if (!s) return null;
+  if (!/^\d+(:\d{1,2}){0,2}$/.test(s)) throw auth.httpError(400, `Heure invalide : « ${String(v).slice(0, 12)} ». Écris-la comme 1:20:00 (heures:minutes:secondes).`);
+  return s.split(':').map(Number).reduce((a, n) => a * 60 + n, 0);
+}
+
+function analysisOptions(src, plan) {
   const clipLen = [15, 30, 45, 60].includes(+src.clipLen) ? +src.clipLen : 30;
   const count = Math.max(1, Math.min(12, +src.count || 5));
   const priority = ['balanced', 'audio', 'action'].includes(src.priority) ? src.priority : 'balanced';
-  return { clipLen, count, priority, lang: src.lang === 'en' ? 'en' : 'fr' };
+  // Passage de la vidéo à analyser (facultatif)
+  let range = null;
+  const a = parseClock(src.rangeStart), z = parseClock(src.rangeEnd);
+  if (a !== null || z !== null) {
+    const start = a || 0;
+    if (z !== null && z <= start) throw auth.httpError(400, 'La fin du passage doit être après le début.');
+    if (z !== null && plan && z - start > plan.maxDurationMin * 60 + 5) {
+      const d = require('./lib/diagnose');
+      throw auth.httpError(400, `Le passage choisi dure ${d.fmtDur(z - start)} : ton offre accepte jusqu’à ${d.fmtDur(plan.maxDurationMin * 60)}. Raccourcis-le.`);
+    }
+    range = { start, end: z };
+  }
+  return { clipLen, count, priority, lang: src.lang === 'en' ? 'en' : 'fr', range };
 }
 
 function serveFile(req, res, file, cacheSeconds = 0) {
@@ -233,7 +253,7 @@ route('POST', '/api/jobs', async (req, res) => {
   require('./lib/diagnose').assertUsableLink(src);
   if (src.platform !== 'direct' && !(ALLOW_PLATFORMS && ytdlpOk)) throw auth.httpError(400, 'Les liens Twitch et Kick sont momentanément indisponibles : importe ton fichier vidéo.');
   if (src.platform === 'direct') await sources.assertPublicHost(src.host);
-  const id = jobs.createJob(u, { sourceType: 'url', sourceUrl: src.url, options: analysisOptions(b) });
+  const id = jobs.createJob(u, { sourceType: 'url', sourceUrl: src.url, options: analysisOptions(b, plans.planOf(u)) });
   jobs.startAnalysis(id, u);
   ok(res, { id });
 });
@@ -250,7 +270,7 @@ route('POST', '/api/upload/start', async (req, res) => {
   if (size > plan.maxUploadMb * 1048576) throw auth.httpError(413, `Fichier trop lourd pour ton offre (max ${plan.maxUploadMb} Mo).`);
   const name = String(b.name || 'video.mp4').slice(0, 200);
   const ext = (path.extname(name).toLowerCase().match(/^\.(mp4|mov|m4v|webm|mkv|avi|ts|flv)$/) || ['.mp4'])[0];
-  const id = jobs.createJob(u, { sourceType: 'upload', title: path.basename(name, path.extname(name)), options: analysisOptions(b) });
+  const id = jobs.createJob(u, { sourceType: 'upload', title: path.basename(name, path.extname(name)), options: analysisOptions(b, plan) });
   const dest = path.join(jobs.jobDir(id), 'source' + ext);
   fs.closeSync(fs.openSync(dest, 'w'));
   q.run("UPDATE jobs SET status = 'uploading', meta = ? WHERE id = ?", JSON.stringify({ upload: { size, file: 'source' + ext } }), id);
@@ -291,6 +311,19 @@ route('POST', '/api/upload/:id/finish', async (req, res, { params }) => {
   ok(res, { id: j.id });
 });
 
+// Vidéo d'exemple (gameplay original HYPECUT) : pour essayer sans rien importer
+const SAMPLE_FILE = path.join(PUBLIC_DIR, 'sample', 'hypecut-exemple.mp4');
+route('POST', '/api/jobs/sample', async (req, res) => {
+  const u = requireUser(req);
+  if (!auth.rateLimit('job:' + u.id, 40, 3600e3)) throw auth.httpError(429, 'Tu as lancé beaucoup d’analyses : patiente un peu.');
+  if (!fs.existsSync(SAMPLE_FILE)) throw auth.httpError(503, 'La vidéo d’exemple est indisponible pour le moment.');
+  const b = await readJson(req);
+  const id = jobs.createJob(u, { sourceType: 'upload', title: 'Vidéo d’exemple HYPECUT', options: { ...analysisOptions({ ...b, rangeStart: '', rangeEnd: '' }), count: 3 } });
+  fs.copyFileSync(SAMPLE_FILE, path.join(jobs.jobDir(id), 'source.mp4'));
+  jobs.startAnalysis(id, u);
+  ok(res, { id });
+});
+
 route('POST', '/api/upload', (req, res) => {
   req.resume();
   throw auth.httpError(409, 'Le site a été mis à jour : recharge la page (Ctrl+Maj+R ou Cmd+Maj+R) puis relance l’envoi.');
@@ -323,6 +356,7 @@ function exportOptions(b, clip) {
     focusX: Math.max(0, Math.min(1, num(b.focusX, 0.5))), corner: ['tl', 'tr', 'bl', 'br'].includes(b.corner) ? b.corner : 'tl',
     title: b.showTitle === false ? '' : String(b.title || '').slice(0, 90),
     progressBar: b.progressBar === true,
+    subtitles: b.subtitles === true,
     bgId: typeof b.bgId === 'string' ? b.bgId.slice(0, 64) : null,
   };
 }

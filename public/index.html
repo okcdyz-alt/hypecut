@@ -80,6 +80,15 @@
         <p class="hint">🎬 <b>Vidéo YouTube ?</b> Télécharge ta propre vidéo depuis YouTube Studio (menu ⋮ → Télécharger), puis importe le fichier ici. N’utilise que tes vidéos ou celles dont tu as l’accord de l’auteur.</p>
       </div>
 
+      <details class="range-box" id="rangeBox">
+        <summary>⏱ Choisir un passage de la vidéo <span class="hint">(facultatif · indispensable pour une VOD de plus de <span id="rangeMax">2 h</span>)</span></summary>
+        <div class="range-row">
+          <label class="field sm"><span>Début</span><input id="rangeStart" inputmode="numeric" placeholder="0:00:00" autocomplete="off"></label>
+          <label class="field sm"><span>Fin</span><input id="rangeEnd" inputmode="numeric" placeholder="2:00:00" autocomplete="off"></label>
+        </div>
+        <p class="hint">Format heures:minutes:secondes, par exemple de <b>1:20:00</b> à <b>3:00:00</b>. Seul ce passage est récupéré et analysé : c’est plus rapide. Laisse vide pour analyser toute la vidéo.</p>
+      </details>
+
       <div class="settings">
         <label class="field sm"><span>Durée des clips</span>
           <select id="clipLen"><option value="15">15 s</option><option value="30" selected>30 s</option><option value="45">45 s</option><option value="60">60 s</option></select></label>
@@ -89,6 +98,7 @@
           <select id="priority"><option value="balanced" selected>Équilibré</option><option value="action">Action (mouvement)</option><option value="audio">Son (cris, explosions)</option></select></label>
       </div>
       <button class="btn primary big" id="btnAnalyze">⚡ Trouver les moments forts</button>
+      <p class="sample-line" id="sampleLine">Pas de vidéo sous la main ? <button type="button" class="btn ghost xs" id="btnSample">🎮 Essayer avec une vidéo d’exemple</button></p>
       <p class="err" id="sourceErr" role="alert"></p>
     </div>
 
@@ -316,6 +326,7 @@
         </div>
         <p class="label">Effets</p>
         <label class="check" id="pbLabel"><input type="checkbox" id="progressBar" checked> <span>Barre de progression <span class="hint">(pousse à regarder jusqu’au bout)</span> <span class="lock hidden" id="pbLock">🔒 Pro</span></span></label>
+        <label class="check" id="subLabel"><input type="checkbox" id="subtitlesOn" checked> <span>Sous-titres automatiques <span class="hint">(mot par mot, comme sur TikTok)</span> <span class="lock hidden" id="subLock">🔒 Pro</span></span></label>
         <label class="check"><input type="checkbox" id="showTitle" checked> <span>Afficher un titre sur le clip</span></label>
         <input type="text" id="titleInput" maxlength="90" placeholder="Ex. : La poursuite la plus folle de Vice City">
         <div class="ex-times">

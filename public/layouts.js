@@ -174,5 +174,28 @@
     return lines.slice(0, 3);
   }
 
-  return { LAYOUTS, outSize, compose, wrapTitle, cover };
+  /** Hauteur (centre) des sous-titres : sur la jonction entre deux zones si elle existe, sinon aux deux tiers. */
+  function subtitleY(comp, titleLines) {
+    const { W, H, ops } = comp;
+    if (W > H) return Math.round(H * 0.84);
+    if (W === H) return Math.round(H * 0.8);
+    let y = Math.round(H * 0.68);
+    const bg = ops.find((o) => o.kind === 'bg');
+    if (bg) y = Math.round(bg.dst.y);
+    else {
+      const big = ops.filter((o) => o.kind === 'video' && o.dst.w >= W * 0.9 && o.dst.h < H * 0.9);
+      const seam = big.flatMap((o) => [o.dst.y, o.dst.y + o.dst.h]).find((v) => v > H * 0.3 && v < H * 0.75);
+      if (seam) y = Math.round(seam);
+    }
+    // Ne pas recouvrir le titre : on passe juste en dessous (ou au-dessus s'il n'y a pas la place)
+    if (titleLines && comp.title) {
+      const fsT = Math.round(W * 0.068), blockH = Math.round(fsT * 1.32) * titleLines;
+      const t0 = comp.title.anchor === 'center' ? comp.title.y - blockH / 2 : comp.title.y, t1 = t0 + blockH;
+      const half = W * 0.06;
+      if (y + half > t0 - 10 && y - half < t1 + 10) y = t1 + half + H * 0.035 < H * 0.86 ? Math.round(t1 + half + H * 0.035) : Math.round(t0 - half - H * 0.035);
+    }
+    return y;
+  }
+
+  return { LAYOUTS, outSize, compose, wrapTitle, cover, subtitleY };
 });

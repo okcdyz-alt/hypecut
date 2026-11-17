@@ -159,6 +159,7 @@
     $('#btnAccount').classList.toggle('hidden', !u);
     const pill = $('#creditPill');
     pill.classList.toggle('hidden', !u);
+    if (u && $('#rangeMax')) { const m = u.features?.maxDurationMin || 120; $('#rangeMax').textContent = m >= 60 ? `${m / 60} h` : `${m} min`; $('#rangeEnd').placeholder = m >= 60 ? `${m / 60}:00:00` : `0:${m}:00`; }
     if (u) pill.innerHTML = `${u.level ? `<span class="lvl-dot" title="Niveau ${esc(u.level.name)}">${u.level.emoji}</span> ` : ''}<span>${u.credits} crédit${u.credits > 1 ? 's' : ''} · ${esc(u.planName)}</span>`;
     $('#navAdmin').classList.toggle('hidden', !u?.isAdmin);
     renderPlans();
@@ -192,6 +193,7 @@
     drop.addEventListener('drop', (e) => pickFile(e.dataTransfer.files[0]));
     $('#linkInput').addEventListener('input', (e) => { $('#ytWarn').hidden = !/youtu\.?be/i.test(e.target.value); });
     $('#ytToFile')?.addEventListener('click', () => setTab('file'));
+    $('#btnSample')?.addEventListener('click', startSample);
     $('#btnAnalyze').addEventListener('click', startAnalysis);
     $('#btnNew').addEventListener('click', () => { resetWorkspace(); location.hash = '#creer'; window.scrollTo({ top: 0, behavior: 'smooth' }); });
     $('#btnExportAll').addEventListener('click', exportAll);
@@ -223,6 +225,10 @@
 
     // Export
     $('#focusX').addEventListener('input', (e) => { S.ex.focusX = +e.target.value; drawPreview(); });
+    $('#subtitlesOn').addEventListener('change', (e) => {
+      if (e.target.checked && !effectsAllowed()) { e.target.checked = false; $('#exErr').innerHTML = 'Les sous-titres automatiques sont inclus dans les offres Pro et Créateur. <a href="#offres" data-close>Voir les offres</a>'; return; }
+      S.ex.subtitles = e.target.checked; drawPreview();
+    });
     $('#showTitle').addEventListener('change', (e) => { S.ex.showTitle = e.target.checked; drawPreview(); });
     $('#progressBar').addEventListener('change', (e) => {
       if (e.target.checked && !effectsAllowed()) { e.target.checked = false; $('#exErr').innerHTML = 'Les effets sont inclus dans les offres Pro et Créateur. <a href="#offres" data-close>Voir les offres</a>'; return; }
@@ -290,7 +296,20 @@
   function closeModals() { $$('.modal').forEach((m) => m.classList.add('hidden')); }
 
   // ---------------------------------------------------------------- lancement d'une analyse
-  function analysisParams() { return { clipLen: +$('#clipLen').value, count: +$('#count').value, priority: $('#priority').value, lang: EN ? 'en' : 'fr' }; }
+  function analysisParams() { return { clipLen: +$('#clipLen').value, count: +$('#count').value, priority: $('#priority').value, lang: EN ? 'en' : 'fr', rangeStart: $('#rangeStart')?.value.trim() || '', rangeEnd: $('#rangeEnd')?.value.trim() || '' }; }
+
+  async function startSample() {
+    const err = $('#sourceErr'); err.textContent = '';
+    if (S.mode !== 'server') { err.textContent = 'La vidéo d’exemple arrive avec le site complet.'; return; }
+    if (!S.user) { openAuth('signup', 'Crée ton compte gratuit pour essayer avec la vidéo d’exemple : 3 clips offerts.'); return; }
+    const b = $('#btnSample'); b.disabled = true;
+    try {
+      const { id } = await api('api/jobs/sample', { method: 'POST', body: analysisParams() });
+      resetWorkspace();
+      location.hash = '#analyse-' + id;
+    } catch (e) { err.innerHTML = errHtml(e); }
+    b.disabled = false;
+  }
 
   async function startAnalysis() {
     const err = $('#sourceErr'); err.textContent = '';
@@ -380,7 +399,7 @@
           if (pending) S.pollT = setTimeout(poll, 2500);
           return;
         }
-        if (j.status === 'error') { hideProgress(); $('#sourceErr').textContent = j.message || 'L’analyse a échoué.'; return; }
+        if (j.status === 'error') { hideProgress(); $('#sourceErr').textContent = j.message || 'L’analyse a échoué.'; if (/passage à analyser/.test(j.message || '')) $('#rangeBox').open = true; return; }
         const label = STATUS[j.status] || 'Traitement';
         showProgress(`${label}…`, j.progress, j.status === 'queued' && j.queue ? `Position dans la file : ${j.queue}` : j.message || '');
         S.pollT = setTimeout(poll, 1500);
@@ -608,9 +627,10 @@
     const c = S.result.clips[i], st = S.clips[i];
     if (S.mode === 'server' && !S.bgs) { try { S.bgs = (await api('api/backgrounds')).backgrounds; } catch { S.bgs = []; } }
     const layout = defaultLayout();
-    S.ex = { idx: i, layout, bgId: S.lastBg || S.bgs?.[0]?.id || null, start: st.start, end: st.end, title: st.title, showTitle: true, progressBar: effectsAllowed(), focusX: 0.5, corner: S.corner, camRect: S.camRect || { x: 0.02, y: 0.03, w: 0.26, h: 0.3 }, img: null, frame: null, busy: false };
+    S.ex = { idx: i, layout, bgId: S.lastBg || S.bgs?.[0]?.id || null, start: st.start, end: st.end, title: st.title, showTitle: true, progressBar: effectsAllowed(), subtitles: effectsAllowed() && S.mode !== 'demo', focusX: 0.5, corner: S.corner, camRect: S.camRect || { x: 0.02, y: 0.03, w: 0.26, h: 0.3 }, img: null, frame: null, busy: false };
     $('#titleInput').value = st.title; $('#showTitle').checked = true; $('#focusX').value = 0.5;
     $('#progressBar').checked = effectsAllowed(); $('#pbLock').classList.toggle('hidden', effectsAllowed());
+    $('#subtitlesOn').checked = S.ex.subtitles; $('#subLock').classList.toggle('hidden', effectsAllowed()); $('#subLabel').classList.toggle('hidden', S.mode === 'demo');
     $('#exErr').innerHTML = ''; $('#exResult').classList.add('hidden');
     ['#exDownload', '#exSave', '#exCopy', '#exVideo'].forEach((s) => $(s).classList.add('hidden'));
     $('#btnDoExport').disabled = false;
@@ -666,7 +686,7 @@
   }
 
   /** Dessine une composition sur un canvas (aperçu avec une image, ou export avec la vidéo). */
-  function drawComp(ctx, comp, src, lines, watermark, progress) {
+  function drawComp(ctx, comp, src, lines, watermark, progress, subs) {
     ctx.fillStyle = '#000'; ctx.fillRect(0, 0, comp.W, comp.H);
     for (const op of comp.ops) {
       ctx.save();
@@ -693,6 +713,13 @@
         ctx.fillStyle = 'rgba(0,0,0,0.62)'; ctx.fillRect(x - pad, y - pad * 0.6, w + pad * 2, fs * 1.15 + pad * 1.2);
         ctx.fillStyle = '#fff'; ctx.fillText(line, x, y);
       });
+    }
+    if (subs) {
+      const fs = Math.round(W > H ? H * 0.075 : W * 0.085), y = L.subtitleY(comp, (lines || []).length), words = ['TES', 'SOUS-TITRES', 'ICI'];
+      ctx.font = `${fs}px Anton, Impact, "Arial Black", sans-serif`; ctx.textBaseline = 'middle'; ctx.lineJoin = 'round';
+      const sp = fs * 0.28, widths = words.map((w) => ctx.measureText(w).width), total = widths.reduce((a, b) => a + b, 0) + sp * (words.length - 1);
+      let x = (W - total) / 2;
+      words.forEach((w, i) => { ctx.lineWidth = Math.max(4, fs * 0.18); ctx.strokeStyle = '#000'; ctx.strokeText(w, x, y); ctx.fillStyle = i === 1 ? '#ffd23d' : '#fff'; ctx.fillText(w, x, y); x += widths[i] + sp; });
     }
     if (progress !== undefined && progress !== null) {
       const bh = Math.max(6, Math.round(H * 0.009));
@@ -721,7 +748,7 @@
     }
     const comp = L.compose(ex.layout === 'game_ai' ? 'game_full' : ex.layout, ex.img.naturalWidth, ex.img.naturalHeight, previewOpts());
     const cv = $('#exCanvas'); cv.width = comp.W; cv.height = comp.H;
-    drawComp(cv.getContext('2d'), comp, ex.img, ex.showTitle ? titleLinesFor(ex.layout, ex.title) : [], wantsWatermark(), ex.progressBar ? 0.6 : null);
+    drawComp(cv.getContext('2d'), comp, ex.img, ex.showTitle ? titleLinesFor(ex.layout, ex.title) : [], wantsWatermark(), ex.progressBar ? 0.6 : null, !!ex.subtitles && ex.layout !== 'game_ai');
   }
 
   function bindCamPicker() {
@@ -765,11 +792,11 @@
   async function serverExport(ex) {
     $('#exMsg').textContent = 'Envoi de la demande…';
     if (L.LAYOUTS[ex.layout]?.bg && !ex.bgId) throw new Error('Choisis une vidéo satisfaisante pour le bas de l’écran.');
-    const body = { bgId: ex.bgId, clipIdx: ex.idx, layout: ex.layout, start: ex.start, end: ex.end, camRect: ex.camRect, corner: ex.corner, focusX: ex.focusX, title: ex.title, showTitle: ex.showTitle, progressBar: !!ex.progressBar };
+    const body = { bgId: ex.bgId, clipIdx: ex.idx, layout: ex.layout, start: ex.start, end: ex.end, camRect: ex.camRect, corner: ex.corner, focusX: ex.focusX, title: ex.title, showTitle: ex.showTitle, progressBar: !!ex.progressBar, subtitles: !!ex.subtitles };
     const r = await api(`api/jobs/${S.jobId}/export`, { method: 'POST', body });
     S.user = r.user; renderHeader(); syncQuality();
     const id = r.ids[0];
-    const LBL = { queued: 'En file d’attente', rendering: 'Montage du clip', uploading: 'Mise en ligne', ai_crop: 'Recadrage IA en cours' };
+    const LBL = { queued: 'En file d’attente', subtitles: 'Écriture des sous-titres', rendering: 'Montage du clip', uploading: 'Mise en ligne', ai_crop: 'Recadrage IA en cours' };
     let fails = 0;
     for (;;) {
       await new Promise((s) => setTimeout(s, 1500));
@@ -781,7 +808,7 @@
       }
       $('#exBar').style.width = `${Math.round((e.progress || 0) * 100)}%`;
       if (e.status === 'done') {
-        $('#exMsg').innerHTML = 'Ton clip est prêt ! 🎉 <a href="#compte" data-close>Invite tes amis</a> : 5 clips offerts chacun.';
+        $('#exMsg').innerHTML = 'Ton clip est prêt ! 🎉 <a href="#compte" data-close>Invite tes amis</a> : 5 clips offerts chacun.' + (e.message ? `<br><span class="hint">ℹ️ ${esc(e.message)}</span>` : '');
         const v = $('#exVideo'); v.src = e.url; v.classList.remove('hidden');
         const a = $('#exDownload'); a.href = e.download || e.url; a.classList.remove('hidden');
         $('#exCopy').classList.remove('hidden');
@@ -798,7 +825,7 @@
       if (S.mode === 'server' && !S.bgs) { try { S.bgs = (await api('api/backgrounds')).backgrounds; } catch { S.bgs = []; } }
       const layout = defaultLayout();
       const bgId = S.lastBg || S.bgs?.[0]?.id || null;
-      const r = await api(`api/jobs/${S.jobId}/export`, { method: 'POST', body: { all: true, layout, bgId, camRect: S.camRect, corner: S.corner, focusX: 0.5, useAiTitles: true, progressBar: effectsAllowed() } });
+      const r = await api(`api/jobs/${S.jobId}/export`, { method: 'POST', body: { all: true, layout, bgId, camRect: S.camRect, corner: S.corner, focusX: 0.5, useAiTitles: true, progressBar: effectsAllowed(), subtitles: effectsAllowed() } });
       S.user = r.user; renderHeader();
       toast(`${r.ids.length} clips en cours de montage (format : ${L.LAYOUTS[layout].label}).`);
       loadJob(S.jobId);
