@@ -182,6 +182,7 @@
     $('#btnExportAll').addEventListener('click', exportAll);
     $('#btnAiAll').addEventListener('click', demoAiTitles);
     $('#btnLogin').addEventListener('click', () => openAuth('signup'));
+    $('#ctaTop')?.addEventListener('click', (e) => { e.preventDefault(); $('#sourceCard').scrollIntoView({ behavior: 'smooth', block: 'center' }); });
     document.addEventListener('click', (e) => {
       if (e.target.closest('[data-open-auth]')) { e.preventDefault(); openAuth('login'); }
       if (e.target.matches('[data-close]') || e.target.classList.contains('modal')) closeModals();
@@ -373,6 +374,7 @@
     clearTimeout(S.pollT);
     S.jobId = null; S.job = null; S.result = null; S.exports = []; S.clips = [];
     $('#workspace').classList.add('hidden');
+    document.body.classList.remove('has-job');
     hideProgress();
     const p = $('#player'); p.pause(); p.removeAttribute('src'); p.load();
   }
@@ -457,6 +459,7 @@
   function renderWorkspace() {
     const r = S.result; if (!r) return;
     $('#workspace').classList.remove('hidden');
+    document.body.classList.add('has-job');
     $('#wsTitle').textContent = S.job?.title ? `Moments forts · ${S.job.title}` : 'Moments forts';
     $('#wsSub').textContent = `${r.clips.length} clip${r.clips.length > 1 ? 's' : ''} proposé${r.clips.length > 1 ? 's' : ''} sur ${fmt(r.duration)} de vidéo. Modifie les titres, ajuste et exporte.`;
     $('#expiredBar').classList.toggle('hidden', S.job?.status !== 'expired');

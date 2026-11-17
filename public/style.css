@@ -43,6 +43,7 @@ button, input, select { font: inherit; color: inherit; }
 }
 .logo { font-family: Anton, Impact, sans-serif; font-size: 26px; letter-spacing: 1.5px; text-decoration: none; display: flex; align-items: center; gap: 8px; }
 .logo-mark { background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; font-size: 20px; }
+.logo-img { width: 30px; height: 30px; filter: drop-shadow(0 4px 12px rgba(255, 61, 139, 0.45)); }
 .nav { display: flex; gap: 4px; margin-left: 12px; }
 .nav a { text-decoration: none; color: var(--muted); padding: 8px 12px; border-radius: 10px; font-weight: 600; font-size: 14px; }
 .nav a:hover { color: var(--text); background: rgba(255, 255, 255, 0.05); }
@@ -229,3 +230,60 @@ input[type=range] { width: 100%; accent-color: var(--pink); }
 .foot-links a { color: var(--muted); }
 .foot-links a:hover { color: var(--text); }
 #authLegal a { color: var(--teal); }
+
+/* ---------- Présentation (page d'accueil) ---------- */
+body.has-job .mkt { display: none; }
+.mk-sec { margin-top: 90px; }
+.mk-title { text-align: center; font-family: Anton, Impact, sans-serif; font-weight: 400; text-transform: uppercase; letter-spacing: .5px; font-size: clamp(30px, 4.4vw, 46px); margin: 0 0 14px; }
+.steps3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 28px; }
+.step3 { background: var(--card); border: 1px solid var(--line); border-radius: var(--r); padding: 22px; }
+.step3 .num { display: inline-grid; place-items: center; width: 36px; height: 36px; border-radius: 10px; background: var(--grad); color: #160a1e; font-weight: 900; }
+.step3 h3 { margin: 14px 0 6px; font-size: 18px; }
+.step3 p, .feat p { color: var(--muted); margin: 0; font-size: 14px; }
+.phones { display: flex; gap: 22px; justify-content: center; flex-wrap: wrap; margin-top: 30px; }
+.phone { margin: 0; text-align: center; }
+.phone figcaption { margin-top: 10px; font-weight: 700; font-size: 14px; color: var(--muted); }
+.scr { position: relative; width: 170px; aspect-ratio: 9/16; border-radius: 22px; overflow: hidden; background: #000; border: 6px solid #1c1530; box-shadow: 0 24px 60px rgba(0,0,0,.55), 0 0 0 1px var(--line2); }
+.scr .game { position: absolute; inset: 0; background: repeating-linear-gradient(115deg, #ff3d8b 0 18px, #ffad3d 18px 36px, #8b5cf6 36px 54px); background-size: 200% 200%; animation: road 3s linear infinite; opacity: .9; }
+.scr .game::after { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at 50% 60%, transparent 30%, rgba(0,0,0,.55)); }
+@keyframes road { from { background-position: 0 0; } to { background-position: -152px 0; } }
+.lay-camtop .cam { position: absolute; left: 0; right: 0; top: 0; height: 38%; background: linear-gradient(160deg, #1d5e64, #2ee6d6); display: grid; place-items: center; z-index: 2; border-bottom: 3px solid #000; }
+.lay-camtop .cam span, .bub::after { font-size: 10px; font-weight: 900; letter-spacing: 1px; color: #062a2a; }
+.lay-camtop .game { top: 38%; }
+.bub { position: absolute; top: 9%; right: 8%; width: 38%; aspect-ratio: 1; border-radius: 50%; background: linear-gradient(160deg, #1d5e64, #2ee6d6); border: 3px solid #fff; z-index: 2; display: grid; place-items: center; animation: pop 2.4s ease-in-out infinite; }
+.bub::after { content: 'CAM'; }
+@keyframes pop { 50% { transform: scale(1.06); } }
+.lay-blur .blurred { filter: blur(6px) brightness(.7); }
+.lay-blur .mid { top: 32%; bottom: 32%; }
+.lay-satis .half { bottom: 50%; }
+.satis { position: absolute; left: 0; right: 0; bottom: 0; height: 50%; background: #120c1f; display: grid; place-items: center; overflow: hidden; border-top: 3px solid #000; }
+.satis i { position: absolute; width: 60%; aspect-ratio: 1; border-radius: 42%; border: 6px solid; animation: spin 4s linear infinite; }
+.satis i:nth-child(1) { border-color: #ffad3d; }
+.satis i:nth-child(2) { border-color: #ff3d8b; width: 44%; animation-duration: 3s; animation-direction: reverse; }
+.satis i:nth-child(3) { border-color: #2ee6d6; width: 28%; animation-duration: 2s; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.scr .ttl { position: absolute; left: 8%; right: 8%; top: 41%; z-index: 3; background: rgba(0,0,0,.65); color: #fff; font-family: Anton, Impact, sans-serif; font-size: 13px; line-height: 1.15; padding: 5px 7px; text-align: center; border-radius: 4px; }
+.lay-bubble .ttl, .lay-blur .ttl { top: 6%; }
+.lay-satis .ttl { top: 44%; }
+.scr .prog { position: absolute; left: 0; bottom: 0; height: 4px; background: var(--grad); z-index: 4; animation: prog 5s linear infinite; }
+@keyframes prog { from { width: 0; } to { width: 100%; } }
+.feats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 26px; }
+.feat { background: var(--card); border: 1px solid var(--line); border-radius: var(--r); padding: 20px; }
+.feat b { display: block; margin-bottom: 6px; font-size: 16px; }
+.cta-band { text-align: center; padding: 46px 20px; border-radius: 24px; background: linear-gradient(120deg, rgba(255,173,61,.14), rgba(255,61,139,.16) 50%, rgba(139,92,246,.18)); border: 1px solid rgba(255,61,139,.3); }
+.cta-band h2 { font-family: Anton, Impact, sans-serif; font-weight: 400; text-transform: uppercase; font-size: clamp(28px, 4vw, 42px); margin: 0 0 8px; }
+.cta-band p { color: var(--muted); margin: 0 0 20px; }
+.center-row { justify-content: center; }
+.faq { max-width: 780px; margin: 24px auto 0; display: grid; gap: 10px; }
+.faq details { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 14px 18px; }
+.faq summary { cursor: pointer; font-weight: 700; list-style: none; display: flex; justify-content: space-between; gap: 12px; }
+.faq summary::after { content: '+'; color: var(--pink); font-weight: 900; }
+.faq details[open] summary::after { content: '−'; }
+.faq p { color: var(--muted); margin: 10px 0 0; font-size: 14px; }
+@media (max-width: 760px) {
+  .steps3, .feats { grid-template-columns: 1fr; }
+  .scr { width: 140px; }
+  .mk-sec { margin-top: 64px; }
+}
+@media (prefers-reduced-motion: reduce) { .scr *, .scr .game { animation: none !important; } }
+.lay-bubble .ttl { top: 40%; }

@@ -5,16 +5,23 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>HYPECUT — Clips de moments forts par IA</title>
 <meta name="description" content="Colle un lien ou importe ta vidéo : l'IA trouve les moments forts et crée des clips prêts pour TikTok, Shorts et Reels. Prêt pour la sortie de GTA VI.">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<meta name="theme-color" content="#0a0712">
+<meta property="og:type" content="website">
+<meta property="og:title" content="HYPECUT — Tes meilleurs moments GTA VI, découpés par l’IA">
+<meta property="og:description" content="Colle un lien ou importe ta vidéo : HYPECUT repère les moments forts et crée des clips prêts pour TikTok, Shorts et Reels.">
+<meta property="og:image" content="https://hypecut-h6pu.onrender.com/og.png">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=8">
+<link rel="stylesheet" href="style.css?v=9">
 </head>
 <body>
 <div class="sky" aria-hidden="true"></div>
 
 <header class="top">
-  <a class="logo" href="#creer" aria-label="HYPECUT, accueil"><span class="logo-mark">▲</span>HYPECUT</a>
+  <a class="logo" href="#creer" aria-label="HYPECUT, accueil"><img class="logo-img" src="logo-mark.svg" alt="" width="30" height="30">HYPECUT</a>
   <nav class="nav" id="nav">
     <a href="#creer" data-view="creer">Créer</a>
     <a href="#mes-clips" data-view="mes-clips" class="srv">Mes clips</a>
@@ -103,6 +110,59 @@
       </div>
       <p class="banner warn hidden" id="expiredBar">La vidéo source a été supprimée de nos serveurs (24 h). Tu peux encore revoir les moments forts, mais il faut relancer l’analyse pour exporter.</p>
       <div class="clips" id="clips"></div>
+    </div>
+
+    <!-- ======= Présentation (masquée quand une analyse est ouverte) ======= -->
+    <div class="mkt" id="mkt">
+      <section class="mk-sec">
+        <h2 class="mk-title">Comment ça marche</h2>
+        <div class="steps3">
+          <div class="step3"><span class="num">1</span><h3>Colle ton lien</h3><p>Une VOD Twitch ou Kick, une vidéo YouTube ou ton fichier de gameplay.</p></div>
+          <div class="step3"><span class="num">2</span><h3>L’IA trouve les moments forts</h3><p>Elle écoute les cris et les explosions, repère l’action et classe les meilleurs passages.</p></div>
+          <div class="step3"><span class="num">3</span><h3>Exporte en un clic</h3><p>Choisis un format, ajuste si tu veux, et récupère ton clip prêt à poster.</p></div>
+        </div>
+      </section>
+
+      <section class="mk-sec">
+        <h2 class="mk-title">Un format pour chaque style</h2>
+        <p class="lead center">Caméra du streamer, bulle, fond flouté ou modèle « satisfaisant » : tout est prêt pour TikTok, Shorts et Reels.</p>
+        <div class="phones">
+          <figure class="phone"><div class="scr lay-camtop"><div class="cam"><span>FACECAM</span></div><div class="game"></div><div class="ttl">La poursuite la plus folle</div><div class="prog"></div></div><figcaption>Caméra en haut</figcaption></figure>
+          <figure class="phone"><div class="scr lay-bubble"><div class="game"></div><div class="bub"></div><div class="ttl">Le crash de l’année</div><div class="prog"></div></div><figcaption>Caméra en bulle</figcaption></figure>
+          <figure class="phone"><div class="scr lay-blur"><div class="game blurred"></div><div class="game mid"></div><div class="ttl">L’explosion de trop</div><div class="prog"></div></div><figcaption>Fond flouté</figcaption></figure>
+          <figure class="phone"><div class="scr lay-satis"><div class="game half"></div><div class="satis"><i></i><i></i><i></i></div><div class="ttl">Regarde jusqu’au bout</div><div class="prog"></div></div><figcaption>Satisfaisant</figcaption></figure>
+        </div>
+      </section>
+
+      <section class="mk-sec">
+        <h2 class="mk-title">Tout ce qu’il faut pour percer</h2>
+        <div class="feats">
+          <div class="feat"><b>🎯 Détection automatique</b><p>Le son et l’image sont analysés pour trouver les vrais temps forts, pas des passages au hasard.</p></div>
+          <div class="feat"><b>🎥 Formats caméra</b><p>Encadre ta facecam une fois : HYPECUT monte le clip en haut, en bas, en bulle ou en incrustation.</p></div>
+          <div class="feat"><b>✨ Titres et hashtags</b><p>Chaque clip reçoit un titre accrocheur, une légende et des hashtags prêts à copier.</p></div>
+          <div class="feat"><b>🔗 Twitch, Kick, YouTube</b><p>Colle directement le lien de ta VOD ou de ton clip, ou importe ton fichier.</p></div>
+          <div class="feat"><b>🤖 Recadrage IA</b><p>En vertical, le cadre suit l’action tout seul pour ne jamais rater le moment.</p></div>
+          <div class="feat"><b>⚡ Sans logiciel</b><p>Tout se passe dans ton navigateur, sur ordinateur comme sur téléphone.</p></div>
+        </div>
+      </section>
+
+      <section class="mk-sec cta-band">
+        <h2>Prêt pour la sortie de GTA VI ?</h2>
+        <p id="ctaSub">Crée ton compte gratuit et transforme tes premières sessions en clips.</p>
+        <div class="row center-row"><a class="btn primary" href="#creer" id="ctaTop">⚡ Créer mon premier clip</a><a class="btn ghost" href="#offres">Voir les offres</a></div>
+      </section>
+
+      <section class="mk-sec">
+        <h2 class="mk-title">Questions fréquentes</h2>
+        <div class="faq">
+          <details><summary>C’est vraiment gratuit ?</summary><p>Oui : l’inscription est gratuite et donne des clips offerts, sans carte bancaire. Pendant la semaine de sortie de GTA VI, toutes les fonctions Pro sont incluses. Ensuite, tu peux continuer en essai gratuit ou choisir une offre.</p></details>
+          <details><summary>Quels liens sont acceptés ?</summary><p>Les VOD et clips Twitch et Kick, Google Drive, Dropbox, Vimeo, Streamable et les liens directs vers un fichier vidéo. YouTube bloque parfois nos serveurs : dans ce cas, importe simplement ton fichier.</p></details>
+          <details><summary>Combien de temps ça prend ?</summary><p>L’analyse dure généralement de quelques secondes à quelques minutes selon la longueur de la vidéo. Chaque export prend environ une minute.</p></details>
+          <details><summary>Mes vidéos sont-elles conservées ?</summary><p>Non : la vidéo d’origine est supprimée de nos serveurs 24 heures après l’analyse. Tes clips restent disponibles au téléchargement depuis « Mes clips ».</p></details>
+          <details><summary>Ai-je le droit de publier ces clips ?</summary><p>Tu dois avoir les droits sur la vidéo d’origine : ton propre gameplay ou tes propres streams, ou une vidéo dont l’auteur t’a donné l’accord. Respecte aussi les règles de l’éditeur du jeu et des plateformes où tu publies.</p></details>
+          <details><summary>Comment annuler mon abonnement ?</summary><p>En un clic, depuis « Mon compte → Gérer mon abonnement ». L’abonnement s’arrête à la fin de la période déjà payée, sans frais.</p></details>
+        </div>
+      </section>
     </div>
   </section>
 
@@ -208,8 +268,8 @@
 
 <div class="toast hidden" id="toast" role="status"></div>
 
-<script src="scoring.js?v=8"></script>
-<script src="layouts.js?v=8"></script>
-<script src="app.js?v=8"></script>
+<script src="scoring.js?v=9"></script>
+<script src="layouts.js?v=9"></script>
+<script src="app.js?v=9"></script>
 </body>
 </html>
