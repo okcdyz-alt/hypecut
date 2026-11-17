@@ -62,8 +62,8 @@
     launch: { active: Date.now() < Date.parse('2026-11-30T23:59:59+01:00'), code: 'GTAVI', bonusActive: Date.now() < Date.parse('2026-11-26T23:59:59+01:00') },
     plans: [
       { id: 'free', name: 'Essai gratuit', price: 0, credits: 3, perks: ['3 clips offerts (5 pendant la semaine de sortie)', '720p avec filigrane', 'Vidéos jusqu’à 20 min', 'Formats 9:16, 1:1 et 16:9'] },
-      { id: 'pro', name: 'Pro', price: 799, launchPrice: 399, credits: 100, perks: ['100 clips par mois', '1080p sans filigrane', 'Vidéos jusqu’à 2 h', 'Titres, légendes et hashtags automatiques', 'Tous les formats caméra', 'Recadrage IA qui suit l’action'] },
-      { id: 'creator', name: 'Créateur', price: 1999, credits: 400, perks: ['400 clips par mois', '1080p 60 i/s, qualité maximale', 'VOD jusqu’à 6 h', 'Tout Pro inclus', 'File d’attente prioritaire', 'Export de tous les clips en un clic', 'Sous-titres automatiques (bientôt)'] },
+      { id: 'pro', name: 'Pro', price: 799, launchPrice: 399, credits: 100, perks: ['100 clips par mois', '1080p sans filigrane', 'Vidéos jusqu’à 2 h', 'Sous-titres automatiques mot par mot', 'Titres, légendes et hashtags automatiques', 'Tous les formats caméra', 'Recadrage IA qui suit l’action'] },
+      { id: 'creator', name: 'Créateur', price: 1999, credits: 400, perks: ['400 clips par mois', '1080p 60 i/s, qualité maximale', 'VOD jusqu’à 6 h', 'Tout Pro inclus', 'File d’attente prioritaire', 'Export de tous les clips en un clic'] },
     ],
     packs: [{ id: 'pack20', name: 'Pack 20 clips', price: 299, credits: 20 }],
     layouts: L.LAYOUTS,
