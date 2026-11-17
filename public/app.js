@@ -102,6 +102,11 @@
     if (!l?.active) return;
     const pro = S.cfg.plans.find((p) => p.id === 'pro');
     const bar = $('#launchBar');
+    if (l.pass?.active) {
+      bar.innerHTML = `🎮 Pass lancement GTA VI : toutes les fonctions Pro offertes jusqu’au ${new Date(l.pass.ends).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })} · ${l.pass.credits} clips gratuits en 1080p, sans filigrane, avec formats caméra et titres IA · <a href="#creer">J’en profite</a>`;
+      bar.classList.remove('hidden');
+      return;
+    }
     bar.innerHTML = `🎮 Offre de lancement GTA VI : Pro à ${eur(pro.launchPrice || 399)} le premier mois au lieu de ${eur(pro.price)}, jusqu’au 30 novembre · code <code>${esc(l.code)}</code>${l.bonusActive ? ' · 5 clips offerts à l’inscription' : ''} · <a href="#offres">Voir les offres</a>`;
     bar.classList.remove('hidden');
   }
@@ -824,18 +829,22 @@ Réponds UNIQUEMENT avec un objet JSON : {"titre": "42 caractères max, sans has
   function renderPlans() {
     const c = S.cfg; if (!c) return;
     const launch = c.launch?.active;
-    $('#offersLead').textContent = launch ? 'Offre de lancement GTA VI : Pro à moitié prix le premier mois, jusqu’au 30 novembre.' : 'Essaie gratuitement, puis passe à la vitesse supérieure.';
+    $('#offersLead').textContent = c.launch?.pass?.active ? 'Pour la sortie de GTA VI, toutes les fonctions Pro sont offertes cette semaine. Les abonnements arrivent juste après.' : launch ? 'Offre de lancement GTA VI : Pro à moitié prix le premier mois, jusqu’au 30 novembre.' : 'Essaie gratuitement, puis passe à la vitesse supérieure.';
+    const pass = c.launch?.pass?.active ? c.launch.pass : null;
     $('#plans').innerHTML = c.plans.map((p) => {
-      const featured = p.id === 'pro';
+      if (pass && p.id === 'free') {
+        p = { ...p, name: 'Pass lancement GTA VI', perks: [`${pass.credits} clips offerts`, '1080p sans filigrane', 'Tous les formats caméra', 'Titres, légendes et hashtags IA', 'Vidéos jusqu’à 2 h', `Jusqu’au ${new Date(pass.ends).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })}`] };
+      }
+      const featured = pass ? p.id === 'free' : p.id === 'pro';
       const lp = p.launchPrice;
       const price = p.price === 0 ? '<div class="price">0 €</div>' : lp ? `<div class="price"><s>${eur(p.price)}</s>${eur(lp)} <small>le 1er mois, puis ${eur(p.price)}/mois</small></div>` : `<div class="price">${eur(p.price)} <small>/ mois</small></div>`;
       const current = S.user?.plan === p.id;
       let cta;
       if (S.mode === 'demo') cta = `<button class="btn ${featured ? 'primary' : 'ghost'}" disabled>Disponible sur le site complet</button>`;
       else if (current) cta = `<button class="btn ghost" disabled>Ton offre actuelle</button>`;
-      else if (p.id === 'free') cta = S.user ? `<a class="btn ghost" href="#creer">Créer un clip</a>` : `<button class="btn ghost" data-signup>Commencer gratuitement</button>`;
+      else if (p.id === 'free') cta = S.user ? `<a class="btn ${featured ? 'primary' : 'ghost'}" href="#creer">Créer un clip</a>` : `<button class="btn ${featured ? 'primary' : 'ghost'}" data-signup>${pass ? 'J’en profite gratuitement' : 'Commencer gratuitement'}</button>`;
       else cta = `<button class="btn ${featured ? 'primary' : 'ghost'}" data-buy="${p.id}">Choisir ${esc(p.name)}</button>`;
-      return `<div class="card plan ${featured ? 'featured' : ''}">${featured ? `<span class="ribbon">${launch ? '🎮 Offre lancement GTA VI' : 'Le plus populaire'}</span>` : ''}
+      return `<div class="card plan ${featured ? 'featured' : ''}">${featured ? `<span class="ribbon">${pass ? '🎮 Semaine de sortie GTA VI' : launch ? '🎮 Offre lancement GTA VI' : 'Le plus populaire'}</span>` : ''}
         <h3>${esc(p.name)}</h3>${price}<ul class="perks">${p.perks.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>${cta}</div>`;
     }).join('');
     const pack = c.packs?.[0];
