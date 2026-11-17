@@ -201,6 +201,11 @@
     <label class="check waiver" id="waiverBox"><input type="checkbox" id="waiverCheck"> <span>Je demande l’accès immédiat à mes crédits dès le paiement et je renonce expressément à mon droit de rétractation de 14 jours (article L221-28, 13° du Code de la consommation). J’accepte les <a href="legal.html#cgv" target="_blank">conditions générales de vente</a>.</span></label>
     <div class="plans" id="plans"></div>
     <div class="pack card" id="packCard"></div>
+    <div class="earn card" id="earnCard">
+      <div><strong>🎁 Plus de crédits ? Gagne des clips gratuitement</strong>
+      <p class="hint" style="margin:4px 0 0">Publie une vidéo TikTok ou Reels qui présente HYPECUT : tu gagnes des clips selon ses vues. Tu peux aussi parrainer tes amis.</p></div>
+      <a class="btn ghost sm" href="#compte" id="earnGo">Gagner des clips</a>
+    </div>
     <p class="hint center">Paiement sécurisé par Stripe : carte bancaire, Apple Pay, Google Pay, PayPal. Abonnement sans engagement, résiliable en un clic.</p>
   </section>
 
@@ -219,6 +224,13 @@
       <div class="bg-grid admin" id="admBg"></div>
     </div>
 
+    <h3 class="adm-h">Programme créateur : vidéos à vérifier</h3>
+    <div class="card">
+      <p class="hint" style="margin-top:0">Ouvre chaque vidéo et vérifie qu’elle est publique, qu’elle présente bien HYPECUT, qu’elle porte la mention de collaboration commerciale et que ses vues semblent réelles. Indique ensuite le nombre de vues : les crédits sont calculés et versés automatiquement, sans jamais donner deux fois pour les mêmes vues.</p>
+      <div class="seg ugc-filter" id="ugcFilter"><button data-s="pending" class="active">À vérifier</button><button data-s="approved">Validées</button><button data-s="rejected">Refusées</button></div>
+      <div id="admUgc"><p class="hint">Chargement…</p></div>
+    </div>
+
     <h3 class="adm-h">Gestion des comptes</h3>
     <div class="card">
       <div class="adm-search"><input type="search" id="admQ" placeholder="Rechercher un e-mail…" aria-label="Rechercher un compte"><button class="btn primary sm" id="admGo">Rechercher</button></div>
@@ -230,6 +242,7 @@
   <section class="view hidden" id="view-compte">
     <h2 class="page-title">Mon compte</h2>
     <div class="card account-card" id="accountCard"></div>
+    <div class="card ugc-card hidden" id="ugcCard"></div>
     <div class="card ref-card hidden" id="refCard"></div>
   </section>
 </main>

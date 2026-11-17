@@ -14,6 +14,7 @@ const ai = require('./lib/ai');
 const sources = require('./lib/sources');
 const media = require('./lib/media');
 const referral = require('./lib/referral');
+const ugc = require('./lib/ugc');
 const admin = require('./lib/admin');
 const library = require('./lib/library');
 const Layouts = require('./public/layouts');
@@ -120,6 +121,14 @@ route('GET', '/api/referral', (req, res) => {
   const st = referral.stats(u.id);
   ok(res, { ...st, link: `${PUBLIC_URL}/?ref=${st.code}`, referred: !!u.referred_by, rewarded: !!u.ref_rewarded });
 });
+// ---------- Programme créateur (crédits contre une vidéo publiée sur HYPECUT) ----------
+route('GET', '/api/ugc', (req, res) => { const u = requireUser(req); ok(res, ugc.forUser(u.id)); });
+route('POST', '/api/ugc', async (req, res) => {
+  const u = requireUser(req);
+  const b = await readJson(req);
+  ok(res, { submission: await ugc.submit(u.id, b) });
+});
+route('POST', '/api/ugc/:id/recount', (req, res, { params }) => { const u = requireUser(req); ok(res, { submission: ugc.requestRecount(u.id, params.id) }); });
 function requireAdmin(req) { const u = requireUser(req); if (!admin.isAdmin(u)) throw auth.httpError(403, 'Accès réservé.'); return u; }
 route('GET', '/api/admin/stats', (req, res) => { requireAdmin(req); ok(res, admin.stats(jobs.queueState)); });
 route('GET', '/api/admin/users', (req, res, { url }) => { requireAdmin(req); ok(res, { users: admin.searchUsers(url.searchParams.get('q')) }); });
@@ -127,6 +136,12 @@ route('POST', '/api/admin/users/:id', async (req, res, { params }) => {
   const a = requireAdmin(req);
   const b = await readJson(req);
   ok(res, { user: admin.updateUser(params.id, b, a.email) });
+});
+route('GET', '/api/admin/ugc', (req, res, { url }) => { requireAdmin(req); ok(res, { submissions: ugc.adminList(url.searchParams.get('status') || 'pending'), config: ugc.CFG }); });
+route('POST', '/api/admin/ugc/:id', async (req, res, { params }) => {
+  const a = requireAdmin(req);
+  const b = await readJson(req);
+  ok(res, { submission: ugc.review(params.id, b, a.email) });
 });
 route('GET', '/api/backgrounds', (req, res) => { requireUser(req); ok(res, { backgrounds: library.list(false) }); });
 route('GET', '/api/admin/backgrounds', (req, res) => { requireAdmin(req); ok(res, { backgrounds: library.list(true) }); });

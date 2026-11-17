@@ -938,6 +938,7 @@ Réponds UNIQUEMENT avec un objet JSON : {"titre": "42 caractères max, sans has
         <h3>${esc(p.name)}</h3>${price}<ul class="perks">${p.perks.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>${cta}</div>`;
     }).join('');
     const pack = c.packs?.[0];
+    $('#earnCard')?.classList.toggle('hidden', S.mode !== 'server');
     $('#packCard').innerHTML = pack ? `<div><strong>Besoin de quelques clips en plus, sans abonnement ?</strong><p class="hint" style="margin:4px 0 0">${esc(pack.name)} : ${pack.credits} crédits valables sans limite de temps.</p></div>
       <button class="btn ghost" data-buy="${pack.id}" ${S.mode === 'demo' ? 'disabled' : ''}>${eur(pack.price)} · Acheter</button>` : '';
     $$('[data-buy]').forEach((b) => b.addEventListener('click', () => buy(b.dataset.buy, b)));
@@ -985,9 +986,54 @@ Réponds UNIQUEMENT avec un objet JSON : {"titre": "42 caractères max, sans has
         ${u.subscribed ? '<button class="btn ghost" id="btnPortal">Gérer mon abonnement</button>' : '<a class="btn primary" href="#offres">Passer à Pro</a>'}
         <button class="btn ghost" id="btnLogout">Se déconnecter</button>
       </div>`;
+    renderUgc();
     renderReferral();
     $('#btnLogout').addEventListener('click', async () => { await api('api/auth/logout', { method: 'POST' }).catch(() => {}); S.user = null; renderHeader(); resetWorkspace(); location.hash = '#creer'; toast('Déconnecté.'); });
     $('#btnPortal')?.addEventListener('click', async (e) => { e.target.disabled = true; try { location.href = (await api('api/billing/portal', { method: 'POST' })).url; } catch (err) { toast(err.message); e.target.disabled = false; } });
+  }
+
+  // ---------------------------------------------------------------- programme créateur
+  const UGC_STATUS = { pending: '⏳ En vérification', approved: '✅ Validée', rejected: '❌ Refusée' };
+  const PLATFORM = { tiktok: 'TikTok', instagram: 'Instagram' };
+  async function renderUgc() {
+    const box = $('#ugcCard'); if (!box || !S.user || S.mode !== 'server') return;
+    box.classList.remove('hidden');
+    try {
+      const r = await api('api/ugc'), c = r.config;
+      const rate = c.per1000 === 1 ? '1 clip' : `${c.per1000} clips`;
+      box.innerHTML = `
+        <h3>📈 Gagne des clips avec tes vidéos</h3>
+        <p class="hint">Publie une vidéo TikTok ou Reels qui présente HYPECUT (un clip fait avec le site, ton avis, un tuto…). Envoie le lien ici : après vérification, tu gagnes <b>${rate} pour 1 000 vues</b>, jusqu’à ${c.maxPerVideo} clips par vidéo.</p>
+        <details class="ugc-rules"><summary>Les règles (à lire avant de publier)</summary><ul>
+          <li>La vidéo est <b>publique</b>, publiée depuis <b>ton</b> compte, et montre ou cite HYPECUT (mets <b>#hypecut</b> et le lien hypecut-h6pu.onrender.com dans ta description ou ta bio).</li>
+          <li>Tu es récompensé en clips : c’est une <b>collaboration commerciale</b>. Indique-le clairement : active « Contenu de marque » sur TikTok ou « Partenariat rémunéré » sur Instagram, ou écris « Collaboration commerciale » dans la vidéo.</li>
+          <li>Uniquement des vues réelles : vues achetées, robots ou faux comptes = vidéo refusée et clips retirés.</li>
+          <li>Tu respectes les droits : ta propre vidéo, ou un clip fait avec l’accord du créateur.</li>
+          <li>Les vues comptent à partir de ${nf(c.minViews)}. Plafond : ${c.maxPerVideo} clips par vidéo et ${c.maxPerMonth} clips par mois. Réservé aux 18 ans et plus.</li>
+          <li>Tu peux redemander un comptage ${c.recountDays} jours après chaque vérification, si ta vidéo continue de faire des vues.</li>
+        </ul></details>
+        <div class="ref-link"><input type="url" id="ugcUrl" placeholder="https://www.tiktok.com/@toncompte/video/…" aria-label="Lien de ta vidéo TikTok ou Reels"><button class="btn primary sm" id="ugcSend">Envoyer</button></div>
+        <label class="check"><input type="checkbox" id="ugcAccept"> <span>J’ai 18 ans ou plus et ma vidéo respecte les règles ci-dessus, mention de collaboration commerciale comprise.</span></label>
+        <div class="ref-stats"><div><b>${nf(r.submissions.length)}</b><span>vidéos envoyées</span></div><div><b>${nf(r.submissions.filter((x) => x.status === 'approved').length)}</b><span>validées</span></div><div><b>${nf(r.earned)}</b><span>clips gagnés</span></div></div>
+        ${r.submissions.length ? `<div class="ugc-list">${r.submissions.map((x) => `<div class="ugc-item">
+          <div class="meta"><a href="${esc(x.url)}" target="_blank" rel="noopener noreferrer">${esc(PLATFORM[x.platform] || x.platform)} · ${esc(new Date(x.createdAt.replace(' ', 'T') + 'Z').toLocaleDateString(LOC))}</a>
+          <span class="hint">${x.status === 'approved' ? `${nf(x.views)} vues comptées · ${nf(x.credits)} clips gagnés` : x.status === 'rejected' ? esc(x.note || '') : 'Vérification sous 48 h environ'}</span></div>
+          <span class="status ${x.status === 'approved' ? 'done' : x.status === 'rejected' ? 'error' : ''}">${esc(UGC_STATUS[x.status] || x.status)}</span>
+          ${x.canRecount ? `<button class="btn ghost xs" data-recount="${esc(x.id)}">Recompter les vues</button>` : ''}
+        </div>`).join('')}</div>` : ''}`;
+      $('#ugcSend').addEventListener('click', async (e) => {
+        const url = $('#ugcUrl').value.trim();
+        if (!url) { toast('Colle d’abord le lien de ta vidéo.'); return; }
+        e.target.disabled = true;
+        try { await api('api/ugc', { method: 'POST', body: { url, accept: $('#ugcAccept').checked } }); toast('Vidéo envoyée ! On vérifie ses vues et tu reçois tes clips.', 5000); renderUgc(); }
+        catch (err) { toast(err.message, 6000); e.target.disabled = false; }
+      });
+      $$('[data-recount]', box).forEach((b) => b.addEventListener('click', async () => {
+        b.disabled = true;
+        try { await api(`api/ugc/${b.dataset.recount}/recount`, { method: 'POST', body: {} }); toast('C’est noté : on recompte les vues de ta vidéo.'); renderUgc(); }
+        catch (err) { toast(err.message, 5000); b.disabled = false; }
+      }));
+    } catch { box.classList.add('hidden'); }
   }
 
   async function renderReferral() {
@@ -1047,17 +1093,19 @@ Réponds UNIQUEMENT avec un objet JSON : {"titre": "42 caractères max, sans has
       $('#admRefresh').addEventListener('click', renderAdmin);
       $('#admGo').addEventListener('click', searchAdminUsers);
       $('#bgAdd').addEventListener('click', addBackground);
+      $$('#ugcFilter button').forEach((b) => b.addEventListener('click', () => { $$('#ugcFilter button').forEach((x) => x.classList.toggle('active', x === b)); S.ugcStatus = b.dataset.s; renderAdminUgc(); }));
       renderAdminBgs();
       $('#admQ').addEventListener('keydown', (e) => { if (e.key === 'Enter') searchAdminUsers(); });
       searchAdminUsers();
     }
+    renderAdminUgc();
     try {
       const d = await api('api/admin/stats');
       const h = d.health, names = LAYOUT_NAMES();
       const tiles = (arr) => `<div class="tiles">${arr.map(([v, k, warn]) => `<div class="tile ${warn ? 'warn' : ''}"><div class="v">${v}</div><div class="k">${esc(k)}</div></div>`).join('')}</div>`;
       box.innerHTML = `
         <h3 class="adm-h">Inscrits et activité</h3>
-        ${tiles([[nf(d.users.total), 'comptes au total'], [nf(d.users.today), 'inscrits aujourd’hui'], [nf(d.users.week), 'inscrits sur 7 jours'], [nf(d.users.referred), 'venus par parrainage'], [nf(d.activity.jobs), 'vidéos analysées'], [nf(d.activity.clips), 'clips créés'], [nf(d.activity.clipsWeek), 'clips sur 7 jours']])}
+        ${tiles([[nf(d.users.total), 'comptes au total'], [nf(d.users.today), 'inscrits aujourd’hui'], [nf(d.users.week), 'inscrits sur 7 jours'], [nf(d.users.referred), 'venus par parrainage'], [nf(d.users.ugcPending), 'vidéos créateurs à vérifier', d.users.ugcPending > 0], [nf(d.activity.jobs), 'vidéos analysées'], [nf(d.activity.clips), 'clips créés'], [nf(d.activity.clipsWeek), 'clips sur 7 jours']])}
         <div class="charts2">${barChart('chU', 'Inscriptions par jour', '14 derniers jours', d.users.perDay)}${barChart('chC', 'Clips créés par jour', '14 derniers jours', d.activity.clipsPerDay)}</div>
         ${d.activity.topLayouts.length ? `<div class="card" style="margin-top:12px"><b>Formats les plus utilisés</b><table class="adm-table"><tbody>${d.activity.topLayouts.map((t) => `<tr><td>${esc(names[t.layout] || t.layout)}</td><td>${nf(t.n)} clip${t.n > 1 ? 's' : ''}</td></tr>`).join('')}</tbody></table></div>` : ''}
         <h3 class="adm-h">Argent</h3>
@@ -1067,6 +1115,36 @@ Réponds UNIQUEMENT avec un objet JSON : {"titre": "42 caractères max, sans has
         ${tiles([[`${h.queue.running}/${h.queue.max}`, 'traitements en cours'], [nf(h.queue.waiting), 'en file d’attente', h.queue.waiting > 5], [nf(h.failed24h), 'exports en échec (24 h)', h.failed24h > 0], [nf(h.jobsFailed24h), 'analyses en échec (24 h)', h.jobsFailed24h > 3], [mb(h.mediaBytes), 'vidéos stockées'], [h.disk ? mb(h.disk.free) : '—', 'espace disque libre', h.disk && h.disk.free < 1073741824], [`${h.memoryMb} Mo`, 'mémoire utilisée', h.memoryMb > 400], [`${h.uptimeH} h`, 'depuis le dernier démarrage']])}
         ${h.lastErrors.length ? `<div class="card" style="margin-top:12px"><b>Dernières erreurs d’export</b><table class="adm-table"><tbody>${h.lastErrors.map((e) => `<tr><td class="bad-dot">${esc(new Date(e.created_at.replace(' ', 'T') + 'Z').toLocaleString(LOC))}</td><td>${esc(e.message || '')}</td></tr>`).join('')}</tbody></table></div>` : `<p class="hint ok-dot">Aucune erreur d’export récente.</p>`}`;
       bindChart('chU'); bindChart('chC');
+    } catch (e) { box.innerHTML = `<p class="err">${esc(e.message)}</p>`; }
+  }
+
+  async function renderAdminUgc() {
+    const box = $('#admUgc'); if (!box) return;
+    const st = S.ugcStatus || 'pending';
+    try {
+      const { submissions, config: c } = await api('api/admin/ugc?status=' + st);
+      if (!submissions.length) { box.innerHTML = `<p class="hint">${st === 'pending' ? 'Aucune vidéo à vérifier.' : 'Aucune vidéo.'}</p>`; return; }
+      box.innerHTML = `<table class="adm-table"><thead><tr><th>Compte</th><th>Vidéo</th><th class="opt">Envoyée le</th><th>Déjà compté</th><th>Décision</th></tr></thead><tbody>${submissions.map((x) => `
+        <tr data-id="${esc(x.id)}"><td>${esc(x.email)}<br><span class="hint">${nf(x.earnedMonth)} / ${nf(c.maxPerMonth)} clips ce mois</span></td>
+        <td><a href="${esc(x.url)}" target="_blank" rel="noopener noreferrer">${esc(PLATFORM[x.platform] || x.platform)} ↗</a>${x.recount ? '<br><span class="hint">nouveau comptage</span>' : ''}${x.note ? `<br><span class="hint">${esc(x.note)}</span>` : ''}</td>
+        <td class="opt">${esc(new Date(x.createdAt.replace(' ', 'T') + 'Z').toLocaleDateString(LOC))}</td>
+        <td>${nf(x.views)} vues<br><span class="hint">${nf(x.credits)} clips versés</span></td>
+        <td><div class="adm-act"><input type="number" min="0" step="100" value="${x.views || ''}" placeholder="Vues" aria-label="Nombre de vues constaté"><button class="btn primary xs" data-ok>Valider</button><button class="btn ghost xs" data-no>Refuser</button></div></td></tr>`).join('')}</tbody></table>
+        <p class="hint">Barème : ${c.per1000} clip(s) pour 1 000 vues dès ${nf(c.minViews)} vues, ${c.maxPerVideo} clips max par vidéo, ${c.maxPerMonth} par compte sur 30 jours.</p>`;
+      $$('tr[data-id]', box).forEach((tr) => {
+        $('[data-ok]', tr).addEventListener('click', async () => {
+          const views = $('input', tr).value;
+          if (views === '') { toast('Indique le nombre de vues de la vidéo.'); return; }
+          try { const r = await api('api/admin/ugc/' + tr.dataset.id, { method: 'POST', body: { approve: true, views: +views } }); toast(r.submission.granted ? `Validée : ${r.submission.granted} clips versés${r.submission.capped ? ' (plafond mensuel atteint)' : ''}.` : 'Validée : rien de plus à verser pour l’instant.', 5000); renderAdminUgc(); }
+          catch (e) { toast(e.message); }
+        });
+        $('[data-no]', tr).addEventListener('click', async () => {
+          const note = prompt('Raison du refus (visible par l’utilisateur) :', 'Mention de collaboration commerciale absente.');
+          if (note === null) return;
+          try { await api('api/admin/ugc/' + tr.dataset.id, { method: 'POST', body: { approve: false, note } }); toast('Vidéo refusée.'); renderAdminUgc(); }
+          catch (e) { toast(e.message); }
+        });
+      });
     } catch (e) { box.innerHTML = `<p class="err">${esc(e.message)}</p>`; }
   }
 
