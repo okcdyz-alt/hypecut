@@ -46,7 +46,7 @@ const clientIp = (req) => String(req.headers['x-forwarded-for'] || req.socket.re
 function userView(u) {
   const p = plans.planOf(u);
   return { id: u.id, email: u.email, plan: p.id, planName: p.name, credits: u.credits, periodEnd: u.period_end, subscribed: !!u.stripe_sub,
-    features: { res: p.res, fps: p.fps, watermark: p.watermark, maxDurationMin: p.maxDurationMin, maxUploadMb: p.maxUploadMb, camLayouts: p.camLayouts, smartCrop: p.smartCrop && cloud.enabled(), batch: p.batch, ai: ai.enabled() ? p.ai : 'none' } };
+    features: { res: Math.min(p.res, +process.env.MAX_EXPORT_RES || 1080), fps: Math.min(p.fps, +process.env.MAX_EXPORT_FPS || 60), watermark: p.watermark, maxDurationMin: p.maxDurationMin, maxUploadMb: p.maxUploadMb, camLayouts: p.camLayouts, smartCrop: p.smartCrop && cloud.enabled(), batch: p.batch, ai: ai.enabled() ? p.ai : 'none' } };
 }
 
 function analysisOptions(src) {
