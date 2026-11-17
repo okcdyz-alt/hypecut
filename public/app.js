@@ -191,6 +191,7 @@
     ['dragleave', 'drop'].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.remove('over'); }));
     drop.addEventListener('drop', (e) => pickFile(e.dataTransfer.files[0]));
     $('#linkInput').addEventListener('input', (e) => { $('#ytWarn').hidden = !/youtu\.?be/i.test(e.target.value); });
+    $('#ytToFile')?.addEventListener('click', () => setTab('file'));
     $('#btnAnalyze').addEventListener('click', startAnalysis);
     $('#btnNew').addEventListener('click', () => { resetWorkspace(); location.hash = '#creer'; window.scrollTo({ top: 0, behavior: 'smooth' }); });
     $('#btnExportAll').addEventListener('click', exportAll);
@@ -304,6 +305,7 @@
       if (S.tab === 'link') {
         const url = $('#linkInput').value.trim();
         if (!url) throw new Error('Colle d’abord le lien de ta vidéo.');
+        if (!/(^|\/\/|\.)(twitch\.tv|kick\.com)(\/|$)/i.test(url)) throw new Error(/youtu\.?be/i.test(url) ? 'Les liens YouTube ne sont pas acceptés : importe ton fichier vidéo (onglet « Importer un fichier »).' : 'Seuls les liens Twitch et Kick sont acceptés. Pour une autre vidéo, importe le fichier.');
         if (!$('#rightsCheck').checked) throw new Error('Coche la case pour confirmer que tu as le droit d’utiliser cette vidéo.');
         ({ id } = await api('api/jobs', { method: 'POST', body: { url, rights: true, ...analysisParams() } }));
       } else {

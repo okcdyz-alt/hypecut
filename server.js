@@ -226,7 +226,11 @@ route('POST', '/api/jobs', async (req, res) => {
   const b = await readJson(req);
   if (!b.rights) throw auth.httpError(400, 'Confirme que tu as le droit d’utiliser cette vidéo.');
   const src = sources.classify(b.url);
-  if (src.platform !== 'direct' && !(ALLOW_PLATFORMS && ytdlpOk)) throw auth.httpError(400, 'Les liens YouTube, Twitch et Kick ne sont pas encore disponibles : importe ton fichier ou colle un lien direct .mp4.');
+  // Liens acceptés : Twitch et Kick uniquement. Le reste (YouTube compris) passe par l'import de fichier.
+  if (!['twitch', 'kick'].includes(src.platform)) throw auth.httpError(400, src.platform === 'youtube'
+    ? 'Les liens YouTube ne sont pas acceptés : importe ton fichier vidéo (onglet « Importer un fichier »). Pour ta propre vidéo YouTube, télécharge-la depuis YouTube Studio.'
+    : 'Seuls les liens Twitch et Kick sont acceptés. Pour une autre vidéo, importe le fichier (onglet « Importer un fichier »).');
+  if (src.platform !== 'direct' && !(ALLOW_PLATFORMS && ytdlpOk)) throw auth.httpError(400, 'Les liens Twitch et Kick sont momentanément indisponibles : importe ton fichier vidéo.');
   if (src.platform === 'direct') await sources.assertPublicHost(src.host);
   const id = jobs.createJob(u, { sourceType: 'url', sourceUrl: src.url, options: analysisOptions(b) });
   jobs.startAnalysis(id, u);

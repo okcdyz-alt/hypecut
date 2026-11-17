@@ -40,7 +40,7 @@
 </header>
 
 <div class="launch hidden" id="launchBar"></div>
-<div class="demo hidden" id="demoBar">Version démo : tout est traité dans ton navigateur, rien n’est envoyé. Les liens YouTube/Twitch, la HD sans filigrane et les comptes arrivent avec le site complet.</div>
+<div class="demo hidden" id="demoBar">Version démo : tout est traité dans ton navigateur, rien n’est envoyé. Les liens Twitch/Kick, la HD sans filigrane et les comptes arrivent avec le site complet.</div>
 
 <main>
   <!-- ============ CRÉER ============ -->
@@ -54,18 +54,18 @@
 
     <div class="card source" id="sourceCard">
       <div class="tabs" role="tablist">
-        <button class="tab active" data-tab="link" role="tab" aria-selected="true">🔗 Coller un lien</button>
-        <button class="tab" data-tab="file" role="tab" aria-selected="false">📁 Importer un fichier</button>
+        <button class="tab active" data-tab="link" role="tab" aria-selected="true">🔗 Lien Twitch / Kick</button>
+        <button class="tab" data-tab="file" role="tab" aria-selected="false">📁 Importer un fichier (YouTube…)</button>
       </div>
 
       <div class="tabpane" id="pane-link">
         <label class="field">
-          <span>Lien de la vidéo</span>
-          <input type="url" id="linkInput" placeholder="twitch.tv/videos/… · kick.com/… · youtube.com/… · lien .mp4" autocomplete="off">
+          <span>Lien de ta VOD ou de ton clip Twitch ou Kick</span>
+          <input type="url" id="linkInput" placeholder="twitch.tv/videos/… · kick.com/…" autocomplete="off">
         </label>
-        <p class="hint" id="linkHint">Twitch et Kick (VOD et clips), Google Drive, Dropbox, Vimeo, Streamable, lien direct vers un fichier vidéo. YouTube : selon disponibilité.</p>
+        <p class="hint" id="linkHint">Liens acceptés : <b>Twitch et Kick uniquement</b> (VOD et clips). Pour une vidéo YouTube ou un autre fichier, utilise l’onglet « Importer un fichier ».</p>
         <label class="check"><input type="checkbox" id="rightsCheck"> <span>Je confirme avoir le droit d’utiliser cette vidéo (c’est mon contenu, ou j’ai l’accord de son auteur).</span></label>
-        <p class="hint warn" id="ytWarn" hidden>⚠️ YouTube bloque souvent les téléchargements depuis les serveurs : si ça échoue, importe directement ton fichier vidéo. Et n’utilise que tes propres vidéos ou celles dont tu as l’accord de l’auteur.</p>
+        <p class="hint warn" id="ytWarn" hidden>⚠️ Les liens YouTube ne sont pas acceptés : passe par l’onglet « Importer un fichier ». Pour ta propre vidéo, télécharge-la depuis YouTube Studio (menu ⋮ → Télécharger), puis importe-la. <button type="button" class="btn ghost xs" id="ytToFile">Importer un fichier</button></p>
         <p class="hint" id="linkDemo" hidden>Les liens arrivent avec le site complet. En attendant, importe ton fichier.</p>
       </div>
 
@@ -77,6 +77,7 @@
           <span>ou clique pour choisir un fichier (MP4, MOV, WEBM…)</span>
           <span class="file-name" id="fileName"></span>
         </label>
+        <p class="hint">🎬 <b>Vidéo YouTube ?</b> Télécharge ta propre vidéo depuis YouTube Studio (menu ⋮ → Télécharger), puis importe le fichier ici. N’utilise que tes vidéos ou celles dont tu as l’accord de l’auteur.</p>
       </div>
 
       <div class="settings">
@@ -141,7 +142,7 @@
       <section class="mk-sec">
         <h2 class="mk-title">Comment ça marche</h2>
         <div class="steps3">
-          <div class="step3"><span class="num">1</span><h3>Colle ton lien</h3><p>Une VOD Twitch ou Kick, une vidéo YouTube ou ton fichier de gameplay.</p></div>
+          <div class="step3"><span class="num">1</span><h3>Colle ton lien</h3><p>Un lien de VOD Twitch ou Kick, ou ton fichier vidéo (YouTube, gameplay enregistré…).</p></div>
           <div class="step3"><span class="num">2</span><h3>L’IA trouve les moments forts</h3><p>Elle écoute les cris et les explosions, repère l’action et classe les meilleurs passages.</p></div>
           <div class="step3"><span class="num">3</span><h3>Exporte en un clic</h3><p>Choisis un format, ajuste si tu veux, et récupère ton clip prêt à poster.</p></div>
         </div>
@@ -164,7 +165,7 @@
           <div class="feat"><b>🎯 Détection automatique</b><p>Le son et l’image sont analysés pour trouver les vrais temps forts, pas des passages au hasard.</p></div>
           <div class="feat"><b>🎥 Formats caméra</b><p>Encadre ta facecam une fois : HYPECUT monte le clip en haut, en bas, en bulle ou en incrustation.</p></div>
           <div class="feat"><b>✨ Titres et hashtags</b><p>Chaque clip reçoit un titre accrocheur, une légende et des hashtags prêts à copier.</p></div>
-          <div class="feat"><b>🔗 Twitch, Kick, YouTube</b><p>Colle directement le lien de ta VOD ou de ton clip, ou importe ton fichier.</p></div>
+          <div class="feat"><b>🔗 Twitch, Kick et fichiers</b><p>Colle le lien de ta VOD ou de ton clip Twitch ou Kick, ou importe ton fichier (vidéo YouTube, gameplay enregistré…).</p></div>
           <div class="feat"><b>🤖 Recadrage IA</b><p>En vertical, le cadre suit l’action tout seul pour ne jamais rater le moment.</p></div>
           <div class="feat"><b>⚡ Sans logiciel</b><p>Tout se passe dans ton navigateur, sur ordinateur comme sur téléphone.</p></div>
         </div>
@@ -180,7 +181,7 @@
         <h2 class="mk-title">Questions fréquentes</h2>
         <div class="faq">
           <details><summary>C’est vraiment gratuit ?</summary><p>Oui : l’inscription est gratuite et donne des clips offerts, sans carte bancaire. Pendant la semaine de sortie de GTA VI, toutes les fonctions Pro sont incluses. Ensuite, tu peux continuer en essai gratuit ou choisir une offre.</p></details>
-          <details><summary>Quels liens sont acceptés ?</summary><p>Les VOD et clips Twitch et Kick, Google Drive, Dropbox, Vimeo, Streamable et les liens directs vers un fichier vidéo. YouTube bloque parfois nos serveurs : dans ce cas, importe simplement ton fichier.</p></details>
+          <details><summary>Quels liens sont acceptés ?</summary><p>Uniquement les liens Twitch et Kick (VOD et clips). Pour tout le reste, vidéos YouTube comprises, importe le fichier : pour ta propre vidéo YouTube, télécharge-la depuis YouTube Studio (menu ⋮ → Télécharger).</p></details>
           <details><summary>Combien de temps ça prend ?</summary><p>L’analyse dure généralement de quelques secondes à quelques minutes selon la longueur de la vidéo. Chaque export prend environ une minute.</p></details>
           <details><summary>Mes vidéos sont-elles conservées ?</summary><p>Non : la vidéo d’origine est supprimée de nos serveurs 24 heures après l’analyse. Tes clips restent disponibles au téléchargement depuis « Mes clips ».</p></details>
           <details><summary>Ai-je le droit de publier ces clips ?</summary><p>Tu dois avoir les droits sur la vidéo d’origine : ton propre gameplay ou tes propres streams, ou une vidéo dont l’auteur t’a donné l’accord. Respecte aussi les règles de l’éditeur du jeu et des plateformes où tu publies.</p></details>
