@@ -187,7 +187,7 @@
     'Paiement sécurisé par Stripe : carte bancaire, Apple Pay, Google Pay, PayPal. Abonnement sans engagement, résiliable en un clic.': 'Secure payment by Stripe: card, Apple Pay, Google Pay, PayPal. No commitment, cancel in one click.',
     '1 crédit = 1 clip exporté': '1 credit = 1 exported clip',
     'Sans filigrane': 'No watermark', 'Tous les formats caméra': 'All camera formats', 'Titres, légendes et hashtags automatiques': 'Automatic titles, captions and hashtags',
-    'Vidéos jusqu’à 2 h': 'Videos up to 2 h', 'Vidéos jusqu’à 20 min': 'Videos up to 20 min', 'VOD jusqu’à 6 h': 'VODs up to 6 h', 'Formats 9:16, 1:1 et 16:9': '9:16, 1:1 and 16:9 formats',
+    'Vidéos jusqu’à 4 h': 'Videos up to 4 h', 'Récupération du passage en pleine qualité': 'Fetching the full-quality passage', 'Vidéos jusqu’à 20 min': 'Videos up to 20 min', 'VOD jusqu’à 8 h': 'VODs up to 8 h', 'Formats 9:16, 1:1 et 16:9': '9:16, 1:1 and 16:9 formats',
     'Recadrage IA qui suit l’action': 'AI reframing that follows the action', 'Tout Pro inclus': 'Everything in Pro', 'File d’attente prioritaire': 'Priority queue',
     'Export de tous les clips en un clic': 'One-click export of all clips', 'Sous-titres automatiques (bientôt)': 'Automatic subtitles (soon)',
     '3 clips offerts (5 pendant la semaine de sortie)': '3 free clips (5 during launch week)', '100 clips par mois': '100 clips per month', '400 clips par mois': '400 clips per month',

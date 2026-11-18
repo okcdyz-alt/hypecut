@@ -62,8 +62,8 @@
     launch: { active: Date.now() < Date.parse('2026-11-30T23:59:59+01:00'), code: 'GTAVI', bonusActive: Date.now() < Date.parse('2026-11-26T23:59:59+01:00') },
     plans: [
       { id: 'free', name: 'Essai gratuit', price: 0, credits: 3, perks: ['3 clips offerts (5 pendant la semaine de sortie)', '720p avec filigrane', 'Vidéos jusqu’à 20 min', 'Formats 9:16, 1:1 et 16:9'] },
-      { id: 'pro', name: 'Pro', price: 799, launchPrice: 399, credits: 100, perks: ['100 clips par mois', '1080p sans filigrane', 'Vidéos jusqu’à 2 h', 'Sous-titres automatiques mot par mot', 'Titres, légendes et hashtags automatiques', 'Tous les formats caméra', 'Recadrage IA qui suit l’action'] },
-      { id: 'creator', name: 'Créateur', price: 1999, credits: 400, perks: ['400 clips par mois', '1080p 60 i/s, qualité maximale', 'VOD jusqu’à 6 h', 'Tout Pro inclus', 'File d’attente prioritaire', 'Export de tous les clips en un clic'] },
+      { id: 'pro', name: 'Pro', price: 799, launchPrice: 399, credits: 100, perks: ['100 clips par mois', '1080p sans filigrane', 'Vidéos jusqu’à 4 h', 'Sous-titres automatiques mot par mot', 'Titres, légendes et hashtags automatiques', 'Tous les formats caméra', 'Recadrage IA qui suit l’action'] },
+      { id: 'creator', name: 'Créateur', price: 1999, credits: 400, perks: ['400 clips par mois', '1080p 60 i/s, qualité maximale', 'VOD jusqu’à 8 h', 'Tout Pro inclus', 'File d’attente prioritaire', 'Export de tous les clips en un clic'] },
     ],
     packs: [{ id: 'pack20', name: 'Pack 20 clips', price: 299, credits: 20 }],
     layouts: L.LAYOUTS,
@@ -159,7 +159,7 @@
     $('#btnAccount').classList.toggle('hidden', !u);
     const pill = $('#creditPill');
     pill.classList.toggle('hidden', !u);
-    if (u && $('#rangeMax')) { const m = u.features?.maxDurationMin || 120; $('#rangeMax').textContent = m >= 60 ? `${m / 60} h` : `${m} min`; $('#rangeEnd').placeholder = m >= 60 ? `${m / 60}:00:00` : `0:${m}:00`; }
+    if (u && $('#rangeMax')) { const m = u.features?.maxDurationMin || 240; $('#rangeMax').textContent = m >= 60 ? `${m / 60} h` : `${m} min`; $('#rangeEnd').placeholder = m >= 60 ? `${m / 60}:00:00` : `0:${m}:00`; }
     if (u) pill.innerHTML = `${u.level ? `<span class="lvl-dot" title="Niveau ${esc(u.level.name)}">${u.level.emoji}</span> ` : ''}<span>${u.credits} crédit${u.credits > 1 ? 's' : ''} · ${esc(u.planName)}</span>`;
     $('#navAdmin').classList.toggle('hidden', !u?.isAdmin);
     renderPlans();
@@ -836,7 +836,7 @@
     const r = await api(`api/jobs/${S.jobId}/export`, { method: 'POST', body });
     S.user = r.user; renderHeader(); syncQuality();
     const id = r.ids[0];
-    const LBL = { queued: 'En file d’attente', subtitles: 'Écriture des sous-titres', rendering: 'Montage du clip', uploading: 'Mise en ligne', ai_crop: 'Recadrage IA en cours' };
+    const LBL = { queued: 'En file d’attente', fetching: 'Récupération du passage en pleine qualité', subtitles: 'Écriture des sous-titres', rendering: 'Montage du clip', uploading: 'Mise en ligne', ai_crop: 'Recadrage IA en cours' };
     let fails = 0;
     for (;;) {
       await new Promise((s) => setTimeout(s, 1500));
@@ -994,7 +994,7 @@ Réponds UNIQUEMENT avec un objet JSON : {"titre": "42 caractères max, sans has
     const pass = c.launch?.pass?.active ? c.launch.pass : null;
     $('#plans').innerHTML = c.plans.map((p) => {
       if (pass && p.id === 'free') {
-        p = { ...p, name: 'Pass lancement GTA VI', perks: [`${pass.credits} clips offerts`, 'Sans filigrane', 'Tous les formats caméra', 'Titres, légendes et hashtags automatiques', 'Vidéos jusqu’à 2 h', `Jusqu’au ${new Date(pass.ends).toLocaleDateString(LOC, { day: 'numeric', month: 'long' })}`] };
+        p = { ...p, name: 'Pass lancement GTA VI', perks: [`${pass.credits} clips offerts`, 'Sans filigrane', 'Tous les formats caméra', 'Titres, légendes et hashtags automatiques', 'Vidéos jusqu’à 4 h', `Jusqu’au ${new Date(pass.ends).toLocaleDateString(LOC, { day: 'numeric', month: 'long' })}`] };
       }
       const featured = pass ? p.id === 'free' : p.id === 'pro';
       const lp = p.launchPrice;
