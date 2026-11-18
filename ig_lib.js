@@ -80,7 +80,7 @@ window.hcSubmit = async function () {
   const bs = [...document.querySelectorAll('[role=button]')].filter(e=>e.offsetParent && e.textContent.trim()==='Schedule');
   const b = bs.sort((a,c)=>c.getBoundingClientRect().y - a.getBoundingClientRect().y)[0];
   b.click();
-  for (let i=0;i<30;i++){ await hcSleep(1000); if (/scheduled_posts|published_posts/.test(location.href)) return location.pathname; }
+  for (let i=0;i<30;i++){ await hcSleep(1000); if (/scheduled_posts|published_posts/.test(location.pathname)) return location.pathname; }
   return 'stuck: ' + (document.body.innerText.match(/(error|wrong|try again)[^\n]*/i)||[''])[0];
 };
 window.hcPrep = function (id, caption) {
@@ -118,7 +118,8 @@ window.hcRunOne = async function (j) {
   const mm = String(new Date(j.label.replace(/^\w+, /, '')).getMonth() + 1).padStart(2, '0');
   const want = mm + '/' + String(j.label.match(/, (\d+) /)[1]).padStart(2, '0') + '/2026';
   const mer = j.h >= 12 ? 'PM' : 'AM'; let h12 = j.h % 12 || 12;
-  if (d !== want || t[0] !== h12 || t[1] !== j.m || t[2] !== mer) throw new Error('datetime mismatch ' + d + ' ' + t.join(':'));
+  const dOk = d === want || d === new Date(j.label.replace(/^\w+, /, '')).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  if (!dOk || t[0] !== h12 || t[1] !== j.m || t[2] !== mer) throw new Error('datetime mismatch ' + d + ' ' + t.join(':'));
   if (/A scheduled reel needs/.test(document.body.innerText)) throw new Error('time window error');
   const r = await hcSubmit();
   if (!/scheduled_posts/.test(r)) throw new Error('submit ' + r);
