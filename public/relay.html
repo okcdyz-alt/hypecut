@@ -5,7 +5,7 @@
 // Passerelle d'import : récupère une vidéo promo HYPECUT et la transmet à la page Meta Business Suite qui l'intègre.
 (function () {
   var PARENTS = ['https://business.facebook.com', 'https://www.instagram.com'];
-  var SRC = /^https:\/\/raw\.githubusercontent\.com\/okcdyz-alt\/hypecut\/promo-videos\/HYPECUT_[a-z0-9]+\.mp4$/;
+  var SRC = /^https:\/\/raw\.githubusercontent\.com\/okcdyz-alt\/hypecut\/promo-videos\/(HYPECUT_[a-z0-9]+\.mp4|ig_lib\.js)(\?v=\d+)?$/;
   window.addEventListener('message', function (ev) {
     if (PARENTS.indexOf(ev.origin) < 0) return;
     var d = ev.data || {};
