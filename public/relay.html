@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="robots" content="noindex"><title>relay</title></head>
+<body>
+<script>
+// Passerelle d'import : récupère une vidéo promo HYPECUT et la transmet à la page Meta Business Suite qui l'intègre.
+(function () {
+  var PARENTS = ['https://business.facebook.com', 'https://www.instagram.com'];
+  var SRC = /^https:\/\/raw\.githubusercontent\.com\/okcdyz-alt\/hypecut\/promo-videos\/HYPECUT_[a-z0-9]+\.mp4$/;
+  window.addEventListener('message', function (ev) {
+    if (PARENTS.indexOf(ev.origin) < 0) return;
+    var d = ev.data || {};
+    if (d.type !== 'hc-get' || !SRC.test(d.url || '')) return;
+    fetch(d.url).then(function (r) {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.arrayBuffer();
+    }).then(function (buf) {
+      ev.source.postMessage({ type: 'hc-file', id: d.id, buf: buf }, ev.origin, [buf]);
+    }).catch(function (e) {
+      ev.source.postMessage({ type: 'hc-file', id: d.id, error: String(e) }, ev.origin);
+    });
+  });
+  if (window.parent !== window) PARENTS.forEach(function (o) { try { window.parent.postMessage({ type: 'hc-ready' }, o); } catch (e) {} });
+})();
+</script>
+</body></html>
