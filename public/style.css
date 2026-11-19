@@ -475,4 +475,3 @@ html:not([lang=en]) .en-only { display: none; }
 .live-row { margin: 10px 0 0; }
 .bg-item .play-ic { position: absolute; top: 6px; left: 6px; width: 24px; height: 24px; border-radius: 50%; background: rgba(0,0,0,.65); color: #fff; font-size: 10px; display: grid; place-items: center; padding: 0; pointer-events: none; transition: opacity .15s; }
 .bg-item:hover .play-ic { opacity: 0; }
-.range-ends { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); margin-top: 2px; }

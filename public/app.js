@@ -226,7 +226,6 @@
 
     // Export
     $('#focusX').addEventListener('input', (e) => { S.ex.focusX = +e.target.value; drawPreview(); });
-    $('#zoomTop').addEventListener('input', (e) => { S.ex.zoom = S.lastZoom = +e.target.value; syncLayout(); drawPreview(); });
     $('#subtitlesOn').addEventListener('change', (e) => {
       if (e.target.checked && !effectsAllowed()) { e.target.checked = false; $('#exErr').innerHTML = 'Les sous-titres automatiques sont inclus dans les offres Pro et Créateur. <a href="#offres" data-close>Voir les offres</a>'; return; }
       S.ex.subtitles = e.target.checked; drawPreview();
@@ -631,8 +630,8 @@
     const c = S.result.clips[i], st = S.clips[i];
     if (S.mode === 'server' && !S.bgs) { try { S.bgs = (await api('api/backgrounds')).backgrounds; } catch { S.bgs = []; } }
     const layout = defaultLayout();
-    S.ex = { idx: i, layout, bgId: S.lastBg || S.bgs?.[0]?.id || null, start: st.start, end: st.end, title: st.title, showTitle: true, progressBar: effectsAllowed(), subtitles: effectsAllowed() && S.mode !== 'demo', titlePos: S.titlePos || null, subPos: S.subPos || null, focusX: 0.5, zoom: S.lastZoom ?? 0, corner: S.corner, camRect: S.camRect || { x: 0.02, y: 0.03, w: 0.26, h: 0.3 }, img: null, frame: null, busy: false };
-    $('#titleInput').value = st.title; $('#showTitle').checked = true; $('#focusX').value = 0.5; $('#zoomTop').value = S.ex.zoom;
+    S.ex = { idx: i, layout, bgId: S.lastBg || S.bgs?.[0]?.id || null, start: st.start, end: st.end, title: st.title, showTitle: true, progressBar: effectsAllowed(), subtitles: effectsAllowed() && S.mode !== 'demo', titlePos: S.titlePos || null, subPos: S.subPos || null, focusX: 0.5, corner: S.corner, camRect: S.camRect || { x: 0.02, y: 0.03, w: 0.26, h: 0.3 }, img: null, frame: null, busy: false };
+    $('#titleInput').value = st.title; $('#showTitle').checked = true; $('#focusX').value = 0.5;
     $('#progressBar').checked = effectsAllowed(); $('#pbLock').classList.toggle('hidden', effectsAllowed());
     $('#subtitlesOn').checked = S.ex.subtitles; $('#subLock').classList.toggle('hidden', effectsAllowed()); $('#subLabel').classList.toggle('hidden', S.mode === 'demo');
     $('#exErr').innerHTML = ''; $('#exResult').classList.add('hidden');
@@ -677,8 +676,7 @@
     if (Lk.bg) renderBgPicker();
     $('#camBox').classList.toggle('hidden', !Lk.cam);
     $('#cornerBox').classList.toggle('hidden', !['cam_bubble', 'cam_pip'].includes(S.ex.layout));
-    $('#zoomBox').classList.toggle('hidden', S.ex.layout !== 'satis_split');
-    $('#focusBox').classList.toggle('hidden', ['game_blur', 'landscape', 'game_ai'].includes(S.ex.layout) || (S.ex.layout === 'satis_split' && !(S.ex.zoom > 0)));
+    $('#focusBox').classList.toggle('hidden', ['game_blur', 'landscape', 'game_ai'].includes(S.ex.layout));
     if (!S.live) $('#exPrevHint').textContent = S.ex.layout === 'game_ai' ? 'Le cadre suivra automatiquement l’action pendant le clip' : 'Aperçu du cadrage';
   }
   function syncCorner() { $$('#cornerSeg button').forEach((b) => b.classList.toggle('active', b.dataset.c === S.ex.corner)); }
@@ -692,7 +690,7 @@
   }
 
   function previewOpts() {
-    return { res: 720, camRect: S.ex.camRect, focusX: S.ex.focusX, zoom: S.ex.zoom, corner: S.ex.corner };
+    return { res: 720, camRect: S.ex.camRect, focusX: S.ex.focusX, corner: S.ex.corner };
   }
 
   /** Dessine une composition sur un canvas (aperçu avec une image, ou export avec la vidéo). */
@@ -896,7 +894,7 @@
   async function serverExport(ex) {
     $('#exMsg').textContent = 'Envoi de la demande…';
     if (L.LAYOUTS[ex.layout]?.bg && !ex.bgId) throw new Error('Choisis une vidéo satisfaisante pour le bas de l’écran.');
-    const body = { bgId: ex.bgId, clipIdx: ex.idx, layout: ex.layout, start: ex.start, end: ex.end, camRect: ex.camRect, corner: ex.corner, focusX: ex.focusX, zoom: ex.zoom, title: ex.title, showTitle: ex.showTitle, progressBar: !!ex.progressBar, subtitles: !!ex.subtitles, titlePos: ex.titlePos, subPos: ex.subPos };
+    const body = { bgId: ex.bgId, clipIdx: ex.idx, layout: ex.layout, start: ex.start, end: ex.end, camRect: ex.camRect, corner: ex.corner, focusX: ex.focusX, title: ex.title, showTitle: ex.showTitle, progressBar: !!ex.progressBar, subtitles: !!ex.subtitles, titlePos: ex.titlePos, subPos: ex.subPos };
     const r = await api(`api/jobs/${S.jobId}/export`, { method: 'POST', body });
     S.user = r.user; renderHeader(); syncQuality();
     const id = r.ids[0];
@@ -929,7 +927,7 @@
       if (S.mode === 'server' && !S.bgs) { try { S.bgs = (await api('api/backgrounds')).backgrounds; } catch { S.bgs = []; } }
       const layout = defaultLayout();
       const bgId = S.lastBg || S.bgs?.[0]?.id || null;
-      const r = await api(`api/jobs/${S.jobId}/export`, { method: 'POST', body: { all: true, layout, bgId, camRect: S.camRect, corner: S.corner, focusX: 0.5, zoom: S.lastZoom ?? 0, useAiTitles: true, progressBar: effectsAllowed(), subtitles: effectsAllowed(), titlePos: S.titlePos || null, subPos: S.subPos || null } });
+      const r = await api(`api/jobs/${S.jobId}/export`, { method: 'POST', body: { all: true, layout, bgId, camRect: S.camRect, corner: S.corner, focusX: 0.5, useAiTitles: true, progressBar: effectsAllowed(), subtitles: effectsAllowed(), titlePos: S.titlePos || null, subPos: S.subPos || null } });
       S.user = r.user; renderHeader();
       toast(`${r.ids.length} clips en cours de montage (format : ${L.LAYOUTS[layout].label}).`);
       loadJob(S.jobId);

@@ -356,7 +356,7 @@ function exportOptions(b, clip) {
     ? { x: Math.max(0, Math.min(0.98, +b.camRect.x)), y: Math.max(0, Math.min(0.98, +b.camRect.y)), w: Math.max(0.02, Math.min(1, +b.camRect.w)), h: Math.max(0.02, Math.min(1, +b.camRect.h)) } : null;
   return {
     layout: String(b.layout || 'game_full'), start, end, camRect: cr,
-    focusX: Math.max(0, Math.min(1, num(b.focusX, 0.5))), zoom: Math.max(0, Math.min(1, num(b.zoom, 0))), corner: ['tl', 'tr', 'bl', 'br'].includes(b.corner) ? b.corner : 'tl',
+    focusX: Math.max(0, Math.min(1, num(b.focusX, 0.5))), corner: ['tl', 'tr', 'bl', 'br'].includes(b.corner) ? b.corner : 'tl',
     title: b.showTitle === false ? '' : String(b.title || '').slice(0, 90),
     progressBar: b.progressBar === true,
     subtitles: b.subtitles === true,
