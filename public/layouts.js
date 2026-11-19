@@ -95,7 +95,14 @@
       }
       case 'satis_split': {
         const gh = even(H * 0.5);
-        game({ x: 0, y: 0, w: W, h: gh });
+        // Moitié haute : la vidéo est mise à l'échelle pour tenir en entier (zoom 0, fond flou autour)
+        // jusqu'à remplir toute la moitié (zoom 1, recadrée). Elle n'est jamais déformée.
+        const z = Math.max(0, Math.min(1, opts.zoom ?? 0));
+        const kc = Math.min(W / iw, gh / ih), kv = Math.max(W / iw, gh / ih), k = kc + z * (kv - kc);
+        const dw = Math.min(W, even(iw * k)), dh = Math.min(gh, even(ih * k));
+        if (dw < W || dh < gh) ops.push({ kind: 'video', role: 'bg', src: cover(full, W, gh, 0.5, 0.5), dst: { x: 0, y: 0, w: W, h: gh }, effect: 'blur' });
+        const sw = Math.min(iw, Math.round(dw / k)), sh = Math.min(ih, Math.round(dh / k));
+        ops.push({ kind: 'video', role: 'game', src: { x: Math.round((iw - sw) * fx), y: Math.round((ih - sh) / 2), w: sw, h: sh }, dst: { x: Math.round((W - dw) / 4) * 2, y: Math.round((gh - dh) / 4) * 2, w: dw, h: dh } });
         ops.push({ kind: 'bg', role: 'satis', dst: { x: 0, y: gh, w: W, h: H - gh } });
         ops.push({ kind: 'fill', color: '#000000', dst: { x: 0, y: gh - 3, w: W, h: 6 } });
         title = { y: Math.round(gh), anchor: 'center' };
