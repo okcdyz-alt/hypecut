@@ -58,7 +58,11 @@
     '🔊 Pic sonore': '🔊 Sound peak', '💥 Impact': '💥 Impact', '🏎️ Action': '🏎️ Action', '⚡ Flash / explosion': '⚡ Flash / explosion', '🔥 Moment fort': '🔥 Highlight',
     'drôle': 'funny', 'crash': 'crash', 'poursuite': 'chase', 'explosion': 'explosion',
     // ---- export
-    'Format': 'Format', 'Aperçu du cadrage': 'Framing preview', 'Le cadre suivra automatiquement l’action pendant le clip': 'The frame will follow the action automatically',
+    'Format': 'Format', 'Aperçu du cadrage': 'Framing preview',
+    '▶ Voir l’aperçu animé': '▶ Play live preview', '⏸ Arrêter l’aperçu': '⏸ Stop preview', 'Chargement de l’aperçu…': 'Loading preview…',
+    'Aperçu animé, en qualité réduite : rien n’est décompté tant que tu n’exportes pas.': 'Live preview in reduced quality: no credit is used until you export.',
+    'Aperçu animé indisponible pour cette vidéo (source expirée ?). L’image fixe reste valable.': 'Live preview unavailable for this video (source expired?). The still image is still accurate.',
+    'Survole pour voir la vidéo': 'Hover to play the video', 'Le cadre suivra automatiquement l’action pendant le clip': 'The frame will follow the action automatically',
     'Encadre ta caméra': 'Frame your camera', '(glisse sur l’image)': '(drag on the image)', 'Image de la vidéo pour encadrer la caméra': 'Video frame to select the camera',
     'Position de la caméra': 'Camera position', '↖ Haut gauche': '↖ Top left', '↗ Haut droite': '↗ Top right', '↙ Bas gauche': '↙ Bottom left', '↘ Bas droite': '↘ Bottom right',
     'Cadrage horizontal du jeu': 'Horizontal game framing', 'Cadrage horizontal': 'Horizontal framing',

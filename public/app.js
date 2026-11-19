@@ -208,6 +208,7 @@
     });
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModals(); });
 
+    $('#btnLivePrev').addEventListener('click', () => (S.live ? stopLive() : startLive()));
     const player = $('#player');
     player.addEventListener('timeupdate', () => { if (S.stopAt && player.currentTime >= S.stopAt) { player.pause(); S.stopAt = null; } drawTimeline(); });
     player.addEventListener('seeked', drawTimeline);
@@ -294,7 +295,7 @@
     } catch (err) { $('#authErr').textContent = err.message; }
     btn.disabled = false;
   }
-  function closeModals() { $$('.modal').forEach((m) => m.classList.add('hidden')); }
+  function closeModals() { stopLive(); $$('.modal').forEach((m) => m.classList.add('hidden')); }
 
   // ---------------------------------------------------------------- lancement d'une analyse
   function analysisParams() { return { clipLen: +$('#clipLen').value, count: +$('#count').value, priority: $('#priority').value, lang: EN ? 'en' : 'fr', rangeStart: $('#rangeStart')?.value.trim() || '', rangeEnd: $('#rangeEnd')?.value.trim() || '' }; }
@@ -625,6 +626,7 @@
 
   async function openExport(i) {
     if (S.mode === 'server' && !S.user) { openAuth('signup'); return; }
+    stopLive();
     const c = S.result.clips[i], st = S.clips[i];
     if (S.mode === 'server' && !S.bgs) { try { S.bgs = (await api('api/backgrounds')).backgrounds; } catch { S.bgs = []; } }
     const layout = defaultLayout();
@@ -645,7 +647,7 @@
     $$('.lay', grid).forEach((b) => b.addEventListener('click', () => {
       if (layoutAllowed(b.dataset.lay) === 'lock') { $('#exErr').innerHTML = 'Ce format est inclus dans les offres Pro et Créateur. <a href="#offres" data-close>Voir les offres</a>'; return; }
       $('#exErr').innerHTML = '';
-      S.ex.layout = S.lastLayout = b.dataset.lay; syncLayout(); drawPreview();
+      S.ex.layout = S.lastLayout = b.dataset.lay; syncLayout(); drawPreview(); setLiveBg();
     }));
     $('#exportModal').classList.remove('hidden');
     syncLayout(); syncTimes(); syncCorner(); syncQuality();
@@ -658,8 +660,13 @@
   function renderBgPicker() {
     const grid = $('#bgGrid'); const list = S.bgs || [];
     if (!list.length) { grid.innerHTML = `<p class="hint">Aucune vidéo satisfaisante pour l’instant.${S.user?.isAdmin ? ' Ajoute-en depuis l’onglet <a href="#admin" data-close>Admin</a>.' : ''}</p>`; return; }
-    grid.innerHTML = list.map((b) => `<button class="bg-item ${b.id === S.ex.bgId ? 'active' : ''}" data-bg="${esc(b.id)}" type="button"><img src="${esc(b.thumb)}" alt=""><span>${esc(b.name)}</span></button>`).join('');
-    $$('[data-bg]', grid).forEach((el) => el.addEventListener('click', () => { S.ex.bgId = S.lastBg = el.dataset.bg; renderBgPicker(); drawPreview(); }));
+    grid.innerHTML = list.map((b) => `<button class="bg-item ${b.id === S.ex.bgId ? 'active' : ''}" data-bg="${esc(b.id)}" type="button" title="Survole pour voir la vidéo"><video src="${esc(b.preview)}" poster="${esc(b.thumb)}" muted loop playsinline preload="none"></video><span class="play-ic" aria-hidden="true">▶</span><span>${esc(b.name)}</span></button>`).join('');
+    $$('[data-bg]', grid).forEach((el) => {
+      const v = el.querySelector('video');
+      el.addEventListener('mouseenter', () => v.play().catch(() => {}));
+      el.addEventListener('mouseleave', () => { v.pause(); });
+      el.addEventListener('click', () => { S.ex.bgId = S.lastBg = el.dataset.bg; renderBgPicker(); drawPreview(); if (S.live) setLiveBg(); else startLive(); });
+    });
   }
 
   function syncLayout() {
@@ -670,7 +677,7 @@
     $('#camBox').classList.toggle('hidden', !Lk.cam);
     $('#cornerBox').classList.toggle('hidden', !['cam_bubble', 'cam_pip'].includes(S.ex.layout));
     $('#focusBox').classList.toggle('hidden', ['game_blur', 'landscape', 'game_ai'].includes(S.ex.layout));
-    $('#exPrevHint').textContent = S.ex.layout === 'game_ai' ? 'Le cadre suivra automatiquement l’action pendant le clip' : 'Aperçu du cadrage';
+    if (!S.live) $('#exPrevHint').textContent = S.ex.layout === 'game_ai' ? 'Le cadre suivra automatiquement l’action pendant le clip' : 'Aperçu du cadrage';
   }
   function syncCorner() { $$('#cornerSeg button').forEach((b) => b.classList.toggle('active', b.dataset.c === S.ex.corner)); }
   function syncTimes() { $('#exStart').textContent = fmt(S.ex.start); $('#exEnd').textContent = fmt(S.ex.end); }
@@ -698,7 +705,8 @@
         ctx.drawImage(src, op.src.x, op.src.y, op.src.w, op.src.h, op.dst.x, op.dst.y, op.dst.w, op.dst.h);
       } else if (op.kind === 'bg') {
         const bgImg = drawComp.bgImg;
-        if (bgImg) { const c = L.cover({ x: 0, y: 0, w: bgImg.naturalWidth, h: bgImg.naturalHeight }, op.dst.w, op.dst.h, 0.5, 0.5); ctx.drawImage(bgImg, c.x, c.y, c.w, c.h, op.dst.x, op.dst.y, op.dst.w, op.dst.h); }
+        const bw = bgImg && (bgImg.videoWidth || bgImg.naturalWidth), bh = bgImg && (bgImg.videoHeight || bgImg.naturalHeight);
+        if (bgImg && bw && bh) { const c = L.cover({ x: 0, y: 0, w: bw, h: bh }, op.dst.w, op.dst.h, 0.5, 0.5); ctx.drawImage(bgImg, c.x, c.y, c.w, c.h, op.dst.x, op.dst.y, op.dst.w, op.dst.h); }
         else { ctx.fillStyle = '#120c1f'; ctx.fillRect(op.dst.x, op.dst.y, op.dst.w, op.dst.h); }
       } else { ctx.fillStyle = op.color; ctx.fillRect(op.dst.x, op.dst.y, op.dst.w, op.dst.h); }
       ctx.restore();
@@ -749,6 +757,7 @@
 
   function drawPreview() {
     const ex = S.ex; if (!ex || !ex.img) return;
+    if (S.live) return; // l'aperçu animé redessine déjà chaque image
     const bg = (S.bgs || []).find((b) => b.id === ex.bgId);
     drawComp.bgImg = null;
     if (L.LAYOUTS[ex.layout]?.bg && bg) {
@@ -760,6 +769,58 @@
     const cv = $('#exCanvas'); cv.width = comp.W; cv.height = comp.H;
     drawComp(cv.getContext('2d'), comp, ex.img, ex.showTitle ? titleLinesFor(ex.layout, ex.title) : [], wantsWatermark(), ex.progressBar ? 0.6 : null, !!ex.subtitles && ex.layout !== 'game_ai', { title: ex.titlePos, sub: ex.subPos, guides: true });
     $('#posReset').classList.toggle('hidden', !ex.titlePos && !ex.subPos);
+  }
+
+  // ---------------------------------------------------------------- aperçu animé (gratuit, avant de dépenser un crédit)
+  function liveBgUrl() {
+    const bg = (S.bgs || []).find((b) => b.id === S.ex?.bgId);
+    return L.LAYOUTS[S.ex?.layout]?.bg && bg ? bg.preview : null;
+  }
+  function setLiveBg() {
+    const lv = S.live; if (!lv) return;
+    const url = liveBgUrl();
+    if (!url) { lv.bg.pause(); lv.bg.removeAttribute('src'); lv.bgUrl = null; return; }
+    if (lv.bgUrl !== url) { lv.bgUrl = url; lv.bg.src = url; }
+    lv.bg.play().catch(() => {});
+  }
+  function startLive() {
+    const ex = S.ex; if (!ex || S.live || !S.result?.previewUrl) return;
+    const v = document.createElement('video');
+    v.src = S.result.previewUrl; v.playsInline = true; v.preload = 'auto';
+    const bg = document.createElement('video');
+    bg.muted = true; bg.loop = true; bg.playsInline = true; bg.preload = 'auto';
+    const lv = S.live = { v, bg, bgUrl: null, raf: 0 };
+    setLiveBg();
+    const btn = $('#btnLivePrev'); btn.textContent = '⏸ Arrêter l’aperçu'; btn.disabled = true;
+    $('#exPrevHint').textContent = 'Chargement de l’aperçu…';
+    const fail = () => { if (S.live !== lv) return; stopLive(); $('#exPrevHint').textContent = 'Aperçu animé indisponible pour cette vidéo (source expirée ?). L’image fixe reste valable.'; };
+    v.addEventListener('error', fail, { once: true });
+    v.addEventListener('loadedmetadata', () => {
+      if (S.live !== lv) return;
+      v.currentTime = S.ex.start;
+      v.play().then(() => { btn.disabled = false; $('#exPrevHint').textContent = 'Aperçu animé, en qualité réduite : rien n’est décompté tant que tu n’exportes pas.'; }).catch(fail);
+    }, { once: true });
+    const cv = $('#exCanvas'), ctx = cv.getContext('2d');
+    const tick = () => {
+      if (S.live !== lv) return;
+      lv.raf = requestAnimationFrame(tick);
+      const e = S.ex; if (!e || !v.videoWidth) return;
+      if (v.currentTime >= e.end || v.currentTime < e.start - 1) { v.currentTime = e.start; return; }
+      const comp = L.compose(e.layout === 'game_ai' ? 'game_full' : e.layout, v.videoWidth, v.videoHeight, previewOpts());
+      if (cv.width !== comp.W || cv.height !== comp.H) { cv.width = comp.W; cv.height = comp.H; }
+      drawComp.bgImg = lv.bgUrl && bg.readyState >= 2 ? bg : null;
+      const prog = e.progressBar ? (v.currentTime - e.start) / Math.max(0.1, e.end - e.start) : null;
+      drawComp(ctx, comp, v, e.showTitle ? titleLinesFor(e.layout, e.title) : [], wantsWatermark(), prog, !!e.subtitles && e.layout !== 'game_ai', { title: e.titlePos, sub: e.subPos, guides: false });
+    };
+    lv.raf = requestAnimationFrame(tick);
+  }
+  function stopLive() {
+    const lv = S.live; if (!lv) return;
+    S.live = null;
+    cancelAnimationFrame(lv.raf);
+    for (const m of [lv.v, lv.bg]) { m.pause(); m.removeAttribute('src'); m.load(); }
+    const btn = $('#btnLivePrev'); if (btn) { btn.textContent = '▶ Voir l’aperçu animé'; btn.disabled = false; }
+    if (S.ex) { syncLayout(); drawPreview(); }
   }
 
   /** Glisser-déposer du titre et des sous-titres sur l'aperçu (positions libres, en proportion de l'image). */
@@ -813,6 +874,7 @@
   // ---------------------------------------------------------------- export : rendu
   async function doExport() {
     const ex = S.ex; if (ex.busy) return;
+    stopLive();
     $('#exErr').innerHTML = '';
     if (S.mode === 'server' && S.user.credits <= 0) { closeModals(); location.hash = '#offres'; return; }
     ex.busy = true; $('#btnDoExport').disabled = true;
