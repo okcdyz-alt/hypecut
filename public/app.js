@@ -550,6 +550,7 @@
 
   function exportLine(e) {
     const lay = L.LAYOUTS[e.options?.layout]?.label || 'Clip';
+    if (e.status === 'done' && !e.url) return `<span class="hint">🗑️ ${esc(lay)} · ${esc(e.message || 'Clip supprimé après 30 jours.')}</span>`;
     if (e.status === 'done') return `<span>✅ ${esc(lay)} · <a href="${esc(e.download || e.url)}" target="_blank" rel="noopener">Télécharger</a></span>`;
     if (e.status === 'error') return `<span class="lock">⚠️ ${esc(lay)} : ${esc(e.message || 'échec')}</span>`;
     return `<span>⏳ ${esc(lay)} · ${Math.round((e.progress || 0) * 100)} %${e.queue ? ` (file : ${e.queue})` : ''}</span>`;
@@ -910,7 +911,7 @@
       }
       $('#exBar').style.width = `${Math.round((e.progress || 0) * 100)}%`;
       if (e.status === 'done') {
-        $('#exMsg').innerHTML = 'Ton clip est prêt ! 🎉 <a href="#compte" data-close>Invite tes amis</a> : 5 clips offerts chacun.' + (e.message ? `<br><span class="hint">ℹ️ ${esc(e.message)}</span>` : '');
+        $('#exMsg').innerHTML = 'Ton clip est prêt ! 🎉 <a href="#compte" data-close>Invite tes amis</a> : 5 clips offerts chacun.<br><span class="hint">Pense à le télécharger : il est gardé 30 jours, puis supprimé.</span>' + (e.message ? `<br><span class="hint">ℹ️ ${esc(e.message)}</span>` : '');
         const v = $('#exVideo'); v.src = e.url; v.classList.remove('hidden');
         const a = $('#exDownload'); a.href = e.download || e.url; a.classList.remove('hidden');
         $('#exCopy').classList.remove('hidden');
