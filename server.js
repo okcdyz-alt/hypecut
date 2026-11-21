@@ -117,7 +117,7 @@ const routes = [];
 const route = (method, pattern, fn) => routes.push({ method, re: new RegExp('^' + pattern.replace(/:(\w+)/g, '(?<$1>[^/]+)') + '$'), fn });
 
 // ---------- Configuration & comptes ----------
-route('GET', '/api/health', (req, res) => ok(res, { ok: true }));
+route('GET', '/api/health', (req, res) => ok(res, { ok: true, disk: jobs.storage.info() }));
 route('GET', '/api/config', (req, res) => ok(res, {
   server: true, ...plans.publicPlans(), layouts: Layouts.LAYOUTS,
   services: { cloudinary: cloud.enabled(), ai: ai.enabled(), stripe: stripe.enabled(), platformLinks: ALLOW_PLATFORMS && ytdlpOk },
@@ -176,7 +176,7 @@ route('POST', '/api/ugc', async (req, res) => {
 });
 route('POST', '/api/ugc/:id/recount', (req, res, { params }) => { const u = requireUser(req); ok(res, { submission: ugc.requestRecount(u.id, params.id) }); });
 function requireAdmin(req) { const u = requireUser(req); if (!admin.isAdmin(u)) throw auth.httpError(403, 'Accès réservé.'); return u; }
-route('GET', '/api/admin/stats', (req, res) => { requireAdmin(req); ok(res, admin.stats(jobs.queueState)); });
+route('GET', '/api/admin/stats', (req, res) => { requireAdmin(req); ok(res, { ...admin.stats(jobs.queueState), disk: jobs.storage.info() }); });
 route('GET', '/api/admin/users', (req, res, { url }) => { requireAdmin(req); ok(res, { users: admin.searchUsers(url.searchParams.get('q')) }); });
 route('POST', '/api/admin/users/:id', async (req, res, { params }) => {
   const a = requireAdmin(req);
@@ -269,6 +269,7 @@ route('POST', '/api/upload/start', async (req, res) => {
   if (size <= 0) throw auth.httpError(400, 'Fichier vide.');
   if (size > plan.maxUploadMb * 1048576) throw auth.httpError(413, `Fichier trop lourd pour ton offre (max ${plan.maxUploadMb} Mo).`);
   const name = String(b.name || 'video.mp4').slice(0, 200);
+  jobs.storage.ensureFree(size * (b.rangeStart || b.rangeEnd ? 2.1 : 1.1), { what: 'recevoir ce fichier' });
   const ext = (path.extname(name).toLowerCase().match(/^\.(mp4|mov|m4v|webm|mkv|avi|ts|flv)$/) || ['.mp4'])[0];
   const id = jobs.createJob(u, { sourceType: 'upload', title: path.basename(name, path.extname(name)), options: analysisOptions(b, plan) });
   const dest = path.join(jobs.jobDir(id), 'source' + ext);
