@@ -291,7 +291,7 @@ footer .wrap{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}
   .f-list{flex-wrap:wrap}
   .card9{width:28vw;border-radius:14px}.card9 .cap{font-size:13px}
   .panel .txt{top:auto;bottom:12vh;transform:none}
-  .scope{display:none}
+  .scope{right:6vw;left:6vw;width:auto;top:13vh;transform:none;padding:16px 16px 12px}.scope canvas{height:120px}
   .panel .shot{right:50%;top:12vh;height:38vh;transform:translateX(50%)}
   .p2 .ph{left:0}.p2 .veil{background:linear-gradient(0deg,#f3eefb 30%,rgba(243,238,251,.5) 65%,rgba(243,238,251,.1))}
   .p1 .veil,.p3 .veil{background:linear-gradient(0deg,rgba(7,5,11,.95) 25%,rgba(7,5,11,.3) 70%,rgba(7,5,11,.1))}
@@ -305,7 +305,12 @@ footer .wrap{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}
   .plans{grid-template-columns:1fr}
   .sec-head{flex-direction:column;align-items:flex-start}
   .pack{flex-direction:column;gap:14px;align-items:flex-start}
+  /* téléphone : sections plus courtes (moins de swipes) et arrêts sur chaque étape de l'animation */
+  html{scroll-snap-type:y proximity}
+  #hero{height:210vh}#analyse{height:260vh}#etapes{height:320vh}#formats{height:300vh}#vtext{height:180vh}
+  section.block{padding:10vh 0}#fin{height:100vh}
 }
+.snap{position:absolute;left:0;width:1px;height:1px;pointer-events:none;scroll-snap-align:start;scroll-snap-stop:normal}
 </style>
 </head>
 <body class="loading">
@@ -793,6 +798,10 @@ function drawScope(t) {
 }
 // fallback roundRect
 if (!CanvasRenderingContext2D.prototype.roundRect) CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h) { this.rect(x, y, w, h); };
+// points d'arrêt du swipe (téléphone) : un swipe = une étape de l'animation
+{ const SNAPS = { hero: [0, .82], analyse: [.36, .56, .9], etapes: [.06, .34, .61, .88], formats: [.125, .375, .625, .875], vtext: [.75] };
+  for (const id in SNAPS) { const sec = document.getElementById(id); if (!sec) continue;
+    for (const f of SNAPS[id]) { const d = document.createElement('i'); d.className = 'snap'; d.setAttribute('aria-hidden', 'true'); d.style.top = `calc((100% - 100vh) * ${f})`; sec.appendChild(d); } } }
 layout(); requestAnimationFrame(frame);
 
 })();
