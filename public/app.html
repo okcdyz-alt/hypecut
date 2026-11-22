@@ -6,7 +6,7 @@
 <title>HYPECUT — Clips de moments forts par IA</title>
 <meta name="description" content="Colle un lien ou importe ta vidéo : l'IA trouve les moments forts et crée des clips prêts pour TikTok, Shorts et Reels. Prêt pour la sortie de GTA VI.">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
-<meta name="theme-color" content="#0a0712">
+<meta name="theme-color" content="#07050b">
 <meta property="og:type" content="website">
 <meta property="og:title" content="HYPECUT — Tes meilleurs moments GTA VI, découpés par l’IA">
 <meta property="og:description" content="Colle un lien ou importe ta vidéo : HYPECUT repère les moments forts et crée des clips prêts pour TikTok, Shorts et Reels.">
@@ -14,23 +14,38 @@
 <meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<script src="i18n.js?v=17"></script>
-<link rel="stylesheet" href="style.css?v=17">
+<link href="https://fonts.googleapis.com/css2?family=Anton&display=swap" rel="stylesheet">
+<script src="i18n.js?v=18"></script>
+<link rel="stylesheet" href="style.css?v=18">
+<link rel="stylesheet" href="app2.css?v=1">
 </head>
 <body>
-<div class="sky" aria-hidden="true"></div>
+<div class="fx" aria-hidden="true"><div class="aurora"><i></i><i></i><i></i></div><div class="beams"><i></i><i></i><i></i></div><canvas id="sparks"></canvas></div>
+<div class="flash" id="flash" aria-hidden="true"></div>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><linearGradient id="hcg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffad3d"/><stop offset=".55" stop-color="#ff3d8b"/><stop offset="1" stop-color="#8b5cf6"/></linearGradient></defs></svg>
 
-<header class="top">
-  <a class="logo" href="#creer" aria-label="HYPECUT, accueil"><img class="logo-img" src="logo-mark.svg" alt="" width="30" height="30">HYPECUT</a>
+<div class="shell">
+<aside class="side">
+  <a class="logo" href="/" aria-label="HYPECUT, retour au site"><img class="logo-img" src="logo-mark.svg" alt="" width="26" height="26">HYPECUT</a>
   <nav class="nav" id="nav">
-    <a href="#creer" data-view="creer">Créer</a>
-    <a href="#mes-clips" data-view="mes-clips" class="srv">Mes clips</a>
-    <a href="#revenus" data-view="revenus" class="srv">Revenus</a>
-    <a href="#defi" data-view="defi" class="srv">Défi GTA VI</a>
-    <a href="#offres" data-view="offres">Offres</a>
-    <a href="#admin" data-view="admin" class="hidden" id="navAdmin">Admin</a>
+    <a href="#creer" data-view="creer"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>Créer</span></a>
+    <a href="#mes-clips" data-view="mes-clips" class="srv"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="12" rx="2"/><rect x="14" y="3" width="7" height="12" rx="2"/><path d="M3 20h18"/></svg><span>Mes clips</span></a>
+    <a href="#defi" data-view="defi" class="srv"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/></svg><span>Défi GTA VI</span></a>
+    <a href="#revenus" data-view="revenus" class="srv"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"/><path d="m7 15 4-4 3 3 5-6"/></svg><span>Revenus</span></a>
+    <i class="nav-sep"></i>
+    <a href="#offres" data-view="offres"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12l4 6-10 12L2 9z"/><path d="M2 9h20M12 21 8 9l4-6 4 6z"/></svg><span>Offres</span></a>
+    <a href="#compte" data-view="compte" class="srv"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg><span>Mon compte</span></a>
+    <a href="#admin" data-view="admin" class="hidden" id="navAdmin"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7z"/></svg><span>Admin</span></a>
   </nav>
+  <div class="side-card hidden" id="sideCard"><b id="scPlan">Offre</b><p id="scSub">Tes crédits de clips</p><div class="meter"><i id="scBar"></i></div><div class="row"><span id="scCred"></span><a href="#offres">Plus de crédits</a></div></div>
+  <a class="side-back" href="/">← Retour au site</a>
+</aside>
+
+<div class="main">
+<header class="top">
+  <a class="mlogo" href="/" aria-label="HYPECUT, retour au site"><img src="logo-mark.svg" alt="" width="22" height="22">HYPECUT</a>
+  <div class="crumb" id="crumb">HYPECUT / <b>Créer</b></div>
+  <div class="sp"></div>
   <button class="btn ghost sm lang-btn" id="langBtn" type="button">EN</button>
   <div class="account srv">
     <span class="credits hidden" id="creditPill" title="1 crédit = 1 clip exporté"></span>
@@ -46,11 +61,12 @@
   <!-- ============ CRÉER ============ -->
   <section class="view" id="view-creer">
     <div class="hero">
-      <p class="eyebrow" id="countdown">Prêt pour la sortie de GTA VI</p>
-      <h1>Tes meilleurs moments,<br><span class="grad">découpés par l’IA.</span></h1>
-      <p class="lead">Colle un lien ou importe ta vidéo de gameplay. HYPECUT repère les poursuites, les explosions et les cris, puis te sort des clips verticaux prêts pour TikTok, Shorts et Reels.</p>
-      <button class="hero-chip" id="ctaSpot" type="button"><b>🔥 Nouveau</b> Ton clip + une vidéo satisfaisante, écran partagé 50/50 →</button>
+      <p class="eyebrow" id="countdown">Nouveau clip</p>
+      <h1>Colle ta VOD.<br><span class="grad">On trouve le reste.</span></h1>
+      <p class="lead">Un lien Twitch ou Kick, ou ton fichier. HYPECUT écoute le live, repère les moments qui font réagir et te propose les meilleurs clips.</p>
+      <button class="hero-chip" id="ctaSpot" type="button"><b>🔥 Tendance</b> Ton clip + une vidéo satisfaisante, écran partagé 50/50 →</button>
     </div>
+    <div class="create-grid">
 
     <div class="card source" id="sourceCard">
       <div class="tabs" role="tablist">
@@ -100,6 +116,18 @@
       <button class="btn primary big" id="btnAnalyze">⚡ Trouver les moments forts</button>
       <p class="sample-line" id="sampleLine">Pas de vidéo sous la main ? <button type="button" class="btn ghost xs" id="btnSample">🎮 Essayer avec une vidéo d’exemple</button></p>
       <p class="err" id="sourceErr" role="alert"></p>
+    </div>
+    <div class="side-col">
+      <div class="card promo" id="promoCard"><div class="promo-bg"></div>
+        <span class="eyebrow">Pass lancement GTA VI</span>
+        <h3>Toutes les fonctions Pro offertes</h3>
+        <p class="hint">Pour les comptes gratuits, jusqu’au 26 novembre.</p>
+        <div class="cd" id="passCd"></div>
+      </div>
+      <div class="card recent hidden" id="recentCard"><h4><span>Dernières analyses</span><a href="#mes-clips" class="grad">Tout voir</a></h4><div id="recentList"></div></div>
+      <div class="card tips" id="tipsCard"><h4>Pour de meilleurs clips</h4>
+        <ul><li><b>Choisis un passage</b> d’une heure ou deux : l’analyse est plus rapide et plus précise.</li><li><b>Priorité « Son »</b> pour les lives où tu réagis beaucoup, <b>« Action »</b> pour le gameplay pur.</li><li><b>30 secondes</b>, c’est la durée qui marche le mieux sur TikTok.</li></ul></div>
+    </div>
     </div>
 
     <div class="card progress hidden" id="progressCard" aria-live="polite">
@@ -203,12 +231,15 @@
 
   <!-- ============ MES CLIPS ============ -->
   <section class="view hidden" id="view-mes-clips">
+    <span class="eyebrow">Bibliothèque</span>
     <h2 class="page-title">Mes vidéos analysées</h2>
+    <p class="lead">Retrouve tes analyses et leurs clips. Les clips exportés restent disponibles 3 jours.</p>
     <div class="history" id="history"></div>
   </section>
 
   <!-- ============ REVENUS ============ -->
   <section class="view hidden" id="view-revenus">
+    <span class="eyebrow">Suivi</span>
     <div class="adm-head"><h2 class="page-title">Mes revenus de clippeur</h2><div class="seg cur-seg" id="revCur" aria-label="Devise"></div></div>
     <p class="lead center">Note tes campagnes et tes clips publiés : tu vois ce que tu gagnes, ce qui reste à payer et ce qui marche le mieux.</p>
     <div id="revBody"><p class="hint">Chargement…</p></div>
@@ -216,14 +247,16 @@
 
   <!-- ============ DÉFI ============ -->
   <section class="view hidden" id="view-defi">
-    <h2 class="page-title">🏆 Le défi GTA VI de la semaine</h2>
+    <span class="eyebrow">Défi de la semaine</span>
+    <h2 class="page-title">Le défi <span class="grad">GTA VI.</span></h2>
     <p class="lead center">Un thème par semaine. Publie ton meilleur clip, envoie le lien : les 3 meilleurs gagnent des clips.</p>
     <div id="defiBody"><p class="hint">Chargement…</p></div>
   </section>
 
   <!-- ============ OFFRES ============ -->
   <section class="view hidden" id="view-offres">
-    <h2 class="page-title">Choisis ton offre</h2>
+    <span class="eyebrow">Offres</span>
+    <h2 class="page-title">Choisis ton <span class="grad">rythme.</span></h2>
     <p class="lead center" id="offersLead">Essaie gratuitement, puis passe à la vitesse supérieure.</p>
     <label class="check waiver" id="waiverBox"><input type="checkbox" id="waiverCheck"> <span>Je demande l’accès immédiat à mes crédits dès le paiement et je renonce expressément à mon droit de rétractation de 14 jours (article L221-28, 13° du Code de la consommation). J’accepte les <a href="legal.html#cgv" target="_blank">conditions générales de vente</a>.</span></label>
     <div class="plans" id="plans"></div>
@@ -238,6 +271,7 @@
 
   <!-- ============ ADMIN ============ -->
   <section class="view hidden" id="view-admin">
+    <span class="eyebrow">Admin</span>
     <div class="adm-head"><h2 class="page-title">Tableau de bord</h2><button class="btn ghost sm" id="admRefresh">↻ Actualiser</button></div>
     <div id="admBody"><p class="hint">Chargement…</p></div>
     <h3 class="adm-h">Vidéos satisfaisantes (bibliothèque)</h3>
@@ -279,7 +313,8 @@
 
   <!-- ============ COMPTE ============ -->
   <section class="view hidden" id="view-compte">
-    <h2 class="page-title">Mon compte</h2>
+    <span class="eyebrow">Mon compte</span>
+    <h2 class="page-title">Mon <span class="grad">compte.</span></h2>
     <div class="card account-card" id="accountCard"></div>
     <div class="card lvl-card hidden" id="levelCard"></div>
     <div class="card ugc-card hidden" id="ugcCard"></div>
@@ -291,6 +326,16 @@
   <p class="foot-links srv"><a href="legal.html#mentions">Mentions légales</a> · <a href="legal.html#cgv">CGV / CGU</a> · <a href="legal.html#confidentialite">Confidentialité</a> · <a href="mailto:okcdyz@gmail.com">Contact</a></p>
   <p>HYPECUT n’est ni affilié ni approuvé par Rockstar Games ou Take-Two Interactive. Grand Theft Auto est une marque de Take-Two Interactive. N’utilise que des vidéos dont tu as les droits.</p>
 </footer>
+</div>
+</div>
+
+<nav class="tabbar" id="tabbar" aria-label="Navigation">
+  <a href="#creer" data-view="creer"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>Créer</span></a>
+  <a href="#mes-clips" data-view="mes-clips" class="srv"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="12" rx="2"/><rect x="14" y="3" width="7" height="12" rx="2"/><path d="M3 20h18"/></svg><span>Clips</span></a>
+  <a href="#creer" class="fab" data-view="go" aria-label="Trouver les moments forts"><span><svg viewBox="0 0 24 24"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg></span></a>
+  <a href="#defi" data-view="defi" class="srv"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/></svg><span>Défi</span></a>
+  <a href="#compte" data-view="compte" class="srv"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg><span>Compte</span></a>
+</nav>
 
 <!-- ============ MODALE EXPORT ============ -->
 <div class="modal hidden" id="exportModal" role="dialog" aria-modal="true" aria-labelledby="exTitle">
@@ -379,5 +424,6 @@
 <script src="scoring.js?v=18"></script>
 <script src="layouts.js?v=17"></script>
 <script src="app.js?v=18"></script>
+<script src="app2.js?v=1"></script>
 </body>
 </html>

@@ -28,6 +28,16 @@
   if (lang !== 'en') return;
 
   const D = {
+    // ---- nouveau design de l'application
+    'Colle ta VOD.': 'Paste your VOD.', 'On trouve le reste.': 'We find the rest.',
+    'Un lien Twitch ou Kick, ou ton fichier. HYPECUT écoute le live, repère les moments qui font réagir et te propose les meilleurs clips.': 'A Twitch or Kick link, or your file. HYPECUT listens to the stream, spots the moments that get reactions and suggests the best clips.',
+    'Tendance': 'Trending', 'Pass lancement GTA VI': 'GTA VI launch pass', 'Toutes les fonctions Pro offertes': 'Every Pro feature, free',
+    'Pour les comptes gratuits, jusqu’au 26 novembre.': 'For free accounts, until November 26.', 'Dernières analyses': 'Latest analyses', 'Tout voir': 'See all',
+    'Pour de meilleurs clips': 'For better clips', 'Choisis un passage': 'Pick a section', 'Priorité « Son »': '“Sound” priority', '« Action »': '“Action”',
+    '30 secondes': '30 seconds', '← Retour au site': '← Back to the site', 'Défi GTA VI': 'GTA VI challenge', 'Revenus': 'Earnings', 'Plus de crédits': 'More credits',
+    'Bibliothèque': 'Library', 'Suivi': 'Tracking', 'Défi de la semaine': 'Challenge of the week', 'Choisis ton': 'Choose your', 'rythme.': 'pace.', 'compte.': 'account.', 'Mon': 'My',
+    'Retrouve tes analyses et leurs clips. Les clips exportés restent disponibles 3 jours.': 'Find your analyses and their clips. Exported clips stay available for 3 days.',
+    'Clips': 'Clips', 'Défi': 'Challenge', 'Compte': 'Account',
     // ---- en-tête, navigation, bannières
     'Créer': 'Create', 'Mes clips': 'My clips', 'Offres': 'Pricing', 'Admin': 'Admin', 'Connexion': 'Log in', 'Mon compte': 'My account',
     'HYPECUT, accueil': 'HYPECUT, home',
