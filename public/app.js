@@ -492,7 +492,7 @@
       c.pre = tc.toDataURL('image/jpeg', 0.8);
     }
     S.local = { url, file, width: v.videoWidth, height: v.videoHeight, duration };
-    S.result = { duration, step, series: res.series, clips: res.clips, width: v.videoWidth, height: v.videoHeight, previewUrl: url, frameUrl: res.clips[0]?.thumb };
+    S.result = { duration, step: res.step || step, series: res.series, clips: res.clips, width: v.videoWidth, height: v.videoHeight, previewUrl: url, frameUrl: res.clips[0]?.thumb };
     S.job = { title: file.name.replace(/\.[^.]+$/, ''), status: 'done' };
     hideProgress();
     initClips();
