@@ -801,7 +801,7 @@ function drawScope(t) {
 // fallback roundRect
 if (!CanvasRenderingContext2D.prototype.roundRect) CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h) { this.rect(x, y, w, h); };
 // points d'arrêt du swipe (téléphone) : un swipe = une étape de l'animation
-{ const SNAPS = { hero: [0, .82], analyse: [.36, .56, .9], etapes: [.06, .34, .61, .88], formats: [.125, .375, .625, .875], vtext: [.75] };
+{ const SNAPS = { hero: [.82], analyse: [.36, .56, .9], etapes: [.06, .34, .61, .88], formats: [.125, .375, .625, .875], vtext: [.75] };
   for (const id in SNAPS) { const sec = document.getElementById(id); if (!sec) continue;
     for (const f of SNAPS[id]) { const d = document.createElement('i'); d.className = 'snap'; d.setAttribute('aria-hidden', 'true'); d.style.top = `calc((100% - 100vh) * ${f})`; sec.appendChild(d); } } }
 layout(); requestAnimationFrame(frame);
