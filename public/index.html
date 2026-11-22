@@ -321,7 +321,7 @@ footer .wrap{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}
   <a class="btn btn-main cta" href="/app#creer"><span class="dot"></span><span>Essayer<span class="hide-m"> gratuitement</span></span></a>
 </div></nav>
 
-<video id="live" poster="l/poster.jpg" src="l/screen.mp4" muted loop playsinline preload="metadata"></video>
+<video id="live" poster="l/poster.jpg" src="l/screen.mp4" muted loop playsinline webkit-playsinline disablepictureinpicture preload="metadata"></video>
 
 <main>
 <!-- =================== HÉROS =================== -->
@@ -658,7 +658,7 @@ const put = (el, prop, v) => { const k = '_' + prop; if (el[k] !== v) { el[k] = 
 const tog = (el, c, on) => { const k = '_c' + c; if (el[k] !== on) { el[k] = on; el.classList.toggle(c, on); } };
 const P = (id) => { const o = OFF[id]; if (!o) return 0; return clamp((sy - o.top) / Math.max(1, o.h - vh)); };
 const near = (id) => { const o = OFF[id]; return o && sy > o.top - vh * 1.2 && sy < o.top + o.h + vh * .2; };
-let sy = scrollY, lastY = scrollY, liveSynced = false, lastT = 0;
+let sy = scrollY, lastY = scrollY, liveSynced = false, lastT = 0, liveTry = -1e9;
 const touch = matchMedia('(pointer: coarse)').matches;
 const cards = $$('.card9'), panels = $$('.panel'), dots = $$('#dots b');
 const PN = panels.map((pn) => ({ pn, ph: $('.ph', pn), txt: $('.txt', pn), num: $('.num', pn), shot: $('.shot', pn) }));
@@ -702,8 +702,12 @@ function frame(now) {
     put(stage, 'opacity', (1 - E.o(prog(hp, zEnd, zEnd + .06))).toFixed(3)); // la scène s'efface : la vidéo (derrière) apparaît
   } else { liveOp = prog(zk, .93, 1) * (1 - exit); put(stage, 'opacity', '1'); }
   if (sy > (OFF.analyse ? OFF.analyse.top + OFF.analyse.h : 1e9)) liveOp = 0;
-  if (liveOp > 0 && !liveSynced) { try { live.currentTime = scrVid.currentTime % (live.duration || 15.5); } catch (e) {} live.play().catch(() => {}); liveSynced = true; }
-  if (liveOp === 0 && liveSynced) { live.pause(); liveSynced = false; }
+  if (liveOp > 0) {
+    if (!liveSynced) { try { if (live.readyState >= 1) live.currentTime = scrVid.currentTime % (live.duration || 15.5); } catch (e) {} liveSynced = true; }
+    // Safari (iPhone, Mac) met en pause les vidéos qu'il juge invisibles (opacité presque nulle au départ) :
+    // on relance tant qu'elle est à l'écran, au lieu d'un seul essai.
+    if (live.paused && t - liveTry > .35) { liveTry = t; live.muted = true; const pr = live.play(); if (pr) pr.catch(() => {}); }
+  } else if (liveSynced) { live.pause(); liveSynced = false; }
   put(live, 'opacity', liveOp.toFixed(3));
   if (scrVid.paused !== (hp > .7)) { if (hp > .7) scrVid.pause(); else scrVid.play().catch(() => {}); }
 
