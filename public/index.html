@@ -110,6 +110,8 @@ nav .cta{height:42px;padding:0 20px;font-size:14px}
 /* vidéo plein écran partagée (on « entre » dans l'écran) */
 #live{position:fixed;left:0;top:0;width:100vw;height:100vh;object-fit:cover;z-index:0;opacity:0;pointer-events:none}
 main{position:relative;z-index:1}
+video{pointer-events:none;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+video::-webkit-media-controls{display:none!important}
 
 /* ---------- analyse ---------- */
 #analyse{height:360vh;position:relative}
@@ -326,7 +328,7 @@ footer .wrap{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}
   <a class="btn btn-main cta" href="/app#creer"><span class="dot"></span><span>Essayer<span class="hide-m"> gratuitement</span></span></a>
 </div></nav>
 
-<video id="live" poster="l/poster.jpg" src="l/screen.mp4" muted loop playsinline webkit-playsinline disablepictureinpicture preload="metadata"></video>
+<video id="live" poster="l/poster.jpg" src="l/screen.mp4" muted loop playsinline controlslist="nodownload nofullscreen noremoteplayback" x-webkit-airplay="deny" disableremoteplayback webkit-playsinline disablepictureinpicture preload="metadata"></video>
 
 <main>
 <!-- =================== HÉROS =================== -->
@@ -336,7 +338,7 @@ footer .wrap{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}
       <img class="bg" src="l/hero.jpg" alt="Setup de streaming de nuit, face à la ville" id="heroImg">
       <img class="bg blur" src="l/hero-blur.jpg" alt="" id="heroBlur">
       <div id="word" aria-label="HYPECUT"></div>
-      <div id="screen"><video id="scrVid" poster="l/poster.jpg" src="l/screen-m.mp4" muted loop playsinline autoplay preload="auto"></video><canvas id="scrUI"></canvas></div>
+      <div id="screen"><video id="scrVid" poster="l/poster.jpg" src="l/screen-m.mp4" muted loop playsinline controlslist="nodownload nofullscreen noremoteplayback" x-webkit-airplay="deny" disableremoteplayback disablepictureinpicture webkit-playsinline autoplay preload="auto"></video><canvas id="scrUI"></canvas></div>
       <img class="fg" src="l/fg.webp" alt="" id="fgImg">
       <img class="fg blur" src="l/fg-blur.webp" alt="" id="fgBlur">
     </div>
@@ -367,9 +369,9 @@ footer .wrap{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}
     <div class="timeline"><canvas id="tl"></canvas></div>
     <div id="markers"></div>
     <div class="cards" id="cards">
-      <div class="card9" data-v="l/v0.mp4"><video muted loop playsinline preload="none"></video><span class="hype">🔥 96</span><span class="cap">Il l’a pas vu venir</span></div>
-      <div class="card9" data-v="l/v1.mp4"><video muted loop playsinline preload="none"></video><span class="hype">🔥 91</span><span class="cap">Le saut de l’année</span></div>
-      <div class="card9" data-v="l/v3.mp4"><video muted loop playsinline preload="none"></video><span class="hype">🔥 88</span><span class="cap">Braquage express</span></div>
+      <div class="card9" data-v="l/v0.mp4"><video muted loop playsinline controlslist="nodownload nofullscreen noremoteplayback" x-webkit-airplay="deny" disableremoteplayback disablepictureinpicture webkit-playsinline preload="none"></video><span class="hype">🔥 96</span><span class="cap">Il l’a pas vu venir</span></div>
+      <div class="card9" data-v="l/v1.mp4"><video muted loop playsinline controlslist="nodownload nofullscreen noremoteplayback" x-webkit-airplay="deny" disableremoteplayback disablepictureinpicture webkit-playsinline preload="none"></video><span class="hype">🔥 91</span><span class="cap">Le saut de l’année</span></div>
+      <div class="card9" data-v="l/v3.mp4"><video muted loop playsinline controlslist="nodownload nofullscreen noremoteplayback" x-webkit-airplay="deny" disableremoteplayback disablepictureinpicture webkit-playsinline preload="none"></video><span class="hype">🔥 88</span><span class="cap">Braquage express</span></div>
     </div>
     <div class="an-foot" id="anFoot"><span class="eyebrow">Repéré automatiquement · prêt en 9:16</span></div>
   </div>
@@ -423,10 +425,10 @@ footer .wrap{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}
       <div class="glow"></div>
       <div class="iphone" id="phone"><div class="scr">
         <div class="island"></div>
-        <div class="fmt on"><video data-src="l/v0.mp4" muted loop playsinline style="inset:0;height:100%"></video><div class="f-tag"><span>Plein écran</span><span>9:16</span></div></div>
-        <div class="fmt"><div class="cam"><div class="silh"></div><span class="lbl">CAM</span></div><video data-src="l/v2.mp4" muted loop playsinline style="top:34%;height:66%"></video><div class="f-tag"><span>Caméra en haut</span><span>9:16</span></div></div>
-        <div class="fmt"><video data-src="l/v3.mp4" muted loop playsinline style="top:0;height:50%"></video><video data-src="l/v_city.mp4" muted loop playsinline style="top:50%;height:50%;border-top:2px solid #fff"></video><div class="f-tag"><span>Écran partagé</span><span>9:16</span></div></div>
-        <div class="fmt"><video data-src="l/v1.mp4" muted loop playsinline style="inset:0;height:100%"></video><div class="subs" id="subs"></div><div class="f-tag"><span>Sous-titres auto</span><span>9:16</span></div></div>
+        <div class="fmt on"><video data-src="l/v0.mp4" muted loop playsinline controlslist="nodownload nofullscreen noremoteplayback" x-webkit-airplay="deny" disableremoteplayback disablepictureinpicture webkit-playsinline style="inset:0;height:100%"></video><div class="f-tag"><span>Plein écran</span><span>9:16</span></div></div>
+        <div class="fmt"><div class="cam"><div class="silh"></div><span class="lbl">CAM</span></div><video data-src="l/v2.mp4" muted loop playsinline controlslist="nodownload nofullscreen noremoteplayback" x-webkit-airplay="deny" disableremoteplayback disablepictureinpicture webkit-playsinline style="top:34%;height:66%"></video><div class="f-tag"><span>Caméra en haut</span><span>9:16</span></div></div>
+        <div class="fmt"><video data-src="l/v3.mp4" muted loop playsinline controlslist="nodownload nofullscreen noremoteplayback" x-webkit-airplay="deny" disableremoteplayback disablepictureinpicture webkit-playsinline style="top:0;height:50%"></video><video data-src="l/v_city.mp4" muted loop playsinline controlslist="nodownload nofullscreen noremoteplayback" x-webkit-airplay="deny" disableremoteplayback disablepictureinpicture webkit-playsinline style="top:50%;height:50%;border-top:2px solid #fff"></video><div class="f-tag"><span>Écran partagé</span><span>9:16</span></div></div>
+        <div class="fmt"><video data-src="l/v1.mp4" muted loop playsinline controlslist="nodownload nofullscreen noremoteplayback" x-webkit-airplay="deny" disableremoteplayback disablepictureinpicture webkit-playsinline style="inset:0;height:100%"></video><div class="subs" id="subs"></div><div class="f-tag"><span>Sous-titres auto</span><span>9:16</span></div></div>
         <div class="glass"></div>
       </div></div>
     </div>
@@ -436,7 +438,7 @@ footer .wrap{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}
 <!-- =================== VIDÉO DANS LE TEXTE =================== -->
 <section id="vtext">
   <div class="sticky">
-    <video id="vtVid" src="l/screen.mp4" muted loop playsinline preload="none"></video>
+    <video id="vtVid" src="l/screen.mp4" muted loop playsinline controlslist="nodownload nofullscreen noremoteplayback" x-webkit-airplay="deny" disableremoteplayback disablepictureinpicture webkit-playsinline preload="none"></video>
     <div class="knock"><h2 id="vtWord">CLIPPE.</h2></div>
     <div class="vt-sub" id="vtSub">Chaque moment fort, <span class="grad">prêt à poster.</span></div>
   </div>
@@ -446,11 +448,11 @@ footer .wrap{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}
 <section class="block" id="fonctions"><div class="wrap">
   <div class="sec-head"><div><span class="eyebrow rv">Fonctions</span><h2 class="display rv d1">Tout ce qu’il faut. <span style="color:var(--dim)">Rien de plus.</span></h2></div><p class="rv d2">Pensé pour les streamers qui veulent publier tous les jours sans passer leurs nuits sur un logiciel de montage.</p></div>
   <div class="bento">
-    <div class="tile t-a rv"><video data-src="l/screen-m.mp4" muted loop playsinline></video><div class="in"><span class="eyebrow">Longues VOD</span><div class="big display" style="margin-top:12px">Jusqu’à 8 h</div><p>de live analysées d’un coup avec l’offre Créateur. 4 h avec Pro.</p></div></div>
-    <div class="tile t-b rv d1"><video data-src="l/v2.mp4" muted loop playsinline></video><div class="in"><h4>Recadrage qui suit l’action</h4><p>Le cadre vertical se déplace avec ce qui se passe à l’écran.</p></div></div>
+    <div class="tile t-a rv"><video data-src="l/screen-m.mp4" muted loop playsinline controlslist="nodownload nofullscreen noremoteplayback" x-webkit-airplay="deny" disableremoteplayback disablepictureinpicture webkit-playsinline></video><div class="in"><span class="eyebrow">Longues VOD</span><div class="big display" style="margin-top:12px">Jusqu’à 8 h</div><p>de live analysées d’un coup avec l’offre Créateur. 4 h avec Pro.</p></div></div>
+    <div class="tile t-b rv d1"><video data-src="l/v2.mp4" muted loop playsinline controlslist="nodownload nofullscreen noremoteplayback" x-webkit-airplay="deny" disableremoteplayback disablepictureinpicture webkit-playsinline></video><div class="in"><h4>Recadrage qui suit l’action</h4><p>Le cadre vertical se déplace avec ce qui se passe à l’écran.</p></div></div>
     <div class="tile t-c rv"><h4>Sous-titres mot par mot</h4><p>Générés et synchronisés automatiquement.</p><div class="wave" id="wave"></div></div>
     <div class="tile t-d rv d1"><h4>Titres &amp; hashtags</h4><p>Un titre accrocheur, une légende et des hashtags proposés pour chaque clip.</p></div>
-    <div class="tile t-e rv d2"><h4>Tous les clips en un clic</h4><p>Exporte toute la sélection d’une VOD d’un coup (offre Créateur).</p><div class="crop"><video data-src="l/screen-m.mp4" muted loop playsinline></video><b></b></div></div>
+    <div class="tile t-e rv d2"><h4>Tous les clips en un clic</h4><p>Exporte toute la sélection d’une VOD d’un coup (offre Créateur).</p><div class="crop"><video data-src="l/screen-m.mp4" muted loop playsinline controlslist="nodownload nofullscreen noremoteplayback" x-webkit-airplay="deny" disableremoteplayback disablepictureinpicture webkit-playsinline></video><b></b></div></div>
   </div>
 </div></section>
 
