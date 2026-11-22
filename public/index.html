@@ -309,7 +309,7 @@ footer .wrap{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}
   <a class="btn btn-main cta" href="/app#creer"><span class="dot"></span><span>Essayer<span class="hide-m"> gratuitement</span></span></a>
 </div></nav>
 
-<video id="live" poster="l/poster.jpg" src="l/screen.mp4" muted loop playsinline preload="auto"></video>
+<video id="live" poster="l/poster.jpg" src="l/screen.mp4" muted loop playsinline preload="metadata"></video>
 
 <main>
 <!-- =================== HÉROS =================== -->
@@ -318,7 +318,7 @@ footer .wrap{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}
     <div id="stage">
       <img class="bg" src="l/hero.jpg" alt="Setup de streaming de nuit, face à la ville" id="heroImg">
       <div id="word" aria-label="HYPECUT"></div>
-      <div id="screen"><video id="scrVid" poster="l/poster.jpg" src="l/screen.mp4" muted loop playsinline autoplay preload="auto"></video><canvas id="scrUI"></canvas></div>
+      <div id="screen"><video id="scrVid" poster="l/poster.jpg" src="l/screen-m.mp4" muted loop playsinline autoplay preload="auto"></video><canvas id="scrUI"></canvas></div>
       <img class="fg" src="l/fg.webp" alt="" id="fgImg">
     </div>
     <div class="hero-shade" id="heroShade"></div>
@@ -350,7 +350,7 @@ footer .wrap{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}
     <div class="cards" id="cards">
       <div class="card9" data-v="l/v0.mp4"><video muted loop playsinline preload="none"></video><span class="hype">🔥 96</span><span class="cap">Il l’a pas vu venir</span></div>
       <div class="card9" data-v="l/v1.mp4"><video muted loop playsinline preload="none"></video><span class="hype">🔥 91</span><span class="cap">Le saut de l’année</span></div>
-      <div class="card9" data-v="l/v3.mp4"><video muted loop playsinline preload="none"></video><span class="hype">🔥 88</span><span class="cap">Pleine vitesse</span></div>
+      <div class="card9" data-v="l/v3.mp4"><video muted loop playsinline preload="none"></video><span class="hype">🔥 88</span><span class="cap">Braquage express</span></div>
     </div>
     <div class="an-foot" id="anFoot"><span class="eyebrow">Repéré automatiquement · prêt en 9:16</span></div>
   </div>
@@ -427,11 +427,11 @@ footer .wrap{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}
 <section class="block" id="fonctions"><div class="wrap">
   <div class="sec-head"><div><span class="eyebrow rv">Fonctions</span><h2 class="display rv d1">Tout ce qu’il faut. <span style="color:var(--dim)">Rien de plus.</span></h2></div><p class="rv d2">Pensé pour les streamers qui veulent publier tous les jours sans passer leurs nuits sur un logiciel de montage.</p></div>
   <div class="bento">
-    <div class="tile t-a rv"><video data-src="l/screen-s.mp4" muted loop playsinline></video><div class="in"><span class="eyebrow">Longues VOD</span><div class="big display" style="margin-top:12px">Jusqu’à 8 h</div><p>de live analysées d’un coup avec l’offre Créateur. 4 h avec Pro.</p></div></div>
+    <div class="tile t-a rv"><video data-src="l/screen-m.mp4" muted loop playsinline></video><div class="in"><span class="eyebrow">Longues VOD</span><div class="big display" style="margin-top:12px">Jusqu’à 8 h</div><p>de live analysées d’un coup avec l’offre Créateur. 4 h avec Pro.</p></div></div>
     <div class="tile t-b rv d1"><video data-src="l/v2.mp4" muted loop playsinline></video><div class="in"><h4>Recadrage qui suit l’action</h4><p>Le cadre vertical se déplace avec ce qui se passe à l’écran.</p></div></div>
     <div class="tile t-c rv"><h4>Sous-titres mot par mot</h4><p>Générés et synchronisés automatiquement.</p><div class="wave" id="wave"></div></div>
     <div class="tile t-d rv d1"><h4>Titres &amp; hashtags</h4><p>Un titre accrocheur, une légende et des hashtags proposés pour chaque clip.</p></div>
-    <div class="tile t-e rv d2"><h4>Tous les clips en un clic</h4><p>Exporte toute la sélection d’une VOD d’un coup (offre Créateur).</p><div class="crop"><video data-src="l/screen-s.mp4" muted loop playsinline></video><b></b></div></div>
+    <div class="tile t-e rv d2"><h4>Tous les clips en un clic</h4><p>Exporte toute la sélection d’une VOD d’un coup (offre Créateur).</p><div class="crop"><video data-src="l/screen-m.mp4" muted loop playsinline></video><b></b></div></div>
   </div>
 </div></section>
 
@@ -645,6 +645,7 @@ function frame(now) {
   word.style.transform = `translateY(${-hp * 40}px)`;
   $('#heroCopy').style.opacity = 1 - prog(hp, .02, .1); $('#heroCopy').style.transform = `translateY(${-prog(hp, 0, .12) * 60}px)`;
   $('#heroShade').style.opacity = 1 - prog(hp, .05, .3);
+  if (hp > .08 && live.preload !== 'auto') live.preload = 'auto';
   const uiFade = 1 - prog(hp, .22, .36); $('#scrUI').style.opacity = uiFade; if (uiFade > 0) drawScreenUI(hp, t);
   // entrée dans l'écran : la vidéo plein cadre prend le relais
   const enter = prog(zk, .93, 1);
