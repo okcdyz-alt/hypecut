@@ -429,6 +429,7 @@ const server = http.createServer(async (req, res) => {
   } catch (e) {
     const status = e.status || 500;
     if (status >= 500) console.error(e);
+    else if (url.pathname.startsWith('/api/') && status !== 401 && !/^\/api\/(me|health)\b/.test(url.pathname)) console.warn(`[refus] ${req.method} ${url.pathname} ${status} · ${String(e.message).split('\n')[0].slice(0, 160)}`);
     if (!res.headersSent) send(res, status, { error: status >= 500 && !e.user ? 'Erreur interne, réessaie.' : e.message, upgrade: !!e.upgrade });
   }
 });
