@@ -29,7 +29,7 @@ const SECURE = PUBLIC_URL.startsWith('https://');
 const PUBLIC_DIR = path.join(__dirname, 'public');
 const ALLOW_PLATFORMS = process.env.ALLOW_PLATFORM_LINKS !== 'false';
 
-const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml', '.png': 'image/png', '.jpg': 'image/jpeg', '.ico': 'image/x-icon', '.mp4': 'video/mp4', '.webm': 'video/webm', '.mov': 'video/quicktime', '.mkv': 'video/x-matroska', '.json': 'application/json' };
+const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml', '.png': 'image/png', '.jpg': 'image/jpeg', '.ico': 'image/x-icon', '.mp4': 'video/mp4', '.webm': 'video/webm', '.mov': 'video/quicktime', '.mkv': 'video/x-matroska', '.json': 'application/json', '.webp': 'image/webp', '.woff': 'font/woff', '.woff2': 'font/woff2' };
 
 let ytdlpOk = false;
 media.run(process.env.YTDLP_PATH || 'yt-dlp', ['--version'], { timeoutMs: 10000 }).then(() => (ytdlpOk = true)).catch(() => {});
@@ -145,7 +145,7 @@ route('GET', '/api/me', (req, res) => { const u = auth.currentUser(req); ok(res,
 route('GET', '/api/referral', (req, res) => {
   const u = requireUser(req);
   const st = referral.stats(u.id);
-  ok(res, { ...st, link: `${PUBLIC_URL}/?ref=${st.code}`, referred: !!u.referred_by, rewarded: !!u.ref_rewarded });
+  ok(res, { ...st, link: `${PUBLIC_URL}/app?ref=${st.code}`, referred: !!u.referred_by, rewarded: !!u.ref_rewarded });
 });
 route('POST', '/api/me/emails', async (req, res) => { const u = requireUser(req); mail.setOptOut(u.id, !!(await readJson(req)).optOut); ok(res, { user: userView(q.get('SELECT * FROM users WHERE id = ?', u.id)) }); });
 route('GET', '/api/admin/mail', (req, res) => { requireAdmin(req); ok(res, mail.stats()); });
@@ -413,7 +413,7 @@ const server = http.createServer(async (req, res) => {
     if (url.pathname === '/unsubscribe') {
       const done = mail.unsubscribe(url.searchParams.get('u'), url.searchParams.get('t'));
       if (req.method === 'POST') return send(res, done ? 200 : 400, done ? 'ok' : 'lien invalide');
-      return send(res, done ? 200 : 400, `<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>HYPECUT</title></head><body style="font-family:Arial,sans-serif;background:#0a0712;color:#f4f0ff;display:grid;place-items:center;min-height:90vh;text-align:center;padding:20px"><div><h1>${done ? 'C’est noté ✅' : 'Lien invalide'}</h1><p>${done ? 'Tu ne recevras plus nos conseils ni nos annonces de défis. Les e-mails liés à ton compte (gains, résultats) continuent.' : 'Ce lien de désinscription n’est pas valide.'}</p><p><a style="color:#2ee6d6" href="/#compte">Gérer mes e-mails depuis mon compte</a></p></div></body></html>`, { 'Content-Type': 'text/html; charset=utf-8' });
+      return send(res, done ? 200 : 400, `<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>HYPECUT</title></head><body style="font-family:Arial,sans-serif;background:#0a0712;color:#f4f0ff;display:grid;place-items:center;min-height:90vh;text-align:center;padding:20px"><div><h1>${done ? 'C’est noté ✅' : 'Lien invalide'}</h1><p>${done ? 'Tu ne recevras plus nos conseils ni nos annonces de défis. Les e-mails liés à ton compte (gains, résultats) continuent.' : 'Ce lien de désinscription n’est pas valide.'}</p><p><a style="color:#2ee6d6" href="/app#compte">Gérer mes e-mails depuis mon compte</a></p></div></body></html>`, { 'Content-Type': 'text/html; charset=utf-8' });
     }
     if (url.pathname.startsWith('/media/')) {
       const rel = path.normalize(decodeURIComponent(url.pathname.slice(7))).replace(/^(\.\.[/\\])+/, '');
@@ -422,10 +422,12 @@ const server = http.createServer(async (req, res) => {
     }
     let rel = path.normalize(decodeURIComponent(url.pathname)).replace(/^(\.\.[/\\])+/, '');
     if (rel === '/' || rel === '\\') rel = '/index.html';
+    if (rel === '/app' || rel === '/app/') rel = '/app.html'; // l'application (la page d'accueil est la vitrine)
     const file = path.join(PUBLIC_DIR, rel);
     if (!file.startsWith(PUBLIC_DIR)) return send(res, 403, 'Interdit');
     if (!fs.existsSync(file)) return serveFile(req, res, path.join(PUBLIC_DIR, 'index.html'));
-    return serveFile(req, res, file, 0);
+    // fichiers lourds et stables de la page d'accueil (dossier l/) : mis en cache une semaine
+    return serveFile(req, res, file, /^[\/\\]l[\/\\]/.test(rel) ? 7 * 86400 : 0);
   } catch (e) {
     const status = e.status || 500;
     if (status >= 500) console.error(e);

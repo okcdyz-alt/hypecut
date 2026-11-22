@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HYPECUT — Clips de moments forts par IA</title>
+<meta name="description" content="Colle un lien ou importe ta vidéo : l'IA trouve les moments forts et crée des clips prêts pour TikTok, Shorts et Reels. Prêt pour la sortie de GTA VI.">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<meta name="theme-color" content="#0a0712">
+<meta property="og:type" content="website">
+<meta property="og:title" content="HYPECUT — Tes meilleurs moments GTA VI, découpés par l’IA">
+<meta property="og:description" content="Colle un lien ou importe ta vidéo : HYPECUT repère les moments forts et crée des clips prêts pour TikTok, Shorts et Reels.">
+<meta property="og:image" content="https://hypecut-h6pu.onrender.com/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="i18n.js?v=17"></script>
+<link rel="stylesheet" href="style.css?v=17">
+</head>
+<body>
+<div class="sky" aria-hidden="true"></div>
+
+<header class="top">
+  <a class="logo" href="#creer" aria-label="HYPECUT, accueil"><img class="logo-img" src="logo-mark.svg" alt="" width="30" height="30">HYPECUT</a>
+  <nav class="nav" id="nav">
+    <a href="#creer" data-view="creer">Créer</a>
+    <a href="#mes-clips" data-view="mes-clips" class="srv">Mes clips</a>
+    <a href="#revenus" data-view="revenus" class="srv">Revenus</a>
+    <a href="#defi" data-view="defi" class="srv">Défi GTA VI</a>
+    <a href="#offres" data-view="offres">Offres</a>
+    <a href="#admin" data-view="admin" class="hidden" id="navAdmin">Admin</a>
+  </nav>
+  <button class="btn ghost sm lang-btn" id="langBtn" type="button">EN</button>
+  <div class="account srv">
+    <span class="credits hidden" id="creditPill" title="1 crédit = 1 clip exporté"></span>
+    <button class="btn ghost sm" id="btnLogin">Connexion</button>
+    <a class="btn ghost sm hidden" id="btnAccount" href="#compte">Mon compte</a>
+  </div>
+</header>
+
+<div class="launch hidden" id="launchBar"></div>
+<div class="demo hidden" id="demoBar">Version démo : tout est traité dans ton navigateur, rien n’est envoyé. Les liens Twitch/Kick, la HD sans filigrane et les comptes arrivent avec le site complet.</div>
+
+<main>
+  <!-- ============ CRÉER ============ -->
+  <section class="view" id="view-creer">
+    <div class="hero">
+      <p class="eyebrow" id="countdown">Prêt pour la sortie de GTA VI</p>
+      <h1>Tes meilleurs moments,<br><span class="grad">découpés par l’IA.</span></h1>
+      <p class="lead">Colle un lien ou importe ta vidéo de gameplay. HYPECUT repère les poursuites, les explosions et les cris, puis te sort des clips verticaux prêts pour TikTok, Shorts et Reels.</p>
+      <button class="hero-chip" id="ctaSpot" type="button"><b>🔥 Nouveau</b> Ton clip + une vidéo satisfaisante, écran partagé 50/50 →</button>
+    </div>
+
+    <div class="card source" id="sourceCard">
+      <div class="tabs" role="tablist">
+        <button class="tab active" data-tab="link" role="tab" aria-selected="true">🔗 Lien Twitch / Kick</button>
+        <button class="tab" data-tab="file" role="tab" aria-selected="false">📁 Importer un fichier (YouTube…)</button>
+      </div>
+
+      <div class="tabpane" id="pane-link">
+        <label class="field">
+          <span>Lien de ta VOD ou de ton clip Twitch ou Kick</span>
+          <input type="url" id="linkInput" placeholder="twitch.tv/videos/… · kick.com/…" autocomplete="off">
+        </label>
+        <p class="hint" id="linkHint">Liens acceptés : <b>Twitch et Kick uniquement</b> (VOD et clips). Pour une vidéo YouTube ou un autre fichier, utilise l’onglet « Importer un fichier ».</p>
+        <label class="check"><input type="checkbox" id="rightsCheck"> <span>Je confirme avoir le droit d’utiliser cette vidéo (c’est mon contenu, ou j’ai l’accord de son auteur).</span></label>
+        <p class="hint warn" id="ytWarn" hidden>⚠️ Les liens YouTube ne sont pas acceptés : passe par l’onglet « Importer un fichier ». Pour ta propre vidéo, télécharge-la depuis YouTube Studio (menu ⋮ → Télécharger), puis importe-la. <button type="button" class="btn ghost xs" id="ytToFile">Importer un fichier</button></p>
+        <p class="hint" id="linkDemo" hidden>Les liens arrivent avec le site complet. En attendant, importe ton fichier.</p>
+      </div>
+
+      <div class="tabpane hidden" id="pane-file">
+        <label class="drop" id="drop">
+          <input type="file" id="fileInput" accept="video/*" hidden>
+          <span class="drop-icon">⬆</span>
+          <strong>Dépose ta vidéo ici</strong>
+          <span>ou clique pour choisir un fichier (MP4, MOV, WEBM…)</span>
+          <span class="file-name" id="fileName"></span>
+        </label>
+        <p class="hint">🎬 <b>Vidéo YouTube ?</b> Télécharge ta propre vidéo depuis YouTube Studio (menu ⋮ → Télécharger), puis importe le fichier ici. N’utilise que tes vidéos ou celles dont tu as l’accord de l’auteur.</p>
+      </div>
+
+      <details class="range-box" id="rangeBox">
+        <summary>⏱ Choisir un passage de la vidéo <span class="hint">(facultatif · indispensable pour une VOD de plus de <span id="rangeMax">4 h</span>)</span></summary>
+        <div class="range-row">
+          <label class="field sm"><span>Début</span><input id="rangeStart" inputmode="numeric" placeholder="0:00:00" autocomplete="off"></label>
+          <label class="field sm"><span>Fin</span><input id="rangeEnd" inputmode="numeric" placeholder="2:00:00" autocomplete="off"></label>
+        </div>
+        <p class="hint">Format heures:minutes:secondes, par exemple de <b>1:20:00</b> à <b>3:00:00</b>. Seul ce passage est récupéré et analysé : c’est plus rapide. Laisse vide pour analyser toute la vidéo.</p>
+      </details>
+
+      <div class="settings">
+        <label class="field sm"><span>Durée des clips</span>
+          <select id="clipLen"><option value="15">15 s</option><option value="30" selected>30 s</option><option value="45">45 s</option><option value="60">60 s</option></select></label>
+        <label class="field sm"><span>Nombre de clips</span>
+          <select id="count"><option>3</option><option selected>5</option><option>8</option><option>12</option></select></label>
+        <label class="field sm"><span>Priorité</span>
+          <select id="priority"><option value="balanced" selected>Équilibré</option><option value="action">Action (mouvement)</option><option value="audio">Son (cris, explosions)</option></select></label>
+      </div>
+      <button class="btn primary big" id="btnAnalyze">⚡ Trouver les moments forts</button>
+      <p class="sample-line" id="sampleLine">Pas de vidéo sous la main ? <button type="button" class="btn ghost xs" id="btnSample">🎮 Essayer avec une vidéo d’exemple</button></p>
+      <p class="err" id="sourceErr" role="alert"></p>
+    </div>
+
+    <div class="card progress hidden" id="progressCard" aria-live="polite">
+      <div class="prog-head"><strong id="progTitle">Analyse en cours…</strong><span id="progPct">0 %</span></div>
+      <div class="bar"><i id="progBar"></i></div>
+      <p class="hint" id="progMsg"></p>
+    </div>
+
+    <div class="workspace hidden" id="workspace">
+      <div class="ws-head">
+        <div>
+          <h2 id="wsTitle">Moments forts</h2>
+          <p class="hint" id="wsSub"></p>
+        </div>
+        <div class="ws-actions">
+          <button class="btn ghost sm hidden" id="btnAiAll">✨ Titres IA</button>
+          <button class="btn ghost sm hidden" id="btnExportAll">⬇ Exporter tout</button>
+          <button class="btn ghost sm" id="btnNew">＋ Nouvelle vidéo</button>
+        </div>
+      </div>
+      <div class="player-wrap">
+        <video id="player" controls playsinline preload="metadata"></video>
+        <canvas id="timeline" height="64" aria-label="Intensité de la vidéo dans le temps. Clique pour te déplacer."></canvas>
+        <p class="legend"><span class="sw hot"></span> intensité détectée · <span class="sw sel"></span> clips proposés · clique sur la courbe pour te déplacer</p>
+      </div>
+      <p class="banner warn hidden" id="expiredBar">La vidéo source a été supprimée de nos serveurs (24 h). Tu peux encore revoir les moments forts, mais il faut relancer l’analyse pour exporter.</p>
+      <div class="clips" id="clips"></div>
+    </div>
+
+    <!-- ======= Présentation (masquée quand une analyse est ouverte) ======= -->
+    <div class="mkt" id="mkt">
+      <section class="mk-sec" id="spot">
+        <div class="spot">
+          <figure class="phone"><div class="scr lay-satis"><div class="game half"></div><div class="rug"></div><div class="ttl">Regarde jusqu’au bout</div><div class="prog"></div></div></figure>
+          <div>
+            <span class="spot-tag">🔥 Le format qui cartonne sur TikTok</span>
+            <h2 class="grad">Écran partagé satisfaisant</h2>
+            <p>Ton clip GTA en haut, une vidéo satisfaisante en bas (nettoyage de tapis, slime, sable…). Les yeux restent scotchés, les vues suivent.</p>
+            <ul>
+              <li>Écran coupé en deux, 50/50, au format vertical 9:16</li>
+              <li>Bibliothèque de vidéos satisfaisantes libres de droits</li>
+              <li>Seul le son de ton clip est gardé</li>
+              <li>Barre de progression pour pousser à regarder jusqu’au bout</li>
+            </ul>
+            <a class="btn primary" href="#creer" id="ctaSpotGo">⚡ Créer mon clip satisfaisant</a>
+          </div>
+        </div>
+      </section>
+
+      <section class="mk-sec">
+        <h2 class="mk-title">Comment ça marche</h2>
+        <div class="steps3">
+          <div class="step3"><span class="num">1</span><h3>Colle ton lien</h3><p>Un lien de VOD Twitch ou Kick, ou ton fichier vidéo (YouTube, gameplay enregistré…).</p></div>
+          <div class="step3"><span class="num">2</span><h3>L’IA trouve les moments forts</h3><p>Elle écoute les cris et les explosions, repère l’action et classe les meilleurs passages.</p></div>
+          <div class="step3"><span class="num">3</span><h3>Exporte en un clic</h3><p>Choisis un format, ajuste si tu veux, et récupère ton clip prêt à poster.</p></div>
+        </div>
+      </section>
+
+      <section class="mk-sec">
+        <h2 class="mk-title">Un format pour chaque style</h2>
+        <p class="lead center">Écran partagé satisfaisant, caméra du streamer, bulle ou fond flouté : tout est prêt pour TikTok, Shorts et Reels.</p>
+        <div class="phones">
+          <figure class="phone"><div class="scr lay-satis"><div class="game half"></div><div class="rug"></div><div class="ttl">Regarde jusqu’au bout</div><div class="prog"></div></div><figcaption>Satisfaisant 50/50</figcaption></figure>
+          <figure class="phone"><div class="scr lay-camtop"><div class="cam"><span>FACECAM</span></div><div class="game"></div><div class="ttl">La poursuite la plus folle</div><div class="prog"></div></div><figcaption>Caméra en haut</figcaption></figure>
+          <figure class="phone"><div class="scr lay-bubble"><div class="game"></div><div class="bub"></div><div class="ttl">Le crash de l’année</div><div class="prog"></div></div><figcaption>Caméra en bulle</figcaption></figure>
+          <figure class="phone"><div class="scr lay-blur"><div class="game blurred"></div><div class="game mid"></div><div class="ttl">L’explosion de trop</div><div class="prog"></div></div><figcaption>Fond flouté</figcaption></figure>
+        </div>
+      </section>
+
+      <section class="mk-sec">
+        <h2 class="mk-title">Tout ce qu’il faut pour percer</h2>
+        <div class="feats">
+          <div class="feat"><b>🎯 Détection automatique</b><p>Le son et l’image sont analysés pour trouver les vrais temps forts, pas des passages au hasard.</p></div>
+          <div class="feat"><b>🎥 Formats caméra</b><p>Encadre ta facecam une fois : HYPECUT monte le clip en haut, en bas, en bulle ou en incrustation.</p></div>
+          <div class="feat"><b>✨ Titres et hashtags</b><p>Chaque clip reçoit un titre accrocheur, une légende et des hashtags prêts à copier.</p></div>
+          <div class="feat"><b>🔗 Twitch, Kick et fichiers</b><p>Colle le lien de ta VOD ou de ton clip Twitch ou Kick, ou importe ton fichier (vidéo YouTube, gameplay enregistré…).</p></div>
+          <div class="feat"><b>🤖 Recadrage IA</b><p>En vertical, le cadre suit l’action tout seul pour ne jamais rater le moment.</p></div>
+          <div class="feat"><b>⚡ Sans logiciel</b><p>Tout se passe dans ton navigateur, sur ordinateur comme sur téléphone.</p></div>
+        </div>
+      </section>
+
+      <section class="mk-sec cta-band">
+        <h2>Prêt pour la sortie de GTA VI ?</h2>
+        <p id="ctaSub">Crée ton compte gratuit et transforme tes premières sessions en clips.</p>
+        <div class="row center-row"><a class="btn primary" href="#creer" id="ctaTop">⚡ Créer mon premier clip</a><a class="btn ghost" href="#offres">Voir les offres</a></div>
+      </section>
+
+      <section class="mk-sec">
+        <h2 class="mk-title">Questions fréquentes</h2>
+        <div class="faq">
+          <details><summary>C’est vraiment gratuit ?</summary><p>Oui : l’inscription est gratuite et donne des clips offerts, sans carte bancaire. Pendant la semaine de sortie de GTA VI, toutes les fonctions Pro sont incluses. Ensuite, tu peux continuer en essai gratuit ou choisir une offre.</p></details>
+          <details><summary>Quels liens sont acceptés ?</summary><p>Uniquement les liens Twitch et Kick (VOD et clips). Pour tout le reste, vidéos YouTube comprises, importe le fichier : pour ta propre vidéo YouTube, télécharge-la depuis YouTube Studio (menu ⋮ → Télécharger).</p></details>
+          <details><summary>Combien de temps ça prend ?</summary><p>L’analyse dure généralement de quelques secondes à quelques minutes selon la longueur de la vidéo. Chaque export prend environ une minute.</p></details>
+          <details><summary>Mes vidéos sont-elles conservées ?</summary><p>Non : la vidéo d’origine est supprimée de nos serveurs 24 heures après l’analyse. Tes clips restent disponibles au téléchargement depuis « Mes clips ».</p></details>
+          <details><summary>Ai-je le droit de publier ces clips ?</summary><p>Tu dois avoir les droits sur la vidéo d’origine : ton propre gameplay ou tes propres streams, ou une vidéo dont l’auteur t’a donné l’accord. Respecte aussi les règles de l’éditeur du jeu et des plateformes où tu publies.</p></details>
+          <details><summary>Comment annuler mon abonnement ?</summary><p>En un clic, depuis « Mon compte → Gérer mon abonnement ». L’abonnement s’arrête à la fin de la période déjà payée, sans frais.</p></details>
+        </div>
+      </section>
+    </div>
+  </section>
+
+  <!-- ============ MES CLIPS ============ -->
+  <section class="view hidden" id="view-mes-clips">
+    <h2 class="page-title">Mes vidéos analysées</h2>
+    <div class="history" id="history"></div>
+  </section>
+
+  <!-- ============ REVENUS ============ -->
+  <section class="view hidden" id="view-revenus">
+    <div class="adm-head"><h2 class="page-title">Mes revenus de clippeur</h2><div class="seg cur-seg" id="revCur" aria-label="Devise"></div></div>
+    <p class="lead center">Note tes campagnes et tes clips publiés : tu vois ce que tu gagnes, ce qui reste à payer et ce qui marche le mieux.</p>
+    <div id="revBody"><p class="hint">Chargement…</p></div>
+  </section>
+
+  <!-- ============ DÉFI ============ -->
+  <section class="view hidden" id="view-defi">
+    <h2 class="page-title">🏆 Le défi GTA VI de la semaine</h2>
+    <p class="lead center">Un thème par semaine. Publie ton meilleur clip, envoie le lien : les 3 meilleurs gagnent des clips.</p>
+    <div id="defiBody"><p class="hint">Chargement…</p></div>
+  </section>
+
+  <!-- ============ OFFRES ============ -->
+  <section class="view hidden" id="view-offres">
+    <h2 class="page-title">Choisis ton offre</h2>
+    <p class="lead center" id="offersLead">Essaie gratuitement, puis passe à la vitesse supérieure.</p>
+    <label class="check waiver" id="waiverBox"><input type="checkbox" id="waiverCheck"> <span>Je demande l’accès immédiat à mes crédits dès le paiement et je renonce expressément à mon droit de rétractation de 14 jours (article L221-28, 13° du Code de la consommation). J’accepte les <a href="legal.html#cgv" target="_blank">conditions générales de vente</a>.</span></label>
+    <div class="plans" id="plans"></div>
+    <div class="pack card" id="packCard"></div>
+    <div class="earn card" id="earnCard">
+      <div><strong>🎁 Plus de crédits ? Gagne des clips gratuitement</strong>
+      <p class="hint" style="margin:4px 0 0">Publie une vidéo TikTok ou Reels qui présente HYPECUT : tu gagnes des clips selon ses vues. Tu peux aussi parrainer tes amis.</p></div>
+      <a class="btn ghost sm" href="#compte" id="earnGo">Gagner des clips</a>
+    </div>
+    <p class="hint center">Paiement sécurisé par Stripe : carte bancaire, Apple Pay, Google Pay, PayPal. Abonnement sans engagement, résiliable en un clic.</p>
+  </section>
+
+  <!-- ============ ADMIN ============ -->
+  <section class="view hidden" id="view-admin">
+    <div class="adm-head"><h2 class="page-title">Tableau de bord</h2><button class="btn ghost sm" id="admRefresh">↻ Actualiser</button></div>
+    <div id="admBody"><p class="hint">Chargement…</p></div>
+    <h3 class="adm-h">Vidéos satisfaisantes (bibliothèque)</h3>
+    <div class="card">
+      <p class="hint" style="margin-top:0">Colle le lien d’une vidéo <b>libre de droits</b> (page Pexels, ou lien direct .mp4 Pixabay/Pexels). Le site la télécharge, la convertit (60 s max, sans son) et la propose à tous les utilisateurs du format « Écran partagé satisfaisant ».</p>
+      <div class="adm-search adm-bg-form">
+        <input type="url" id="bgUrl" placeholder="https://www.pexels.com/video/…" aria-label="Lien de la vidéo de fond">
+        <input type="text" id="bgName" placeholder="Nom (ex. : Nettoyage de tapis)" maxlength="60" aria-label="Nom de la vidéo">
+        <button class="btn primary sm" id="bgAdd">Ajouter</button>
+      </div>
+      <div class="bg-grid admin" id="admBg"></div>
+    </div>
+
+    <h3 class="adm-h">Programme créateur : vidéos à vérifier</h3>
+    <div class="card">
+      <p class="hint" style="margin-top:0">Ouvre chaque vidéo et vérifie qu’elle est publique, qu’elle présente bien HYPECUT, qu’elle porte la mention de collaboration commerciale et que ses vues semblent réelles. Indique ensuite le nombre de vues : les crédits sont calculés et versés automatiquement, sans jamais donner deux fois pour les mêmes vues.</p>
+      <div class="seg ugc-filter" id="ugcFilter"><button data-s="pending" class="active">À vérifier</button><button data-s="approved">Validées</button><button data-s="rejected">Refusées</button></div>
+      <div id="admUgc"><p class="hint">Chargement…</p></div>
+    </div>
+
+    <h3 class="adm-h">E-mails automatiques</h3>
+    <div class="card">
+      <p class="hint" style="margin-top:0">Envoyés tout seuls : bienvenue, premier clip pas encore créé (après 24 h), crédits épuisés, inactif depuis 14 jours, nouveau défi, nouveau niveau, vidéo validée, victoire à un défi. Chaque e-mail part une seule fois, et les conseils respectent la désinscription.</p>
+      <div id="admMail"><p class="hint">Chargement…</p></div>
+    </div>
+
+    <h3 class="adm-h">Défis GTA VI</h3>
+    <div class="card">
+      <p class="hint" style="margin-top:0">Ouvre un défi pour modifier son thème ou ses dates, voir les participations et choisir les 3 gagnants. À la fin du défi, « Attribuer les prix » verse les clips et prévient les gagnants par e-mail.</p>
+      <div id="admCh"><p class="hint">Chargement…</p></div>
+    </div>
+
+    <h3 class="adm-h">Gestion des comptes</h3>
+    <div class="card">
+      <div class="adm-search"><input type="search" id="admQ" placeholder="Rechercher un e-mail…" aria-label="Rechercher un compte"><button class="btn primary sm" id="admGo">Rechercher</button></div>
+      <div id="admUsers"></div>
+    </div>
+  </section>
+
+  <!-- ============ COMPTE ============ -->
+  <section class="view hidden" id="view-compte">
+    <h2 class="page-title">Mon compte</h2>
+    <div class="card account-card" id="accountCard"></div>
+    <div class="card lvl-card hidden" id="levelCard"></div>
+    <div class="card ugc-card hidden" id="ugcCard"></div>
+    <div class="card ref-card hidden" id="refCard"></div>
+  </section>
+</main>
+
+<footer class="foot">
+  <p class="foot-links srv"><a href="legal.html#mentions">Mentions légales</a> · <a href="legal.html#cgv">CGV / CGU</a> · <a href="legal.html#confidentialite">Confidentialité</a> · <a href="mailto:okcdyz@gmail.com">Contact</a></p>
+  <p>HYPECUT n’est ni affilié ni approuvé par Rockstar Games ou Take-Two Interactive. Grand Theft Auto est une marque de Take-Two Interactive. N’utilise que des vidéos dont tu as les droits.</p>
+</footer>
+
+<!-- ============ MODALE EXPORT ============ -->
+<div class="modal hidden" id="exportModal" role="dialog" aria-modal="true" aria-labelledby="exTitle">
+  <div class="sheet">
+    <button class="close" data-close aria-label="Fermer">✕</button>
+    <h3 id="exTitle">Créer le clip</h3>
+    <div class="ex-grid">
+      <div class="ex-preview">
+        <canvas id="exCanvas"></canvas>
+        <p class="center live-row"><button type="button" class="btn ghost sm" id="btnLivePrev">▶ Voir l’aperçu animé</button></p>
+        <p class="hint center" id="exPrevHint">Aperçu du cadrage</p>
+        <p class="hint center drag-hint">✋ Fais glisser le titre et les sous-titres pour les placer où tu veux.</p>
+        <p class="center"><button type="button" class="btn ghost xs hidden" id="posReset">↺ Positions par défaut</button></p>
+      </div>
+      <div class="ex-options">
+        <p class="label">Format</p>
+        <div class="layouts" id="layoutGrid"></div>
+
+        <div id="camBox" class="hidden">
+          <p class="label">Encadre ta caméra <span class="hint">(glisse sur l’image)</span></p>
+          <div class="cam-pick" id="camPick"><img id="camImg" alt="Image de la vidéo pour encadrer la caméra"><div class="cam-rect" id="camRect"></div></div>
+        </div>
+        <div id="bgBox" class="hidden">
+          <p class="label">Vidéo satisfaisante (en bas)</p>
+          <div class="bg-grid" id="bgGrid"></div>
+        </div>
+        <div id="cornerBox" class="hidden">
+          <p class="label">Position de la caméra</p>
+          <div class="seg" id="cornerSeg">
+            <button data-c="tl">↖ Haut gauche</button><button data-c="tr">↗ Haut droite</button><button data-c="bl">↙ Bas gauche</button><button data-c="br">↘ Bas droite</button>
+          </div>
+        </div>
+        <div id="focusBox">
+          <p class="label">Cadrage horizontal du jeu</p>
+          <input type="range" id="focusX" min="0" max="1" step="0.01" value="0.5" aria-label="Cadrage horizontal">
+        </div>
+        <p class="label">Effets</p>
+        <label class="check" id="pbLabel"><input type="checkbox" id="progressBar" checked> <span>Barre de progression <span class="hint">(pousse à regarder jusqu’au bout)</span> <span class="lock hidden" id="pbLock">🔒 Pro</span></span></label>
+        <label class="check" id="subLabel"><input type="checkbox" id="subtitlesOn" checked> <span>Sous-titres automatiques <span class="hint">(mot par mot, comme sur TikTok)</span> <span class="lock hidden" id="subLock">🔒 Pro</span></span></label>
+        <label class="check"><input type="checkbox" id="showTitle" checked> <span>Afficher un titre sur le clip</span></label>
+        <input type="text" id="titleInput" maxlength="90" placeholder="Ex. : La poursuite la plus folle de Vice City">
+        <div class="ex-times">
+          <span>Début</span><button class="btn ghost xs" data-nudge="s:-1">−1 s</button><b id="exStart"></b><button class="btn ghost xs" data-nudge="s:1">+1 s</button>
+          <span>Fin</span><button class="btn ghost xs" data-nudge="e:-1">−1 s</button><b id="exEnd"></b><button class="btn ghost xs" data-nudge="e:1">+1 s</button>
+        </div>
+        <p class="hint" id="exQuality"></p>
+        <button class="btn primary big" id="btnDoExport">⬇ Exporter</button>
+        <p class="err" id="exErr" role="alert"></p>
+        <div class="ex-result hidden" id="exResult">
+          <div class="bar"><i id="exBar"></i></div>
+          <p class="hint" id="exMsg"></p>
+          <video id="exVideo" controls playsinline class="hidden"></video>
+          <div class="row">
+            <a class="btn primary hidden" id="exDownload" target="_blank" rel="noopener">⬇ Télécharger</a>
+            <button class="btn ghost hidden" id="exSave">⬇ Enregistrer</button>
+            <button class="btn ghost hidden" id="exCopy">📋 Copier la légende</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ MODALE CONNEXION ============ -->
+<div class="modal hidden" id="authModal" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+  <div class="sheet small">
+    <button class="close" data-close aria-label="Fermer">✕</button>
+    <h3 id="authTitle">Crée ton compte gratuit</h3>
+    <p class="hint" id="authSub">3 clips offerts pour essayer, sans carte bancaire.</p>
+    <div class="tabs">
+      <button class="tab active" data-auth="signup">Inscription</button>
+      <button class="tab" data-auth="login">Connexion</button>
+    </div>
+    <form id="authForm" novalidate>
+      <label class="field"><span>E-mail</span><input type="email" id="authEmail" autocomplete="email" required></label>
+      <label class="field"><span>Mot de passe</span><input type="password" id="authPass" autocomplete="new-password" minlength="8" required placeholder="8 caractères minimum"></label>
+      <button class="btn primary big" type="submit" id="authSubmit">Créer mon compte</button>
+      <p class="hint srv" id="authLegal">En créant un compte, tu acceptes les <a href="legal.html#cgv" target="_blank">conditions générales</a> et la <a href="legal.html#confidentialite" target="_blank">politique de confidentialité</a>.</p>
+      <p class="err" id="authErr" role="alert"></p>
+    </form>
+  </div>
+</div>
+
+<div class="toast hidden" id="toast" role="status"></div>
+
+<script src="scoring.js?v=18"></script>
+<script src="layouts.js?v=17"></script>
+<script src="app.js?v=18"></script>
+</body>
+</html>
