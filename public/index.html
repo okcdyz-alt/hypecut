@@ -547,11 +547,11 @@ function layout() {
   // Téléphone : l'écran remplit la largeur (net), puis s'ouvre en vidéo verticale plein écran
   S.Z = mobile() ? (vw / scW) * 1.02 : Math.max(vw / scW, vh / scH) * 1.03;
   S.band = mobile() ? Math.max(0, (vh - scH * S.Z) / 2) : 0;
-  const lv = $('#live'), want = mobile() ? 'l/screen-v.mp4' : 'l/screen.mp4';
+  const lv = $('#live'), want = mobile() ? 'l/screen-mb.mp4' : 'l/screen.mp4';
   if (!lv.src.endsWith(want)) { lv.src = want; liveSynced = false; }
   if (mobile()) Object.assign(lv.style, { width: vw + 'px', height: vh + 'px', left: '0px', top: '0px' });
   else Object.assign(lv.style, { width: scW * S.Z + 'px', height: scH * S.Z + 'px', left: (vw - scW * S.Z) / 2 + 'px', top: (vh - scH * S.Z) / 2 + 'px', clipPath: 'none' });
-  const vt = $('#vtVid'), vwant = mobile() ? 'l/screen-v.mp4' : 'l/screen.mp4'; if (!vt.src.endsWith(vwant)) vt.src = vwant;
+  const vt = $('#vtVid'), vwant = mobile() ? 'l/screen-mb.mp4' : 'l/screen.mp4'; if (!vt.src.endsWith(vwant)) vt.src = vwant;
   // positions des sections (lues une fois, pas à chaque image)
   for (const id of ['hero', 'analyse', 'etapes', 'formats', 'vtext', 'fin']) { const el = document.getElementById(id); OFF[id] = { top: el.offsetTop, h: el.offsetHeight }; }
   // marqueurs
@@ -678,7 +678,8 @@ function frame(now) {
   let liveOp = 0;
   if (near('hero')) {
     const Z = S.Z || 1;
-    const z = lerp(1, Z, Math.pow(zk, mob ? 1.2 : 1.45)) * (1 + 0.04 * (1 - E.o(prog(t, 0, 3))));
+    // téléphone : zoom limité (au-delà, l'image du héros n'a plus assez de pixels et devient floue / pixelisée)
+    const z = lerp(1, mob ? Math.min(Z, 1.32) : Z, Math.pow(zk, mob ? 1 : 1.45)) * (1 + 0.04 * (1 - E.o(prog(t, 0, 3))));
     const fx = S.ox + (MON.x + MON.w / 2) * S.sc, fy = S.oy + (MON.y + MON.h / 2) * S.sc;
     const tx = lerp(fx, vw / 2, zk), ty = lerp(fy, vh / 2, zk);
     const X = tx - (fx - S.ox) * z, Y = ty - (fy - S.oy) * z;
@@ -695,21 +696,23 @@ function frame(now) {
   // entrée dans l'écran : la vidéo plein cadre prend le relais
   const ap = P('analyse'), exit = prog(ap, .93, 1);
   if (mob) {
-    // téléphone : l'écran (bande) s'ouvre en vidéo verticale plein écran
-    const op = prog(hp, zEnd - .04, zEnd + .03), open = E.io(prog(hp, zEnd + .02, zEnd + .16));
-    liveOp = op * (1 - exit);
-    const b = (S.band || 0) * (1 - open); put(live, 'clipPath', b > .5 ? `inset(${b.toFixed(1)}px 0 ${b.toFixed(1)}px 0)` : 'none');
-    put(stage, 'opacity', (1 - E.o(prog(hp, zEnd, zEnd + .06))).toFixed(3)); // la scène s'efface : la vidéo (derrière) apparaît
+    // téléphone : fondu direct vers la vidéo verticale plein écran (pas de découpe animée sur la vidéo, qui la fige sur iPhone)
+    liveOp = E.io(prog(hp, zEnd - .12, zEnd + .02)) * (1 - exit);
+    put(live, 'clipPath', 'none');
+    put(stage, 'opacity', (1 - E.io(prog(hp, zEnd - .08, zEnd + .04))).toFixed(3));
   } else { liveOp = prog(zk, .93, 1) * (1 - exit); put(stage, 'opacity', '1'); }
   if (sy > (OFF.analyse ? OFF.analyse.top + OFF.analyse.h : 1e9)) liveOp = 0;
-  if (liveOp > 0) {
-    if (!liveSynced) { try { if (live.readyState >= 1) live.currentTime = scrVid.currentTime % (live.duration || 15.5); } catch (e) {} liveSynced = true; }
-    // Safari (iPhone, Mac) met en pause les vidéos qu'il juge invisibles (opacité presque nulle au départ) :
-    // on relance tant qu'elle est à l'écran, au lieu d'un seul essai.
+  // lecture : on la lance bien avant qu'elle apparaisse et on ne la coupe que loin de la zone,
+  // pour éviter les arrêts / reprises pendant le swipe (sources de vidéo figée)
+  const lvTop = OFF.hero ? OFF.hero.top + OFF.hero.h * .15 : 0, lvEnd = OFF.analyse ? OFF.analyse.top + OFF.analyse.h + vh : 1e9;
+  const wantPlay = sy > lvTop && sy < lvEnd;
+  if (wantPlay) {
+    if (live.preload !== 'auto') live.preload = 'auto';
+    if (!liveSynced && live.readyState >= 1) { try { live.currentTime = scrVid.currentTime % (live.duration || 15.5); } catch (e) {} liveSynced = true; }
     if (live.paused && t - liveTry > .35) { liveTry = t; live.muted = true; const pr = live.play(); if (pr) pr.catch(() => {}); }
-  } else if (liveSynced) { live.pause(); liveSynced = false; }
+  } else if (!live.paused) { live.pause(); liveSynced = false; }
   put(live, 'opacity', liveOp.toFixed(3));
-  if (scrVid.paused !== (hp > .7)) { if (hp > .7) scrVid.pause(); else scrVid.play().catch(() => {}); }
+  { const on = sy < (OFF.hero ? OFF.hero.top + OFF.hero.h * .85 : 1e9); if (on && scrVid.paused && t - (scrVid._try || 0) > .35) { scrVid._try = t; scrVid.play().catch(() => {}); } else if (!on && !scrVid.paused) scrVid.pause(); }
 
   // ---- analyse
   if (near('analyse')) {
