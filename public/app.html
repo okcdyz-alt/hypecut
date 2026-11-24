@@ -17,7 +17,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Anton&display=swap" rel="stylesheet">
 <script src="i18n.js?v=18"></script>
 <link rel="stylesheet" href="style.css?v=18">
-<link rel="stylesheet" href="app2.css?v=1">
+<link rel="stylesheet" href="app2.css?v=2">
 </head>
 <body>
 <div class="fx" aria-hidden="true"><div class="aurora"><i></i><i></i><i></i></div><div class="beams"><i></i><i></i><i></i></div><canvas id="sparks"></canvas></div>
@@ -375,6 +375,20 @@
         <p class="label">Effets</p>
         <label class="check" id="pbLabel"><input type="checkbox" id="progressBar" checked> <span>Barre de progression <span class="hint">(pousse à regarder jusqu’au bout)</span> <span class="lock hidden" id="pbLock">🔒 Pro</span></span></label>
         <label class="check" id="subLabel"><input type="checkbox" id="subtitlesOn" checked> <span>Sous-titres automatiques <span class="hint">(mot par mot, comme sur TikTok)</span> <span class="lock hidden" id="subLock">🔒 Pro</span></span></label>
+        <div class="substyle hidden" id="subStyleBox">
+          <p class="label">Police des sous-titres</p>
+          <div class="font-grid" id="subFonts" role="radiogroup" aria-label="Police des sous-titres"></div>
+          <p class="label">Style</p>
+          <div class="seg seg4" id="subStyleSeg" role="radiogroup" aria-label="Style des sous-titres"></div>
+          <p class="label">Couleur</p>
+          <div class="swatches" id="subColors" role="radiogroup" aria-label="Couleur des sous-titres"></div>
+          <p class="label">Mot prononcé</p>
+          <div class="swatches" id="subHi" role="radiogroup" aria-label="Couleur du mot prononcé"></div>
+          <div class="sub-row">
+            <div class="seg seg3" id="subSize" role="radiogroup" aria-label="Taille"><button data-v="s">Petit</button><button data-v="m">Moyen</button><button data-v="l">Grand</button></div>
+            <label class="check"><input type="checkbox" id="subUpper" checked> <span>MAJUSCULES</span></label>
+          </div>
+        </div>
         <label class="check"><input type="checkbox" id="showTitle" checked> <span>Afficher un titre sur le clip</span></label>
         <input type="text" id="titleInput" maxlength="90" placeholder="Ex. : La poursuite la plus folle de Vice City">
         <div class="ex-times">
@@ -423,7 +437,8 @@
 
 <script src="scoring.js?v=18"></script>
 <script src="layouts.js?v=17"></script>
-<script src="app.js?v=18"></script>
+<script src="substyles.js?v=2"></script>
+<script src="app.js?v=19"></script>
 <script src="app2.js?v=1"></script>
 </body>
 </html>

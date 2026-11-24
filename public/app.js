@@ -228,8 +228,27 @@
     $('#focusX').addEventListener('input', (e) => { S.ex.focusX = +e.target.value; drawPreview(); });
     $('#subtitlesOn').addEventListener('change', (e) => {
       if (e.target.checked && !effectsAllowed()) { e.target.checked = false; $('#exErr').innerHTML = 'Les sous-titres automatiques sont inclus dans les offres Pro et Créateur. <a href="#offres" data-close>Voir les offres</a>'; return; }
-      S.ex.subtitles = e.target.checked; drawPreview();
+      S.ex.subtitles = e.target.checked; syncSubStyleUI(); drawPreview();
     });
+    // Style des sous-titres (police, style, couleurs) — mémorisé pour les exports suivants
+    {
+      const SS = window.SubStyles;
+      const pick = (sel, key) => $(sel).addEventListener('click', (e) => {
+        const b = e.target.closest('button[data-v]'); if (!b) return;
+        S.subStyle[key] = b.dataset.v;
+        if (key === 'font') S.subStyle.upper = SS.FONTS.find((f) => f.id === b.dataset.v).upper;
+        S.subStyle = SS.sanitize(S.subStyle); saveSubStyle(); syncSubStyleUI(); drawPreview();
+      });
+      $('#subFonts').innerHTML = SS.FONTS.map((f) => `<button type="button" role="radio" data-v="${f.id}" title="${f.label}"><b style="font-family:'${f.css}',sans-serif${f.bold ? ';font-weight:700' : ''}">Aa</b><span>${f.label}</span></button>`).join('');
+      $('#subStyleSeg').innerHTML = SS.STYLES.map((x) => `<button type="button" role="radio" data-v="${x.id}">${x.label}</button>`).join('');
+      const sw = SS.COLORS.map((c) => `<button type="button" role="radio" data-v="${c.id}" style="background:${c.hex}" aria-label="${c.label}" title="${c.label}"></button>`).join('');
+      $('#subColors').innerHTML = sw;
+      $('#subHi').innerHTML = '<button type="button" role="radio" class="none" data-v="none" aria-label="Aucune mise en avant" title="Aucune mise en avant">Aucune</button>' + sw;
+      pick('#subFonts', 'font'); pick('#subStyleSeg', 'style'); pick('#subColors', 'color'); pick('#subHi', 'hi'); pick('#subSize', 'size');
+      $('#subUpper').addEventListener('change', (e) => { S.subStyle.upper = e.target.checked; saveSubStyle(); drawPreview(); });
+      if (document.fonts) SS.FONTS.forEach((f) => document.fonts.load(`${f.bold ? 'bold ' : ''}40px "${f.css}"`).then(() => { if (S.ex && S.ex.img) drawPreview(); }).catch(() => {}));
+      syncSubStyleUI();
+    }
     $('#showTitle').addEventListener('change', (e) => { S.ex.showTitle = e.target.checked; drawPreview(); });
     $('#progressBar').addEventListener('change', (e) => {
       if (e.target.checked && !effectsAllowed()) { e.target.checked = false; $('#exErr').innerHTML = 'Les effets sont inclus dans les offres Pro et Créateur. <a href="#offres" data-close>Voir les offres</a>'; return; }
@@ -634,7 +653,7 @@
     S.ex = { idx: i, layout, bgId: S.lastBg || S.bgs?.[0]?.id || null, start: st.start, end: st.end, title: st.title, showTitle: true, progressBar: effectsAllowed(), subtitles: effectsAllowed() && S.mode !== 'demo', titlePos: S.titlePos || null, subPos: S.subPos || null, focusX: 0.5, corner: S.corner, camRect: S.camRect || { x: 0.02, y: 0.03, w: 0.26, h: 0.3 }, img: null, frame: null, busy: false };
     $('#titleInput').value = st.title; $('#showTitle').checked = true; $('#focusX').value = 0.5;
     $('#progressBar').checked = effectsAllowed(); $('#pbLock').classList.toggle('hidden', effectsAllowed());
-    $('#subtitlesOn').checked = S.ex.subtitles; $('#subLock').classList.toggle('hidden', effectsAllowed()); $('#subLabel').classList.toggle('hidden', S.mode === 'demo');
+    $('#subtitlesOn').checked = S.ex.subtitles; syncSubStyleUI(); $('#subLock').classList.toggle('hidden', effectsAllowed()); $('#subLabel').classList.toggle('hidden', S.mode === 'demo');
     $('#exErr').innerHTML = ''; $('#exResult').classList.add('hidden');
     ['#exDownload', '#exSave', '#exCopy', '#exVideo'].forEach((s) => $(s).classList.add('hidden'));
     $('#btnDoExport').disabled = false;
@@ -718,7 +737,7 @@
       const blockH = lh * lines.length;
       let y0 = pos.title ? pos.title.y * H - blockH / 2 : comp.title.anchor === 'center' ? comp.title.y - blockH / 2 : comp.title.y;
       y0 = Math.max(8, Math.min(H - blockH - 8, y0));
-      ctx.font = `${fs}px Anton, Impact, "Arial Black", sans-serif`; ctx.textBaseline = 'top';
+      ctx.font = `${fs}px "HC Anton", Anton, Impact, "Arial Black", sans-serif`; ctx.textBaseline = 'top';
       const maxW = Math.max(...lines.map((l) => ctx.measureText(l).width));
       const cx = pos.title ? Math.max(maxW / 2 + pad + 8, Math.min(W - maxW / 2 - pad - 8, pos.title.x * W)) : W / 2;
       drawComp.boxes.title = { x0: cx - maxW / 2 - pad, x1: cx + maxW / 2 + pad, y0: y0 - pad, y1: y0 + blockH + pad, cx, cy: y0 + blockH / 2 };
@@ -730,15 +749,16 @@
       if (pos.guides) { const b = drawComp.boxes.title; ctx.save(); ctx.setLineDash([fs * 0.25, fs * 0.2]); ctx.lineWidth = Math.max(2, W * 0.004); ctx.strokeStyle = 'rgba(255,210,61,.9)'; ctx.strokeRect(b.x0, b.y0, b.x1 - b.x0, b.y1 - b.y0); ctx.restore(); }
     }
     if (subs) {
-      const fs = Math.round(W > H ? H * 0.075 : W * 0.085), words = ['TES', 'SOUS-TITRES', 'ICI'];
-      ctx.font = `${fs}px Anton, Impact, "Arial Black", sans-serif`; ctx.textBaseline = 'middle'; ctx.lineJoin = 'round';
-      const sp = fs * 0.28, widths = words.map((w) => ctx.measureText(w).width), total = widths.reduce((a, b) => a + b, 0) + sp * (words.length - 1);
+      const SS = window.SubStyles, st = S.subStyle || SS.DEFAULT, rs = SS.resolve(st);
+      const base = Math.round(W > H ? H * 0.075 : W * 0.085), fs = base * rs.scale, words = ['Tes', 'sous-titres', 'ici'];
+      ctx.save(); ctx.font = `${rs.font.bold ? 'bold ' : ''}${fs}px "${rs.font.css}", Impact, sans-serif`;
+      const sp = fs * 0.36, total = words.map((w) => ctx.measureText(rs.st.upper ? w.toUpperCase() : w).width).reduce((a, b) => a + b, 0) + sp * (words.length - 1);
+      ctx.restore();
       const y = pos.sub ? Math.max(fs, Math.min(H - fs, pos.sub.y * H)) : L.subtitleY(comp, (lines || []).length);
       const cx = pos.sub ? Math.max(total / 2 + 8, Math.min(W - total / 2 - 8, pos.sub.x * W)) : W / 2;
       drawComp.boxes.sub = { x0: cx - total / 2 - fs * 0.3, x1: cx + total / 2 + fs * 0.3, y0: y - fs * 0.8, y1: y + fs * 0.8, cx, cy: y };
       if (pos.guides) { ctx.save(); ctx.setLineDash([fs * 0.25, fs * 0.2]); ctx.lineWidth = Math.max(2, W * 0.004); ctx.strokeStyle = 'rgba(46,230,214,.9)'; const b = drawComp.boxes.sub; ctx.strokeRect(b.x0, b.y0, b.x1 - b.x0, b.y1 - b.y0); ctx.restore(); }
-      let x = cx - total / 2;
-      words.forEach((w, i) => { ctx.lineWidth = Math.max(4, fs * 0.18); ctx.strokeStyle = '#000'; ctx.strokeText(w, x, y); ctx.fillStyle = i === 1 ? '#ffd23d' : '#fff'; ctx.fillText(w, x, y); x += widths[i] + sp; });
+      SS.drawCanvas(ctx, words, cx, y, base, st, 1);
     }
     if (progress !== undefined && progress !== null) {
       const bh = Math.max(6, Math.round(H * 0.009));
@@ -747,11 +767,20 @@
     }
     if (watermark) {
       const fs = Math.round(Math.min(W, H) * 0.045);
-      ctx.font = `${fs}px Anton, Impact, sans-serif`; ctx.textBaseline = 'alphabetic';
+      ctx.font = `${fs}px "HC Anton", Anton, Impact, sans-serif`; ctx.textBaseline = 'alphabetic';
       ctx.fillStyle = 'rgba(0,0,0,0.5)'; const tw = ctx.measureText('HYPECUT').width;
       const x = W - tw - W * 0.04, y = H - H * (W < H ? 0.13 : 0.05);
       ctx.fillText('HYPECUT', x + 2, y + 2); ctx.fillStyle = 'rgba(255,255,255,0.75)'; ctx.fillText('HYPECUT', x, y);
     }
+  }
+  function saveSubStyle() { try { localStorage.setItem('hc_substyle', JSON.stringify(S.subStyle)); } catch (e) {} }
+  function syncSubStyleUI() {
+    if (!S.subStyle) { let saved = null; try { saved = JSON.parse(localStorage.getItem('hc_substyle')); } catch (e) {} S.subStyle = window.SubStyles.sanitize(saved); }
+    const st = S.subStyle;
+    const mark = (sel, v) => $$(sel + ' button').forEach((b) => { const on = b.dataset.v === String(v); b.classList.toggle('active', on); b.setAttribute('aria-checked', on ? 'true' : 'false'); });
+    mark('#subFonts', st.font); mark('#subStyleSeg', st.style); mark('#subColors', st.color); mark('#subHi', st.hi); mark('#subSize', st.size);
+    $('#subUpper').checked = st.upper;
+    $('#subStyleBox').classList.toggle('hidden', !(S.ex && S.ex.subtitles));
   }
   const titleLinesFor = (layout, title) => L.wrapTitle(title, layout === 'landscape' ? 34 : layout === 'square' ? 24 : 20);
   const wantsWatermark = () => (S.mode === 'demo' ? true : !!S.user?.features?.watermark);
@@ -895,7 +924,7 @@
   async function serverExport(ex) {
     $('#exMsg').textContent = 'Envoi de la demande…';
     if (L.LAYOUTS[ex.layout]?.bg && !ex.bgId) throw new Error('Choisis une vidéo satisfaisante pour le bas de l’écran.');
-    const body = { bgId: ex.bgId, clipIdx: ex.idx, layout: ex.layout, start: ex.start, end: ex.end, camRect: ex.camRect, corner: ex.corner, focusX: ex.focusX, title: ex.title, showTitle: ex.showTitle, progressBar: !!ex.progressBar, subtitles: !!ex.subtitles, titlePos: ex.titlePos, subPos: ex.subPos };
+    const body = { bgId: ex.bgId, clipIdx: ex.idx, layout: ex.layout, start: ex.start, end: ex.end, camRect: ex.camRect, corner: ex.corner, focusX: ex.focusX, title: ex.title, showTitle: ex.showTitle, progressBar: !!ex.progressBar, subtitles: !!ex.subtitles, subStyle: S.subStyle, titlePos: ex.titlePos, subPos: ex.subPos };
     const r = await api(`api/jobs/${S.jobId}/export`, { method: 'POST', body });
     S.user = r.user; renderHeader(); syncQuality();
     const id = r.ids[0];
@@ -928,7 +957,7 @@
       if (S.mode === 'server' && !S.bgs) { try { S.bgs = (await api('api/backgrounds')).backgrounds; } catch { S.bgs = []; } }
       const layout = defaultLayout();
       const bgId = S.lastBg || S.bgs?.[0]?.id || null;
-      const r = await api(`api/jobs/${S.jobId}/export`, { method: 'POST', body: { all: true, layout, bgId, camRect: S.camRect, corner: S.corner, focusX: 0.5, useAiTitles: true, progressBar: effectsAllowed(), subtitles: effectsAllowed(), titlePos: S.titlePos || null, subPos: S.subPos || null } });
+      const r = await api(`api/jobs/${S.jobId}/export`, { method: 'POST', body: { all: true, layout, bgId, camRect: S.camRect, corner: S.corner, focusX: 0.5, useAiTitles: true, progressBar: effectsAllowed(), subtitles: effectsAllowed(), subStyle: S.subStyle, titlePos: S.titlePos || null, subPos: S.subPos || null } });
       S.user = r.user; renderHeader();
       toast(`${r.ids.length} clips en cours de montage (format : ${L.LAYOUTS[layout].label}).`);
       loadJob(S.jobId);

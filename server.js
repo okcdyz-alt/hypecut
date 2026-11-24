@@ -22,6 +22,7 @@ const mail = require('./lib/mail');
 const admin = require('./lib/admin');
 const library = require('./lib/library');
 const Layouts = require('./public/layouts');
+const SubStyles = require('./public/substyles');
 
 const PORT = +process.env.PORT || 3000;
 const PUBLIC_URL = (process.env.PUBLIC_URL || process.env.RENDER_EXTERNAL_URL || `http://localhost:${PORT}`).replace(/\/$/, '');
@@ -29,7 +30,7 @@ const SECURE = PUBLIC_URL.startsWith('https://');
 const PUBLIC_DIR = path.join(__dirname, 'public');
 const ALLOW_PLATFORMS = process.env.ALLOW_PLATFORM_LINKS !== 'false';
 
-const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml', '.png': 'image/png', '.jpg': 'image/jpeg', '.ico': 'image/x-icon', '.mp4': 'video/mp4', '.webm': 'video/webm', '.mov': 'video/quicktime', '.mkv': 'video/x-matroska', '.json': 'application/json', '.webp': 'image/webp', '.woff': 'font/woff', '.woff2': 'font/woff2' };
+const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml', '.png': 'image/png', '.jpg': 'image/jpeg', '.ico': 'image/x-icon', '.mp4': 'video/mp4', '.webm': 'video/webm', '.mov': 'video/quicktime', '.mkv': 'video/x-matroska', '.json': 'application/json', '.webp': 'image/webp', '.woff': 'font/woff', '.woff2': 'font/woff2', '.ttf': 'font/ttf', '.txt': 'text/plain; charset=utf-8' };
 
 let ytdlpOk = false;
 media.run(process.env.YTDLP_PATH || 'yt-dlp', ['--version'], { timeoutMs: 10000 }).then(() => (ytdlpOk = true)).catch(() => {});
@@ -361,6 +362,7 @@ function exportOptions(b, clip) {
     title: b.showTitle === false ? '' : String(b.title || '').slice(0, 90),
     progressBar: b.progressBar === true,
     subtitles: b.subtitles === true,
+    subStyle: SubStyles.sanitize(b.subStyle),
     titlePos: posOf(b.titlePos), subPos: posOf(b.subPos),
     bgId: typeof b.bgId === 'string' ? b.bgId.slice(0, 64) : null,
   };

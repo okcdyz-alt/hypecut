@@ -279,3 +279,29 @@ input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;bac
 }
 @media (max-width:480px){.clips{grid-template-columns:1fr 1fr}.clip .actions{flex-direction:column}}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}#sparks,.beams{display:none}}
+
+/* Styles des sous-titres (façon TikTok) */
+@font-face{font-family:"HC Poppins";src:url(fonts/subs/Poppins-Black.ttf) format("truetype");font-display:swap}
+@font-face{font-family:"HC Anton";src:url(fonts/subs/Anton-Regular.ttf) format("truetype");font-display:swap}
+@font-face{font-family:"HC Bebas";src:url(fonts/subs/BebasNeue-Regular.ttf) format("truetype");font-display:swap}
+@font-face{font-family:"HC Luckiest";src:url(fonts/subs/LuckiestGuy-Regular.ttf) format("truetype");font-display:swap}
+@font-face{font-family:"HC Bangers";src:url(fonts/subs/Bangers-Regular.ttf) format("truetype");font-display:swap}
+@font-face{font-family:"HC Marker";src:url(fonts/subs/PermanentMarker-Regular.ttf) format("truetype");font-display:swap}
+@font-face{font-family:"HC Courier";src:url(fonts/subs/CourierPrime-Bold.ttf) format("truetype");font-weight:700;font-display:swap}
+@font-face{font-family:"HC DMSerif";src:url(fonts/subs/DMSerifDisplay-Regular.ttf) format("truetype");font-display:swap}
+.substyle{margin:4px 0 14px;padding:12px;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.025)}
+.substyle .label{margin-top:10px}.substyle .label:first-child{margin-top:0}
+.font-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.font-grid button{display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 4px;border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.04);cursor:pointer;color:inherit;transition:all .25s}
+.font-grid button b{font-size:22px;line-height:1.1;font-weight:400}
+.font-grid button span{font-size:10.5px;opacity:.7;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.font-grid button.active{border-color:rgba(255,61,139,.7);background:rgba(255,61,139,.12)}
+.seg.seg4{grid-template-columns:repeat(4,1fr)}.seg.seg3{grid-template-columns:repeat(3,1fr)}
+.swatches{display:flex;flex-wrap:wrap;gap:8px}
+.swatches button{width:30px;height:30px;border-radius:50%;border:2px solid rgba(255,255,255,.22);cursor:pointer;padding:0;position:relative;transition:transform .2s}
+.swatches button:hover{transform:scale(1.08)}
+.swatches button.active{outline:2px solid #fff;outline-offset:2px}
+.swatches button.none{background:repeating-linear-gradient(45deg,#2a2433 0 4px,#3a3346 4px 8px);font-size:0}
+.swatches button.none::after{content:"";position:absolute;left:4px;right:4px;top:50%;height:2px;background:#ff3d8b;transform:rotate(-45deg)}
+.sub-row{display:flex;align-items:center;gap:12px;margin-top:12px;flex-wrap:wrap}.sub-row .seg{flex:1;min-width:180px}.sub-row .check{margin:0}
+@media (max-width:480px){.font-grid{grid-template-columns:repeat(4,1fr)}.font-grid button b{font-size:18px}.swatches button{width:34px;height:34px}}
