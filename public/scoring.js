@@ -20,8 +20,8 @@
 })(typeof self !== 'undefined' ? self : this, function () {
   // v = voix qui s'emballe, s = cri, r = rires, l = volume, o = impacts, b = graves/explosion, m = action, f = flash
   const WEIGHTS = {
-    balanced: { v: 0.24, s: 0.13, r: 0.15, l: 0.10, o: 0.11, b: 0.07, m: 0.15, f: 0.05 },
-    audio:    { v: 0.28, s: 0.16, r: 0.18, l: 0.12, o: 0.12, b: 0.06, m: 0.05, f: 0.03 },
+    balanced: { v: 0.26, s: 0.14, r: 0.18, l: 0.05, o: 0.08, b: 0.07, m: 0.17, f: 0.05 },
+    audio:    { v: 0.31, s: 0.18, r: 0.22, l: 0.06, o: 0.09, b: 0.06, m: 0.05, f: 0.03 },
     action:   { v: 0.12, s: 0.07, r: 0.06, l: 0.07, o: 0.16, b: 0.12, m: 0.28, f: 0.12 },
   };
   const LABELS = {
@@ -263,7 +263,7 @@
   }
 
   /** Choisit les meilleurs moments sans chevauchement, avec des coupes propres. */
-  function pickClips(scored, step, duration, clipLen, count) {
+  function pickClips(scored, step, duration, clipLen, count, pool = false) {
     const { series, sm, grid, voice, dead } = scored;
     const n = series.length;
     if (!n) return [];
@@ -326,7 +326,7 @@
       const near = clips.some((c) => Math.abs(c.peak - cand.peakT) < 90);
       const v = cand.value * (near ? 0.9 : 1);
       // On préfère moins de clips à des clips sans intérêt
-      if (clips.length >= 1 && (v < best * 0.42 || series[cand.i] < 30)) continue;
+      if (clips.length >= 1 && (pool ? (v < best * 0.25 || series[cand.i] < 20) : (v < best * 0.42 || series[cand.i] < 30))) continue;
       clips.push({
         start: +cand.start.toFixed(2),
         end: +(cand.start + L).toFixed(2),
@@ -337,7 +337,7 @@
       });
     }
     clips.sort((x, y) => y._v - x._v);
-    for (const c of clips) delete c._v;
+    if (!pool) for (const c of clips) delete c._v;
     return clips;
   }
 
@@ -352,7 +352,8 @@
 
   function analyzeFeatures(feats, opts) {
     const scored = score(feats, opts.step, opts.priority, { duration: opts.duration });
-    const clips = pickClips(scored, opts.step, opts.duration, opts.clipLen, opts.count);
+    // opts.pool : nombre de candidats à garder pour une 2e passe (serveur) ; sinon sélection directe
+    const clips = pickClips(scored, opts.step, opts.duration, opts.clipLen, opts.pool || opts.count, !!opts.pool);
     const d = displaySeries(scored.series, scored.grid);
     return { series: d.series, step: d.step, clips };
   }
