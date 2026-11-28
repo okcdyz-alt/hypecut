@@ -27,11 +27,11 @@ body{margin:0;background:#FFFFFF}a{color:#0A0A0A}a:hover{color:#404040}input::pl
 @keyframes ld{0%,8%{clip-path:inset(0 0 0 0)}13%,94%{clip-path:inset(0 0 100% 0)}99%,100%{clip-path:inset(0 0 0 0)}}@keyframes bar{0%{width:0}8%,100%{width:100%}}
 @keyframes odo{0%{transform:translateY(0)}1.5%{transform:translateY(-1em)}3%{transform:translateY(-2em)}4.5%{transform:translateY(-3em)}6%{transform:translateY(-4em)}7.5%,100%{transform:translateY(-5em)}}
 @keyframes rs{0%,13%{transform:translateY(110%)}20%,37%{transform:translateY(0)}41%,100%{transform:translateY(-110%)}}@keyframes rsL{0%,13%{transform:translateY(110%)}20%,68%{transform:translateY(0)}72%,100%{transform:translateY(-110%)}}
-@keyframes card{0%,70%{transform:translateY(115%)}78%,100%{transform:none}}@keyframes bi{0%,72%{opacity:0;transform:translateY(18px);filter:blur(8px)}82%,100%{opacity:1;transform:none;filter:none}}
-@keyframes apDrop{0%,13%{transform:translateY(-560px) rotate(-32deg);filter:blur(14px)}21%{transform:translateY(8px) rotate(-4deg);filter:blur(0)}24%,70%{transform:translateY(0) rotate(-8deg);filter:none}79%,100%{transform:translateY(-118px) rotate(-8deg) scale(.94)}}
-@keyframes apDropD{0%,13%{transform:translateY(-560px) rotate(-32deg);filter:blur(14px)}21%{transform:translateY(8px) rotate(-4deg);filter:blur(0)}24%,100%{transform:translateY(0) rotate(-8deg);filter:none}}@keyframes rsD{0%,13%{transform:translateY(110%)}20%,100%{transform:translateY(0)}}@keyframes apShock{0%,20%{opacity:0;transform:scale(.2)}21%{opacity:.95;transform:scale(.3)}32%,100%{opacity:0;transform:scale(2.6)}}@keyframes apShadow{0%,19%{opacity:0;transform:scale(.3)}22%,70%{opacity:.6;transform:scale(1)}79%,100%{opacity:.25;transform:scale(.7)}}
+@keyframes card{0%,70%{transform:translateY(115%)}78%,100%{transform:none}}@keyframes bi{0%,72%{opacity:0;transform:translateY(18px)}82%,100%{opacity:1;transform:none;filter:none}}
+@keyframes apDrop{0%,13%{transform:translateY(-560px) rotate(-32deg)}21%{transform:translateY(8px) rotate(-4deg)}24%,70%{transform:translateY(0) rotate(-8deg);filter:none}79%,100%{transform:translateY(-118px) rotate(-8deg) scale(.94)}}
+@keyframes apDropD{0%,13%{transform:translateY(-560px) rotate(-32deg)}21%{transform:translateY(8px) rotate(-4deg)}24%,100%{transform:translateY(0) rotate(-8deg)}}@keyframes rsD{0%,13%{transform:translateY(110%)}20%,100%{transform:translateY(0)}}@keyframes apShock{0%,20%{opacity:0;transform:scale(.2)}21%{opacity:.95;transform:scale(.3)}32%,100%{opacity:0;transform:scale(2.6)}}@keyframes apShadow{0%,19%{opacity:0;transform:scale(.3)}22%,70%{opacity:.6;transform:scale(1)}79%,100%{opacity:.25;transform:scale(.7)}}
 @keyframes dust{0%,20.5%{opacity:0;transform:translate(0,0) scale(1)}21.5%{opacity:1}33%,100%{opacity:0;transform:translate(var(--x),var(--y)) scale(.3)}}@keyframes gloss{0%,25%{transform:translateX(-110%)}35%,81%{transform:translateX(110%)}81.1%{transform:translateX(-110%)}90%,100%{transform:translateX(110%)}}
-@keyframes apCam{0%,40%{transform:none;filter:none}44%{filter:blur(2px)}48%,55%{transform:scale(2.6) translate(-74px,-55px);filter:none}60%,66%{transform:scale(2.6) translate(23px,19px)}71%,100%{transform:none}}
+@keyframes apCam{0%,40%{transform:none;filter:none}48%,55%{transform:scale(2.6) translate(-74px,-55px);filter:none}60%,66%{transform:scale(2.6) translate(23px,19px)}71%,100%{transform:none}}
 @keyframes hot1{0%,48%{opacity:0;transform:translateY(8px)}50%,55%{opacity:1;transform:none}57%,100%{opacity:0}}@keyframes hot2{0%,60%{opacity:0;transform:translateY(8px)}62%,66%{opacity:1;transform:none}68%,100%{opacity:0}}
 @keyframes lnA{0%,48%{stroke-dashoffset:260}52%,100%{stroke-dashoffset:0}}@keyframes lnB{0%,60%{stroke-dashoffset:260}64%,100%{stroke-dashoffset:0}}
 @keyframes fh1{0%,46%{opacity:0;transform:translateY(8px)}48%,53%{opacity:1;transform:none}55%,100%{opacity:0}}@keyframes fh2{0%,57%{opacity:0;transform:translateY(8px)}59%,64%{opacity:1;transform:none}66%,100%{opacity:0}}
@@ -40,34 +40,34 @@ body{margin:0;background:#FFFFFF}a{color:#0A0A0A}a:hover{color:#404040}input::pl
 @keyframes fmBox{0%,70%{transform:none}78%,100%{transform:translateY(-34px) scale(.86)}}@keyframes blind{0%,13%{transform:scaleY(1)}19%,100%{transform:scaleY(0)}}
 @keyframes fmHue{0%,57%{filter:none}59%,61%{filter:hue-rotate(150deg)}63%,65%{filter:hue-rotate(215deg)}67%,100%{filter:none}}@keyframes swPanel{0%,55%{opacity:0;transform:translateY(14px)}57%,67%{opacity:1;transform:none}69%,100%{opacity:0}}
 @keyframes swRing{0%,58%{transform:translateX(0)}60%,62%{transform:translateX(30px)}64%,66%{transform:translateX(60px)}68%,100%{transform:translateX(0)}}
-@keyframes rvBg{0%,13%{transform:scale(1.35);filter:blur(8px) brightness(.35)}30%{transform:scale(1.12);filter:none}40%{transform:scale(1.04);filter:none}58%{transform:scale(5.5);filter:blur(4px) brightness(1.4)}62%,100%{transform:scale(6);filter:blur(10px) brightness(1.8)}}
+@keyframes rvBg{0%,13%{transform:scale(1.35);filter:brightness(.35)}30%{transform:scale(1.12);filter:none}40%{transform:scale(1.04);filter:none}58%{transform:scale(5.5);filter:brightness(1.4)}62%,100%{transform:scale(6);filter:brightness(1.8)}}
 @keyframes glow{0%,18%{opacity:0;transform:scale(.4)}21%{opacity:1;transform:scale(1.15)}23%{opacity:.7;transform:scale(1)}25%,100%{opacity:1;transform:scale(1)}}@keyframes flash{0%,55%{opacity:0}60%{opacity:1}66%,100%{opacity:0}}
-@keyframes rvIn{0%,59%{opacity:0;transform:scale(1.35)}62%{opacity:1}100%{opacity:1;transform:scale(1)}}@keyframes rvTxt{0%,63%{opacity:0;transform:translateY(16px);filter:blur(8px)}66%,70%{opacity:1;transform:none;filter:none}73%,100%{opacity:0}}
+@keyframes rvIn{0%,59%{opacity:0;transform:scale(1.35)}62%{opacity:1}100%{opacity:1;transform:scale(1)}}@keyframes rvTxt{0%,63%{opacity:0;transform:translateY(16px)}66%,70%{opacity:1;transform:none;filter:none}73%,100%{opacity:0}}
 @keyframes flt{0%,100%{translate:0 0}50%{translate:0 -10px}}@keyframes lift{0%,100%{transform:translateY(0)}50%{transform:translateY(-14px)}}@keyframes gr{0%{transform:translate(0,0)}25%{transform:translate(-4%,3%)}50%{transform:translate(3%,-4%)}75%{transform:translate(-3%,-2%)}}
-@keyframes dPush{0%,10%{transform:scale(1.3);filter:blur(8px) brightness(.35)}35%{transform:scale(1.08);filter:none}100%{transform:scale(1)}}@keyframes kb2{from{transform:scale(1)}to{transform:scale(1.12)}}@keyframes shn{0%,40%{transform:translateX(-100%)}80%,100%{transform:translateX(100%)}}
-@keyframes intro{0%{transform:scale(2.9)}100%{transform:none}}@keyframes rv{from{opacity:0;transform:translateY(30px);filter:blur(10px)}to{opacity:1;transform:none;filter:none}}
+@keyframes dPush{0%,10%{transform:scale(1.3);filter:brightness(.35)}35%{transform:scale(1.08);filter:none}100%{transform:scale(1)}}@keyframes kb2{from{transform:scale(1)}to{transform:scale(1.12)}}@keyframes shn{0%,40%{transform:translateX(-100%)}80%,100%{transform:translateX(100%)}}
+@keyframes intro{0%{transform:scale(2.9)}100%{transform:none}}@keyframes rv{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:none;filter:none}}
 @media (prefers-reduced-motion:reduce){*,*::after{animation:none!important}.ld,.blind,.flash,.rvIn,.rvTxt,.hot1,.hot2,.fh1,.fh2,.swPanel,.apShock{display:none}}
 .tealImg{background:url(img/teal.webp) center/contain no-repeat}.candleImg{background:url(img/candle.jpg) center 56%/auto 70% no-repeat}
 .ov{display:inline-block;overflow:hidden;vertical-align:bottom;padding-bottom:.06em}.hw{display:inline-block}
 .hL{animation:hL 1.3s cubic-bezier(.22,1,.36,1) both}.hR{animation:hR 1.3s cubic-bezier(.22,1,.36,1) both}.hU{animation:hU 1.2s cubic-bezier(.22,1,.36,1) both}.hW{animation:hW 1.4s cubic-bezier(.65,0,.35,1) both}.hS{animation:hS 1.1s cubic-bezier(.22,1,.36,1) both}
-@keyframes hL{from{opacity:0;transform:translateX(-90px);filter:blur(12px)}to{opacity:1;transform:none;filter:none}}@keyframes hR{from{opacity:0;transform:translateX(90px);filter:blur(12px)}to{opacity:1;transform:none;filter:none}}
-@keyframes hU{from{transform:translateY(110%)}to{transform:none}}@keyframes hW{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0 0 0)}}@keyframes hS{from{opacity:0;transform:scale(.86);filter:blur(10px)}to{opacity:1;transform:none;filter:none}}
+@keyframes hL{from{opacity:0;transform:translateX(-90px)}to{opacity:1;transform:none;filter:none}}@keyframes hR{from{opacity:0;transform:translateX(90px)}to{opacity:1;transform:none;filter:none}}
+@keyframes hU{from{transform:translateY(110%)}to{transform:none}}@keyframes hW{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0 0 0)}}@keyframes hS{from{opacity:0;transform:scale(.86)}to{opacity:1;transform:none;filter:none}}
 .rL,.rR,.rU,.rS,.rM,.rW{transition:opacity 1s cubic-bezier(.22,1,.36,1),transform 1.15s cubic-bezier(.22,1,.36,1),filter 1s cubic-bezier(.22,1,.36,1),clip-path 1.3s cubic-bezier(.65,0,.35,1)}
-.rL{opacity:0;transform:translateX(-80px);filter:blur(10px)}.rR{opacity:0;transform:translateX(80px);filter:blur(10px)}.rU{opacity:0;transform:translateY(60px);filter:blur(10px)}.rS{opacity:0;transform:scale(.88);filter:blur(12px)}.rM{display:inline-block;transform:translateY(110%)}.rW{clip-path:inset(0 100% 0 0)}
+.rL{opacity:0;transform:translateX(-80px)}.rR{opacity:0;transform:translateX(80px)}.rU{opacity:0;transform:translateY(60px)}.rS{opacity:0;transform:scale(.88)}.rM{display:inline-block;transform:translateY(110%)}.rW{clip-path:inset(0 100% 0 0)}
 .in .rL,.in .rR,.in .rU,.in .rS{opacity:1;transform:none;filter:none}.in .rM{transform:none}.in .rW{clip-path:inset(0 0 0 0)}
 .mq{display:flex;width:max-content;animation:mq 26s linear infinite}@keyframes mq{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 .mOdo{animation:mOdo 3s step-end infinite}@keyframes mOdo{0%{transform:translateY(0)}12%{transform:translateY(-1em)}24%{transform:translateY(-2em)}36%{transform:translateY(-3em)}48%{transform:translateY(-4em)}60%,100%{transform:translateY(-5em)}}
 .mBar{animation:mBar 3s linear infinite}@keyframes mBar{0%{width:0}60%,100%{width:100%}}
 .mRise{display:inline-block;animation:mRise 3.2s cubic-bezier(.22,1,.36,1) infinite}@keyframes mRise{0%,8%{transform:translateY(110%)}30%,75%{transform:none}92%,100%{transform:translateY(-110%)}}
-.mDrop{animation:mDrop 3.2s cubic-bezier(.22,1,.36,1) infinite}@keyframes mDrop{0%,10%{transform:translateY(-200px) rotate(-30deg);filter:blur(8px);opacity:0}12%{opacity:1}38%{transform:translateY(4px) rotate(-5deg);filter:none}46%,86%{transform:rotate(-8deg);opacity:1}100%{transform:rotate(-8deg);opacity:0}}
+.mDrop{animation:mDrop 3.2s cubic-bezier(.22,1,.36,1) infinite}@keyframes mDrop{0%,10%{transform:translateY(-200px) rotate(-30deg);opacity:0}12%{opacity:1}38%{transform:translateY(4px) rotate(-5deg);filter:none}46%,86%{transform:rotate(-8deg);opacity:1}100%{transform:rotate(-8deg);opacity:0}}
 .mRing{animation:mRing 3.2s ease-out infinite}@keyframes mRing{0%,37%{opacity:0;transform:scale(.2)}39%{opacity:.9;transform:scale(.3)}60%,100%{opacity:0;transform:scale(2.4)}}
-.mZoom{animation:mZoom 5s cubic-bezier(.65,0,.35,1) infinite;transform-origin:50% 55%}@keyframes mZoom{0%,10%{transform:scale(1)}55%,75%{transform:scale(3.2);filter:blur(1px)}95%,100%{transform:scale(1)}}
+.mZoom{animation:mZoom 5s cubic-bezier(.65,0,.35,1) infinite;transform-origin:50% 55%}@keyframes mZoom{0%,10%{transform:scale(1)}55%,75%{transform:scale(3.2)}95%,100%{transform:scale(1)}}
 .mHue{animation:mHue 4s ease-in-out infinite}@keyframes mHue{0%,20%{filter:none}35%,50%{filter:hue-rotate(150deg)}65%,80%{filter:hue-rotate(215deg)}95%,100%{filter:none}}
 .mBlind{animation:mBlind 3s cubic-bezier(.65,0,.35,1) infinite;transform-origin:top}@keyframes mBlind{0%,10%{transform:scaleY(1)}40%,85%{transform:scaleY(0)}100%{transform:scaleY(1)}}
 .mGloss{animation:mGloss 2.6s ease-in-out infinite}@keyframes mGloss{0%,20%{transform:translateX(-110%)}70%,100%{transform:translateX(110%)}}
 @media (prefers-reduced-motion:reduce){.rL,.rR,.rU,.rS,.rM,.rW{opacity:1!important;transform:none!important;filter:none!important;clip-path:none!important}}
-[data-sc]{--p:0}.sL{transform:translateX(calc((1 - var(--p)) * -560px));opacity:calc(var(--p) * 1.25 - .1);filter:blur(calc((1 - var(--p)) * 8px))}.sR{transform:translateX(calc((1 - var(--p)) * 560px));opacity:calc(var(--p) * 1.25 - .1);filter:blur(calc((1 - var(--p)) * 8px))}
-.sU{transform:translateY(calc((1 - var(--p)) * 80px));opacity:var(--p)}.sS{transform:scale(calc(.8 + .2 * var(--p)));opacity:var(--p);filter:blur(calc((1 - var(--p)) * 8px))}.sM{display:inline-block;transform:translateY(calc((1 - var(--p)) * 110%))}.sW{clip-path:inset(0 calc((1 - var(--p)) * 100%) 0 0)}
+[data-sc]{--p:0}.sL{transform:translateX(calc((1 - var(--p)) * -560px));opacity:calc(var(--p) * 1.25 - .1)}.sR{transform:translateX(calc((1 - var(--p)) * 560px));opacity:calc(var(--p) * 1.25 - .1)}
+.sU{transform:translateY(calc((1 - var(--p)) * 80px));opacity:var(--p)}.sS{transform:scale(calc(.8 + .2 * var(--p)));opacity:var(--p)}.sM{display:inline-block;transform:translateY(calc((1 - var(--p)) * 110%))}.sW{clip-path:inset(0 calc((1 - var(--p)) * 100%) 0 0)}
 .hx1{transform:translateX(calc(var(--h,0) * -900px));opacity:calc(1 - var(--h,0) * 1.8)}.hx2{transform:translateX(calc(var(--h,0) * 900px));opacity:calc(1 - var(--h,0) * 1.8)}.hx3{transform:translateY(calc(var(--h,0) * -120px));opacity:calc(1 - var(--h,0) * 2.4)}
 .phRow{transform:translateY(calc(var(--h,0) * -380px))}.phL{transform:translateX(calc(var(--h,0) * -250px)) rotateY(calc(var(--h,0) * 34deg)) scale(calc(1 - var(--h,0) * .14))}.phR{transform:translateX(calc(var(--h,0) * 250px)) rotateY(calc(var(--h,0) * -34deg)) scale(calc(1 - var(--h,0) * .14))}.phC{position:relative;z-index:2;transform:scale(calc(1 + var(--h,0) * .16))}
 .bw1{transform:translateX(calc((1 - var(--h2,0)) * -1600px))}.bw2{transform:translateX(calc((1 - var(--h2,0)) * 1600px))}
@@ -82,9 +82,9 @@ body{margin:0;background:#FFFFFF}a{color:#0A0A0A}a:hover{color:#404040}input::pl
 .ldr{position:fixed;inset:0;z-index:100;background:#0A0A0A;display:grid;place-items:center;animation:ldOut 1s cubic-bezier(.65,0,.35,1) 1.75s both;pointer-events:none}@keyframes ldOut{to{clip-path:inset(0 0 100% 0)}}
 .ldOdo{animation:ldOdo 1.6s steps(1,end) both}@keyframes ldOdo{0%{transform:translateY(0)}18%{transform:translateY(-1em)}38%{transform:translateY(-2em)}58%{transform:translateY(-3em)}78%{transform:translateY(-4em)}95%,100%{transform:translateY(-5em)}}
 .ldBar{animation:ldBar 1.6s cubic-bezier(.65,0,.35,1) both}@keyframes ldBar{from{width:0}to{width:100%}}
-.phL,.phC,.phR{transition:none}.phL{translate:calc(var(--mx,0) * 26px) calc(var(--my,0) * 14px)}.phC{translate:calc(var(--mx,0) * 12px) calc(var(--my,0) * 8px)}.phR{translate:calc(var(--mx,0) * 26px) calc(var(--my,0) * 14px)}
-.phTilt{rotate:calc(var(--my,0) * -1) calc(var(--mx,0)) 0 calc((var(--mx,0) * var(--mx,0) + var(--my,0) * var(--my,0)) * 10deg)}
-.halo{position:absolute;inset:40px -50px -10px;border-radius:50%;filter:blur(50px);opacity:.55;animation:halo 6s ease-in-out infinite;pointer-events:none}@keyframes halo{0%,100%{transform:scale(1);opacity:.45}50%{transform:scale(1.08);opacity:.7}}
+.phL,.phC,.phR,.phRow,.hxAll,.cp1,.cp2{will-change:transform}
+
+.halo{position:absolute;inset:40px -50px -10px;border-radius:50%;opacity:.55;animation:halo 6s ease-in-out infinite;pointer-events:none}@keyframes halo{0%,100%{opacity:.45}50%{opacity:.75}}
 .mw{color:#D4D4D4;transition:color .35s ease}
 .tl{transform-style:preserve-3d;transition:rotate .25s ease-out}.tl::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:3;opacity:var(--sa,0);transition:opacity .3s;background:radial-gradient(260px circle at var(--sx,50%) var(--sy,50%),rgba(255,255,255,.28),rgba(255,255,255,0) 60%)}
 [data-mag]{transition:translate .35s cubic-bezier(.22,1,.36,1)}
@@ -96,7 +96,7 @@ body{margin:0;background:#FFFFFF}a{color:#0A0A0A}a:hover{color:#404040}input::pl
 
 <div style="background: #FFFFFF; color: #0A0A0A; font-family: Inter, system-ui, sans-serif; min-height: 100vh; overflow-x: clip">
 <div class="ldr" aria-hidden="true"><div style="text-align: center"><div style="font-size: 11px; letter-spacing: 0.32em; color: #8A8A8A; margin-bottom: 14px">FAÇADE</div><div style="display: flex; justify-content: center; align-items: flex-start; font-family: 'Inter Tight', Inter, sans-serif; font-weight: 900; font-size: 84px; letter-spacing: -0.04em; color: #FFFFFF"><div style="height: 1em; line-height: 1em; overflow: hidden"><div class="ldOdo"><div style="height: 1em">0</div><div style="height: 1em">17</div><div style="height: 1em">38</div><div style="height: 1em">64</div><div style="height: 1em">89</div><div style="height: 1em">100</div></div></div><span style="font-size: 0.45em; line-height: 1.5em">%</span></div><div style="width: 180px; height: 2px; margin: 18px auto 0; background: #2A2A2A; overflow: hidden"><div class="ldBar" style="height: 100%; background: #FFFFFF"></div></div></div></div>
-<div data-prog="1" style="position: fixed; z-index: 90; top: 0; left: 0; height: 2px; width: 0; background: #0A0A0A"></div>
+<div data-prog="1" style="position: fixed; z-index: 90; top: 0; left: 0; right: 0; height: 2px; background: #0A0A0A; transform: scaleX(0); transform-origin: left"></div>
 
 <header class="hS" style="animation-delay: 1.6s; position: relative; z-index: 5; max-width: 1240px; margin: 0 auto; padding: 22px 24px; display: flex; flex-wrap: wrap; gap: 16px; justify-content: space-between; align-items: center">
 <div style="font-family: 'Inter Tight', Inter, sans-serif; font-weight: 900; font-size: 24px; letter-spacing: -0.02em">FAÇADE</div>
@@ -128,7 +128,7 @@ body{margin:0;background:#FFFFFF}a{color:#0A0A0A}a:hover{color:#404040}input::pl
 </div>
 <div class="phRow" style="position: absolute; z-index: 2; left: 0; right: 0; top: 470px">
 <div class="intro" style="display: flex; justify-content: center; align-items: flex-start; gap: 34px; padding: 10px 24px 0; perspective: 1600px">
-<div class="phL" style="position: relative; flex: none; margin-top: 90px"><div class="halo" style="background: #AFC0D4"></div><div class="lift" style="animation-delay: -2s">
+<div class="phL" style="position: relative; flex: none; margin-top: 90px"><div class="halo" style="background: radial-gradient(closest-side, #AFC0D4, rgba(255,255,255,0))"></div><div class="lift" style="animation-delay: -2s">
 <div class="st phTilt" style="--d: -4s; position: relative; width: 330px; height: 690px; border-radius: 60px; padding: 3px; box-sizing: border-box; background: linear-gradient(145deg, #A1A1A6 0%, #48484A 16%, #1C1C1E 50%, #48484A 84%, #A1A1A6 100%); box-shadow: 0 60px 110px -35px rgba(0,0,0,.55), inset 0 0 0 1px rgba(255,255,255,.3)">
 <i style="position: absolute; left: -3px; top: 118px; width: 3px; height: 30px; border-radius: 2px 0 0 2px; background: #3A3A3C"></i><i style="position: absolute; left: -3px; top: 172px; width: 3px; height: 54px; border-radius: 2px 0 0 2px; background: #3A3A3C"></i><i style="position: absolute; left: -3px; top: 238px; width: 3px; height: 54px; border-radius: 2px 0 0 2px; background: #3A3A3C"></i><i style="position: absolute; right: -3px; top: 196px; width: 3px; height: 86px; border-radius: 0 2px 2px 0; background: #3A3A3C"></i>
 <div style="width: 100%; height: 100%; border-radius: 57px; background: #000000; padding: 7px; box-sizing: border-box">
@@ -159,7 +159,7 @@ body{margin:0;background:#FFFFFF}a{color:#0A0A0A}a:hover{color:#404040}input::pl
 <span style="font-family: 'Space Grotesk', Inter, sans-serif; font-size: 13px; font-weight: 700">3 couleurs</span>
 <span style="position: relative; display: flex; gap: 12px"><i class="A swRing" style="position: absolute; left: -4px; top: -4px; width: 26px; height: 26px; border-radius: 50%; border: 2px solid #0A0A0A; box-sizing: border-box"></i><i style="width: 18px; height: 18px; border-radius: 50%; background: #B5473D"></i><i style="width: 18px; height: 18px; border-radius: 50%; background: #3D9E78"></i><i style="width: 18px; height: 18px; border-radius: 50%; background: #4B5FB5"></i></span>
 </div>
-<div class="A card" style="position: absolute; z-index: 5; left: 12px; right: 12px; bottom: 26px; padding: 18px; border-radius: 18px; background: #FFFFFF; color: #0A0A0A; backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); display: flex; flex-direction: column; gap: 12px; box-shadow: 0 20px 50px -20px rgba(0,0,0,.35)">
+<div class="A card" style="position: absolute; z-index: 5; left: 12px; right: 12px; bottom: 26px; padding: 18px; border-radius: 18px; background: #FFFFFF; color: #0A0A0A; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 20px 50px -20px rgba(0,0,0,.35)">
 <div class="A bi" style="font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.14em; opacity: 0.75">ACCESSOIRE</div>
 <div class="A bi" style="animation-delay: calc(var(--d) + .08s); font-family: 'Space Grotesk', Inter, sans-serif; font-weight: 700; font-size: 26px; letter-spacing: -0.02em; line-height: 1.02">Support FORMA</div>
 <div class="A bi" style="animation-delay: calc(var(--d) + .16s); display: flex; justify-content: space-between; align-items: center"><span style="font-size: 20px; font-weight: 700">19 €</span><span style="display: flex; gap: 6px"><span style="font-size: 11px; font-weight: 600; padding: 6px 10px; border-radius: 12px; border: 1px solid #C9D0D8">Rouge</span><span style="font-size: 11px; font-weight: 600; padding: 6px 10px; border-radius: 12px; border: 1px solid #C9D0D8">Vert</span><span style="font-size: 11px; font-weight: 600; padding: 6px 10px; border-radius: 12px; border: 1px solid #C9D0D8">Bleu</span></span></div>
@@ -170,9 +170,9 @@ body{margin:0;background:#FFFFFF}a{color:#0A0A0A}a:hover{color:#404040}input::pl
 <div style="display: flex; align-items: flex-start; font-family: 'Space Grotesk', Inter, sans-serif; font-weight: 900; font-size: 64px; letter-spacing: -0.04em"><div style="height: 1em; line-height: 1em; overflow: hidden"><div class="A odo"><div style="height: 1em">0</div><div style="height: 1em">20</div><div style="height: 1em">40</div><div style="height: 1em">60</div><div style="height: 1em">80</div><div style="height: 1em">100</div></div></div><span style="font-size: 0.5em; line-height: 1.4em">%</span></div>
 <div style="width: 150px; height: 2px; background: #3A4660; overflow: hidden"><div class="A bar lin" style="height: 100%; background: #DCE1E6"></div></div>
 </div>
-<svg class="gr" style="position: absolute; z-index: 8; inset: -20%; width: 140%; height: 140%; opacity: 0.05; pointer-events: none" aria-hidden="true"><filter id="n2"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" stitchTiles="stitch"></feTurbulence></filter><rect width="100%" height="100%" filter="url(#n2)"></rect></svg>
+
 </div></div></div></div></div>
-<div class="phC" style="position: relative; flex: none; margin-top: 0"><div class="halo" style="background: #D8C4A4"></div><div class="lift" style="animation-delay: 0s">
+<div class="phC" style="position: relative; flex: none; margin-top: 0"><div class="halo" style="background: radial-gradient(closest-side, #D8C4A4, rgba(255,255,255,0))"></div><div class="lift" style="animation-delay: 0s">
 <div class="st phTilt" style="--d: 0s; position: relative; width: 330px; height: 690px; border-radius: 60px; padding: 3px; box-sizing: border-box; background: linear-gradient(145deg, #A1A1A6 0%, #48484A 16%, #1C1C1E 50%, #48484A 84%, #A1A1A6 100%); box-shadow: 0 60px 110px -35px rgba(0,0,0,.55), inset 0 0 0 1px rgba(255,255,255,.3)">
 <i style="position: absolute; left: -3px; top: 118px; width: 3px; height: 30px; border-radius: 2px 0 0 2px; background: #3A3A3C"></i><i style="position: absolute; left: -3px; top: 172px; width: 3px; height: 54px; border-radius: 2px 0 0 2px; background: #3A3A3C"></i><i style="position: absolute; left: -3px; top: 238px; width: 3px; height: 54px; border-radius: 2px 0 0 2px; background: #3A3A3C"></i><i style="position: absolute; right: -3px; top: 196px; width: 3px; height: 86px; border-radius: 0 2px 2px 0; background: #3A3A3C"></i>
 <div style="width: 100%; height: 100%; border-radius: 57px; background: #000000; padding: 7px; box-sizing: border-box">
@@ -203,7 +203,7 @@ body{margin:0;background:#FFFFFF}a{color:#0A0A0A}a:hover{color:#404040}input::pl
 <div style="position: absolute; left: 150px; top: 166px; padding: 8px 12px; border-radius: 999px; background: #FFFFFF; color: #0A0A0A; font-family: 'JetBrains Mono', monospace; font-size: 10.5px; font-weight: 700; letter-spacing: 0.08em; white-space: nowrap; box-shadow: 0 10px 30px -10px rgba(0,0,0,.4)">MESH RESPIRANT</div>
 </div>
 <div style="position: absolute; z-index: 4; left: 22px; right: 22px; bottom: 34px; display: flex; justify-content: space-between; font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.12em; color: #0A0A0A"><span>DROP 01 · ÉDITION LIMITÉE</span><span>01/03</span></div>
-<div class="A card" style="position: absolute; z-index: 5; left: 12px; right: 12px; bottom: 26px; padding: 18px; border-radius: 28px; background: rgba(255,255,255,.82); color: #0A0A0A; backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); display: flex; flex-direction: column; gap: 12px; box-shadow: 0 20px 50px -20px rgba(0,0,0,.35)">
+<div class="A card" style="position: absolute; z-index: 5; left: 12px; right: 12px; bottom: 26px; padding: 18px; border-radius: 28px; background: rgba(255,255,255,.82); color: #0A0A0A; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 20px 50px -20px rgba(0,0,0,.35)">
 <div class="A bi" style="font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.14em; opacity: 0.75">NOUVEAUTÉ</div>
 <div class="A bi" style="animation-delay: calc(var(--d) + .08s); font-family: 'Inter Tight', Inter, sans-serif; font-weight: 800; font-size: 26px; letter-spacing: -0.02em; line-height: 1.02">Runner Olive</div>
 <div class="A bi" style="animation-delay: calc(var(--d) + .16s); display: flex; justify-content: space-between; align-items: center"><span style="font-size: 20px; font-weight: 700">189 €</span><span style="display: flex; gap: 6px"><span style="font-size: 11px; font-weight: 600; padding: 6px 10px; border-radius: 999px; border: 1px solid #BDBDBD">41</span><span style="font-size: 11px; font-weight: 600; padding: 6px 10px; border-radius: 999px; border: 1px solid #BDBDBD">42</span><span style="font-size: 11px; font-weight: 600; padding: 6px 10px; border-radius: 999px; border: 1px solid #BDBDBD">43</span></span></div>
@@ -214,9 +214,9 @@ body{margin:0;background:#FFFFFF}a{color:#0A0A0A}a:hover{color:#404040}input::pl
 <div style="display: flex; align-items: flex-start; font-family: 'Inter Tight', Inter, sans-serif; font-weight: 900; font-size: 64px; letter-spacing: -0.04em"><div style="height: 1em; line-height: 1em; overflow: hidden"><div class="A odo"><div style="height: 1em">0</div><div style="height: 1em">20</div><div style="height: 1em">40</div><div style="height: 1em">60</div><div style="height: 1em">80</div><div style="height: 1em">100</div></div></div><span style="font-size: 0.5em; line-height: 1.4em">%</span></div>
 <div style="width: 150px; height: 2px; background: #333333; overflow: hidden"><div class="A bar lin" style="height: 100%; background: #E8E1D6"></div></div>
 </div>
-<svg class="gr" style="position: absolute; z-index: 8; inset: -20%; width: 140%; height: 140%; opacity: 0.07; pointer-events: none" aria-hidden="true"><filter id="n1"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" stitchTiles="stitch"></feTurbulence></filter><rect width="100%" height="100%" filter="url(#n1)"></rect></svg>
+
 </div></div></div></div></div>
-<div class="phR" style="position: relative; flex: none; margin-top: 70px"><div class="halo" style="background: #7D8BA6"></div><div class="lift" style="animation-delay: -4.5s">
+<div class="phR" style="position: relative; flex: none; margin-top: 70px"><div class="halo" style="background: radial-gradient(closest-side, #7D8BA6, rgba(255,255,255,0))"></div><div class="lift" style="animation-delay: -4.5s">
 <div class="st phTilt" style="--d: -8s; position: relative; width: 330px; height: 690px; border-radius: 60px; padding: 3px; box-sizing: border-box; background: linear-gradient(145deg, #A1A1A6 0%, #48484A 16%, #1C1C1E 50%, #48484A 84%, #A1A1A6 100%); box-shadow: 0 60px 110px -35px rgba(0,0,0,.55), inset 0 0 0 1px rgba(255,255,255,.3)">
 <i style="position: absolute; left: -3px; top: 118px; width: 3px; height: 30px; border-radius: 2px 0 0 2px; background: #3A3A3C"></i><i style="position: absolute; left: -3px; top: 172px; width: 3px; height: 54px; border-radius: 2px 0 0 2px; background: #3A3A3C"></i><i style="position: absolute; left: -3px; top: 238px; width: 3px; height: 54px; border-radius: 2px 0 0 2px; background: #3A3A3C"></i><i style="position: absolute; right: -3px; top: 196px; width: 3px; height: 86px; border-radius: 0 2px 2px 0; background: #3A3A3C"></i>
 <div style="width: 100%; height: 100%; border-radius: 57px; background: #000000; padding: 7px; box-sizing: border-box">
@@ -237,7 +237,7 @@ body{margin:0;background:#FFFFFF}a{color:#0A0A0A}a:hover{color:#404040}input::pl
 <div class="A flash" style="position: absolute; z-index: 4; inset: 0; background: #FFE9C9"></div>
 <div class="A rvIn villaCrop" style="position: absolute; z-index: 4; inset: 0"></div>
 <div class="A rvTxt" style="position: absolute; z-index: 5; left: 0; right: 0; top: 230px; text-align: center; font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 600; font-size: 46px; line-height: 0.95; color: #FFFFFF; text-shadow: 0 8px 40px rgba(0,0,0,.5)">Le confort,<br>dehors aussi.</div>
-<div class="A card" style="position: absolute; z-index: 5; left: 12px; right: 12px; bottom: 26px; padding: 18px; border-radius: 4px; background: rgba(14,17,22,.66); color: #F3ECE2; backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); display: flex; flex-direction: column; gap: 12px; box-shadow: 0 20px 50px -20px rgba(0,0,0,.35)">
+<div class="A card" style="position: absolute; z-index: 5; left: 12px; right: 12px; bottom: 26px; padding: 18px; border-radius: 4px; background: rgba(14,17,22,.66); color: #F3ECE2; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 20px 50px -20px rgba(0,0,0,.35)">
 <div class="A bi" style="font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.14em; opacity: 0.75">COLLECTION TERRASSE</div>
 <div class="A bi" style="animation-delay: calc(var(--d) + .08s); font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 600; font-size: 26px; letter-spacing: -0.02em; line-height: 1.02">Bain de soleil Riviera</div>
 <div class="A bi" style="animation-delay: calc(var(--d) + .16s); display: flex; justify-content: space-between; align-items: center"><span style="font-size: 20px; font-weight: 700">349 €</span><span style="display: flex; gap: 6px"><span style="font-size: 11px; font-weight: 600; padding: 6px 10px; border-radius: 4px; border: 1px solid #5C5C5C">Sable</span><span style="font-size: 11px; font-weight: 600; padding: 6px 10px; border-radius: 4px; border: 1px solid #5C5C5C">Noir</span></span></div>
@@ -248,7 +248,7 @@ body{margin:0;background:#FFFFFF}a{color:#0A0A0A}a:hover{color:#404040}input::pl
 <div style="display: flex; align-items: flex-start; font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 900; font-size: 64px; letter-spacing: -0.04em"><div style="height: 1em; line-height: 1em; overflow: hidden"><div class="A odo"><div style="height: 1em">0</div><div style="height: 1em">20</div><div style="height: 1em">40</div><div style="height: 1em">60</div><div style="height: 1em">80</div><div style="height: 1em">100</div></div></div><span style="font-size: 0.5em; line-height: 1.4em">%</span></div>
 <div style="width: 150px; height: 2px; background: #3A3A3A; overflow: hidden"><div class="A bar lin" style="height: 100%; background: #C8A574"></div></div>
 </div>
-<svg class="gr" style="position: absolute; z-index: 8; inset: -20%; width: 140%; height: 140%; opacity: 0.07; pointer-events: none" aria-hidden="true"><filter id="n3"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" stitchTiles="stitch"></feTurbulence></filter><rect width="100%" height="100%" filter="url(#n3)"></rect></svg>
+
 </div></div></div></div></div>
 </div>
 </div>
@@ -331,7 +331,7 @@ body{margin:0;background:#FFFFFF}a{color:#0A0A0A}a:hover{color:#404040}input::pl
 <input id="produit" placeholder="Ex. : sneakers en cuir olive" style="font: inherit; font-size: 16px; color: #0A0A0A; background: #FFFFFF; border: 1px solid #D4D4D4; border-radius: 14px; padding: 14px 16px; min-height: 50px; box-sizing: border-box">
 <div style="font-size: 14px; font-weight: 600">L'ambiance de départ</div>
 <div style="display: flex; flex-wrap: wrap; gap: 8px">
-<button type="button" data-style="sneakers" style="">Sneakers</button><button type="button" data-style="tech" style="">Tech</button><button type="button" data-style="maison" style="">Maison</button>
+<button type="button" data-style="sneakers">Sneakers</button><button type="button" data-style="tech">Tech</button><button type="button" data-style="maison">Maison</button>
 </div>
 <a href="#prix" data-mag="1" style="display: inline-flex; justify-content: center; align-items: center; gap: 10px; text-decoration: none; color: #FFFFFF; background: #0A0A0A; height: 54px; border-radius: 999px; font-weight: 600; font-size: 16px"><span style="width: 8px; height: 8px; border-radius: 50%; background: #FFFFFF"></span>Je la veux en vrai</a>
 <div style="font-size: 13px; color: #525252; text-align: center">Gratuit pour créer · 25 € seulement si tu publies</div>
@@ -482,42 +482,73 @@ const C={};
 
     const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const clamp = (v) => Math.max(0, Math.min(1, v));
+    const kind = (el) => ['sL', 'sR', 'sU', 'sS', 'sM', 'sW'].find((c) => el.classList.contains(c));
+    const styleFor = (k, p) => {
+      if (k === 'sL' || k === 'sR') return ['translate3d(' + ((1 - p) * (k === 'sL' ? -560 : 560)).toFixed(1) + 'px,0,0)', (p * 1.25 - 0.1).toFixed(3), ''];
+      if (k === 'sU') return ['translate3d(0,' + ((1 - p) * 80).toFixed(1) + 'px,0)', p.toFixed(3), ''];
+      if (k === 'sS') return ['scale(' + (0.8 + 0.2 * p).toFixed(4) + ')', p.toFixed(3), ''];
+      if (k === 'sM') return ['translate3d(0,' + ((1 - p) * 110).toFixed(1) + '%,0)', '', ''];
+      return ['', '', 'inset(0 ' + ((1 - p) * 100).toFixed(1) + '% 0 0)'];
+    };
+    const q = (s) => document.querySelector(s);
     const collect = () => {
-      C.items = Array.from(document.querySelectorAll('[data-sc]')).map((el) => ({ el, lag: parseFloat(el.getAttribute('data-lag') || '0'), cur: -1 }));
-      C.hero = document.querySelector('[data-hero]'); C.sticky = document.querySelector('[data-sticky]'); C.hc = -1;
-      C.prog = document.querySelector('[data-prog]'); C.mags = Array.from(document.querySelectorAll('[data-mag]')); C.tilts = Array.from(document.querySelectorAll('[data-tilt]'));
-      C.mfs = Array.from(document.querySelectorAll('[data-mf]')).map((sec) => ({ sec, words: Array.from(sec.querySelectorAll('.mw')) }));
+      C.items = Array.from(document.querySelectorAll('[data-sc]')).map((el) => ({ el, k: kind(el), lag: parseFloat(el.getAttribute('data-lag') || '0'), cur: -1, last: -1 }));
+      C.hero = q('[data-hero]'); C.sticky = q('[data-sticky]'); C.hc = -1; C.hl = -1;
+      C.hx = q('.hxAll'); C.row = q('.phRow'); C.pL = q('.phL'); C.pC = q('.phC'); C.pR = q('.phR'); C.c1 = q('.cp1'); C.c2 = q('.cp2');
+      C.tiltPh = Array.from(document.querySelectorAll('.phTilt'));
+      C.prog = q('[data-prog]'); C.mags = Array.from(document.querySelectorAll('[data-mag]')); C.tilts = Array.from(document.querySelectorAll('[data-tilt]'));
+      C.mfs = Array.from(document.querySelectorAll('[data-mf]')).map((sec) => ({ sec, words: Array.from(sec.querySelectorAll('.mw')), lit: -1 }));
+      C.pm = { x: 0, y: 0 }; C.pmLast = '';
     };
     const tick = () => {
-      const H = window.innerHeight || 800;
-      C.items.forEach((it) => {
-        const r = it.el.getBoundingClientRect();
-        const p = clamp((clamp((H - r.top) / (H * 0.5)) - it.lag) / (1 - it.lag));
-        it.cur = it.cur < 0 ? p : it.cur + (p - it.cur) * 0.14;
-        it.el.style.setProperty('--p', it.cur.toFixed(4));
-      });
-      if (C.hero && C.sticky) {
-        const r = C.hero.getBoundingClientRect();
-        const t = clamp(-r.top / Math.max(1, C.hero.offsetHeight - C.sticky.offsetHeight));
-        C.hc = C.hc < 0 ? t : C.hc + (t - C.hc) * 0.12;
-        C.sticky.style.setProperty('--h', C.hc.toFixed(4));
-        C.sticky.style.setProperty('--h1', clamp(C.hc / 0.5).toFixed(4));
-        C.sticky.style.setProperty('--h3', clamp((C.hc - 0.45) / 0.35).toFixed(4));
-      }
+      const H = window.innerHeight || 800, de = document.documentElement, sy = window.scrollY || de.scrollTop;
+      const atBottom = sy + H >= de.scrollHeight - 4;
       const P = C.ptr || { x: -1e4, y: -1e4, nx: 0, ny: 0 };
-      C.pm = C.pm || { x: 0, y: 0 }; C.pm.x += (P.nx - C.pm.x) * 0.06; C.pm.y += (P.ny - C.pm.y) * 0.06;
-      if (C.sticky) { C.sticky.style.setProperty('--mx', C.pm.x.toFixed(4)); C.sticky.style.setProperty('--my', C.pm.y.toFixed(4)); }
-      if (C.prog) { const de = document.documentElement; const f = clamp((window.scrollY || de.scrollTop) / Math.max(1, de.scrollHeight - H)); C.prog.style.width = (f * 100).toFixed(2) + '%'; }
-      C.mfs.forEach((m) => { const r = m.sec.getBoundingClientRect(); const pr = clamp((H * 0.85 - r.top) / (r.height + H * 0.25)); const n = m.words.length; m.words.forEach((w, i) => { const k = clamp(pr * n * 1.15 - i); w.style.color = k > 0.5 ? '#0A0A0A' : '#D4D4D4'; }); });
-      C.mags.forEach((el) => { const r = el.getBoundingClientRect(); const cx = r.left + r.width / 2, cy = r.top + r.height / 2; const dx = P.x - cx, dy = P.y - cy; const near = Math.abs(dx) < r.width / 2 + 50 && Math.abs(dy) < r.height / 2 + 40; el.style.translate = near ? (dx * 0.22).toFixed(1) + 'px ' + (dy * 0.3).toFixed(1) + 'px' : '0px 0px'; });
-      C.tilts.forEach((el) => { const r = el.getBoundingClientRect(); const inside = P.x > r.left && P.x < r.right && P.y > r.top && P.y < r.bottom; if (inside) { const ux = (P.x - r.left) / r.width - 0.5, uy = (P.y - r.top) / r.height - 0.5; el.style.rotate = (-uy).toFixed(3) + ' ' + ux.toFixed(3) + ' 0 ' + (Math.hypot(ux, uy) * 14).toFixed(2) + 'deg'; el.style.setProperty('--sx', ((ux + 0.5) * 100).toFixed(1) + '%'); el.style.setProperty('--sy', ((uy + 0.5) * 100).toFixed(1) + '%'); el.style.setProperty('--sa', '1'); } else { el.style.rotate = '0 0 1 0deg'; el.style.setProperty('--sa', '0'); } });
+      /* 1. lectures groupées */
+      const rects = C.items.map((it) => it.el.getBoundingClientRect());
+      const hr = C.hero ? C.hero.getBoundingClientRect() : null, hh = C.hero ? C.hero.offsetHeight - C.sticky.offsetHeight : 1;
+      const mr = C.mfs.map((m) => m.sec.getBoundingClientRect());
+      const gr = C.mags.map((el) => el.getBoundingClientRect());
+      const tr = C.tilts.map((el) => el.getBoundingClientRect());
+      /* 2. écritures */
+      C.items.forEach((it, i) => {
+        const r = rects[i];
+        let p = clamp((clamp((H - r.top) / (H * 0.5)) - it.lag) / (1 - it.lag));
+        if (atBottom && r.top < H) p = 1;
+        it.cur = it.cur < 0 ? p : it.cur + (p - it.cur) * 0.16;
+        if (Math.abs(p - it.cur) < 0.002) it.cur = p;
+        if (Math.abs(it.cur - it.last) < 0.001) return;
+        it.last = it.cur; const s = styleFor(it.k, it.cur);
+        if (s[0]) it.el.style.transform = s[0]; if (s[1]) it.el.style.opacity = s[1]; if (s[2]) it.el.style.clipPath = s[2];
+      });
+      if (hr) {
+        const t = clamp(-hr.top / Math.max(1, hh));
+        C.hc = C.hc < 0 ? t : C.hc + (t - C.hc) * 0.12; if (Math.abs(t - C.hc) < 0.001) C.hc = t;
+        C.pm.x += (P.nx - C.pm.x) * 0.06; C.pm.y += (P.ny - C.pm.y) * 0.06;
+        const key = C.hc.toFixed(3) + C.pm.x.toFixed(3) + C.pm.y.toFixed(3);
+        if (key !== C.pmLast && hr.bottom > 0) {
+          C.pmLast = key; const h = C.hc, h1 = clamp(h / 0.5), h3 = clamp((h - 0.45) / 0.35), mx = C.pm.x, my = C.pm.y;
+          if (C.hx) { C.hx.style.transform = 'translate3d(0,' + (h * -220).toFixed(1) + 'px,0)'; C.hx.style.opacity = clamp(1 - h * 3.4).toFixed(3); }
+          if (C.row) C.row.style.transform = 'translate3d(0,' + (h1 * -270).toFixed(1) + 'px,0)';
+          if (C.pC) C.pC.style.transform = 'translate3d(' + (mx * 12).toFixed(1) + 'px,' + (my * 8).toFixed(1) + 'px,0) scale(' + (1 + h3 * 0.06).toFixed(4) + ')';
+          if (C.pL) C.pL.style.transform = 'translate3d(' + (mx * 26 - 50 * h3).toFixed(1) + 'px,' + (my * 14).toFixed(1) + 'px,0) rotateY(' + (18 * h3).toFixed(2) + 'deg) scale(' + (1 - 0.06 * h3).toFixed(4) + ')';
+          if (C.pR) C.pR.style.transform = 'translate3d(' + (mx * 26 + 50 * h3).toFixed(1) + 'px,' + (my * 14).toFixed(1) + 'px,0) rotateY(' + (-18 * h3).toFixed(2) + 'deg) scale(' + (1 - 0.06 * h3).toFixed(4) + ')';
+          if (C.c1) { C.c1.style.transform = 'translate3d(' + ((1 - h3) * -800).toFixed(1) + 'px,0,0)'; C.c1.style.opacity = h3.toFixed(3); }
+          if (C.c2) { C.c2.style.transform = 'translate3d(' + ((1 - h3) * 800).toFixed(1) + 'px,0,0)'; C.c2.style.opacity = h3.toFixed(3); }
+          const tilt = 'rotateX(' + (-my * 5).toFixed(2) + 'deg) rotateY(' + (mx * 6).toFixed(2) + 'deg)';
+          C.tiltPh.forEach((el) => { el.style.transform = tilt; });
+        }
+      }
+      if (C.prog) C.prog.style.transform = 'scaleX(' + clamp(sy / Math.max(1, de.scrollHeight - H)).toFixed(4) + ')';
+      C.mfs.forEach((m, i) => { const r = mr[i]; const n = m.words.length; const lit = Math.max(0, Math.min(n, Math.round(clamp((H * 0.85 - r.top) / (r.height + H * 0.25)) * n * 1.15))); if (lit === m.lit) return; m.lit = lit; m.words.forEach((w, j) => { w.style.color = j < lit ? '#0A0A0A' : '#D4D4D4'; }); });
+      C.mags.forEach((el, i) => { const r = gr[i]; const dx = P.x - (r.left + r.width / 2), dy = P.y - (r.top + r.height / 2); const near = Math.abs(dx) < r.width / 2 + 50 && Math.abs(dy) < r.height / 2 + 40; const v = near ? (dx * 0.22).toFixed(0) + 'px ' + (dy * 0.3).toFixed(0) + 'px' : '0px 0px'; if (el._v !== v) { el._v = v; el.style.translate = v; } });
+      C.tilts.forEach((el, i) => { const r = tr[i]; const inside = P.x > r.left && P.x < r.right && P.y > r.top && P.y < r.bottom; if (!inside && !el._in) return; el._in = inside; if (inside) { const ux = (P.x - r.left) / r.width - 0.5, uy = (P.y - r.top) / r.height - 0.5; el.style.rotate = (-uy).toFixed(3) + ' ' + ux.toFixed(3) + ' 0 ' + (Math.hypot(ux, uy) * 14).toFixed(2) + 'deg'; el.style.setProperty('--sx', ((ux + 0.5) * 100).toFixed(1) + '%'); el.style.setProperty('--sy', ((uy + 0.5) * 100).toFixed(1) + '%'); el.style.setProperty('--sa', '1'); } else { el.style.rotate = '0 0 1 0deg'; el.style.setProperty('--sa', '0'); } });
       if (!reduce) C.raf = requestAnimationFrame(tick);
     };
     C.onPtr = (e) => { C.ptr = { x: e.clientX, y: e.clientY, nx: e.clientX / (window.innerWidth || 1) * 2 - 1, ny: e.clientY / (window.innerHeight || 1) * 2 - 1 }; };
-    window.addEventListener('pointermove', C.onPtr);
-    C.boot = setTimeout(() => { collect(); if (reduce) { C.items.forEach((it) => it.el.style.setProperty('--p', '1')); } else { tick(); } }, 60);
+    window.addEventListener('pointermove', C.onPtr, { passive: true });
+    C.boot = setTimeout(() => { collect(); if (reduce) { C.items.forEach((it) => { it.el.style.transform = 'none'; it.el.style.opacity = '1'; it.el.style.clipPath = 'none'; }); } else { tick(); } }, 60);
   
-
 const SN={sneakers:'Runner Olive',tech:'Support FORMA',maison:'Bain de soleil Riviera'};let cur='sneakers',plan='u';
 const pill=(on)=>'font: inherit; font-size: 14px; font-weight: 600; min-height: 44px; padding: 0 18px; border-radius: 999px; cursor: pointer; border: 1px solid '+(on?'#0A0A0A':'#D4D4D4')+'; background: '+(on?'#0A0A0A':'#FFFFFF')+'; color: '+(on?'#FFFFFF':'#0A0A0A');
 const tab=(on)=>'font: inherit; font-size: 14px; font-weight: 600; min-height: 44px; padding: 0 22px; border-radius: 999px; cursor: pointer; border: none; background: '+(on?'#0A0A0A':'transparent')+'; color: '+(on?'#FFFFFF':'#404040');
